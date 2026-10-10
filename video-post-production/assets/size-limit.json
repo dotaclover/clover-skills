@@ -1,0 +1,7 @@
+{
+  "source": "./source.mp4",
+  "encoding_mode": "size",
+  "target_mb": 0.2,
+  "audio_mode": "original",
+  "segments": [{"start": 0, "end": 4}]
+}

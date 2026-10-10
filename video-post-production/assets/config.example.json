@@ -1,0 +1,7 @@
+{
+  "source": "./source.mp4",
+  "encoding_mode": "quality",
+  "crf": 20,
+  "audio_mode": "original",
+  "subtitle_mode": "none"
+}

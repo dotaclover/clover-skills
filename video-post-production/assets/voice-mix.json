@@ -1,0 +1,7 @@
+{
+  "source": "./source.mp4",
+  "audio_mode": "mix",
+  "original_volume": 0.25,
+  "voice_volume": 1.0,
+  "segments": [{"start": 0, "end": 4, "voice_file": "./voice.mp3"}]
+}
