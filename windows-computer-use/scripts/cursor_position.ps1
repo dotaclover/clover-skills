@@ -1,0 +1,5 @@
+# 读当前系统光标位置，用于验证"坐标注入是否真的移动了鼠标"。
+# 用法：powershell -File scripts/cursor_position.ps1
+Add-Type -AssemblyName System.Windows.Forms
+$p = [System.Windows.Forms.Cursor]::Position
+"X=$($p.X) Y=$($p.Y)"

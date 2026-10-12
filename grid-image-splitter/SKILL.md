@@ -1,6 +1,7 @@
 ---
 name: grid-image-splitter
 description: 宫格拼图切分工具。把九宫格/宫格图片（AI 生成的表情包九宫格、拼图等）快速切成多张小图。支持 2、4、6、8、9、16 宫格及任意 行x列 网格，支持自动识别宫格数。当用户要求"切九宫格""切成小图""split grid image""拆分拼图"时使用。
+agent_created: true
 ---
 
 # Grid Image Splitter（宫格图片切分）

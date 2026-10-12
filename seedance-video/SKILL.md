@@ -1,6 +1,7 @@
 ---
 name: seedance-video
 description: 直接调用火山方舟（Volcengine Ark）Seedance API 生成视频。支持 Seedance 2.5 / 2.0 系列的文生视频、图生视频（首帧/首尾帧）、多模态参考（图片+视频+音频）、视频编辑与延长，含任务提交、轮询、成片下载。当用户要求"生成视频""Seedance""即梦视频""豆包视频生成"时使用。
+agent_created: true
 ---
 
 # 火山方舟 Seedance 视频生成

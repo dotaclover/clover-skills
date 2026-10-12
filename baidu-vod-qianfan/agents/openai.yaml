@@ -1,0 +1,4 @@
+interface:
+  display_name: "百度渠道与 Seedance 接入"
+  short_description: "测试旧/新 VOD、千帆和 AI 网关并指导 new-api 配置"
+  default_prompt: "Use $baidu-vod-qianfan to verify Baidu VOD, new VOD, Qianfan, or AI Gateway Seedance endpoints, then guide the matching new-api channel setup without mixing keys or protocols."
