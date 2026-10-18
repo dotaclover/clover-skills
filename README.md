@@ -17,14 +17,24 @@
 
 不要把六个平台合并成一个无差别的触发入口；平台差异会影响标题、时长、文体、封面和合规检查。
 
+`wxchannels-script-studio` 比其他两个口播工坊多一档 **F 型：3 分钟长视频对比测评**（纯口播、九段骨架、不给"谁赢"），见
+`references/longform-review.md`。这一型**不要塞进抖音体系**——抖音的 3 秒钩子和快节奏会直接破坏长视频所需的信任感；
+反过来，抖音的爆点结构也不适合 180 秒的测评。
+
 ### 视频与数字人
 
 - `seedance-video`：生成新视频、参考素材、编辑/延长、提交和轮询。
 - `doubao-web-video`：不开 API Key，用浏览器自动化操作豆包网页版出片并下载。
+- `zero-cost-video`：从零合成「底图 + 弹幕 + 多人 TTS」短片，不调用付费 API。
 - `video-post-production`：加工已有视频，不负责生成新视频。
 - `xiaoice-digital-human`：小冰数字人播报、形象/声音训练和任务管理。
 
-这四个 Skill 的输入和任务状态不同，不要在调用时互相替代。
+这五个 Skill 的输入和任务状态不同，不要在调用时互相替代。
+
+`zero-cost-video` 与 `video-post-production` 的分界只有一句：**手上有没有源视频**。
+前者输入是文案和底图，后者必须有视频文件。两者技术栈有重叠（都用 edge-tts 与 ffmpeg amix），
+但**编码器假设相反**——前者假定目标机无 `libx264`、只能用 `libopenh264`，后者硬编码 `libx264 + CRF`。
+两套参数不能在同一台机器上互换，详见 `zero-cost-video/references/与后处理的边界.md`。
 
 `seedance-video` 与 `doubao-web-video` 都产出 Seedance 视频，但通道完全不同：前者走火山方舟 API（要 Key、可 1080p/4K、参数可控），后者走用户已登录的豆包网页版（零配置、仅 720p、消耗免费额度）。用户明确要 API 调用或高分辨率时只能用前者；只想"用我登录的豆包直接出片"时才用后者。
 
