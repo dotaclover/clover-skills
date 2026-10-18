@@ -1,0 +1,57 @@
+{
+  "query": {
+    "city": "广州",
+    "area": "江南西",
+    "dish": "炒牛河",
+    "budget": "60",
+    "created": "2026-10-18 18:06"
+  },
+  "candidates": [
+    {
+      "name": "华叻强面家",
+      "address": "紫龙大街24号之9",
+      "landmark": "紫丹阁对面",
+      "avg_price": 23,
+      "hours": "07:00-22:30",
+      "rating": 7.6,
+      "review_count": 729,
+      "signature": "yes",
+      "source": "豆包",
+      "data_date": "2026-10",
+      "area_confirmed": true
+    },
+    {
+      "name": "禄粥",
+      "branch": "江南西店",
+      "address": "杏园大街128号首层",
+      "avg_price": 41,
+      "hours": "17:00-02:00",
+      "rating": 8.1,
+      "review_count": 1200,
+      "signature": "yes",
+      "source": "元宝",
+      "data_date": "2026-10"
+    },
+    {
+      "name": "九龙冰室",
+      "branch": "江南西路店",
+      "address": "江南西路名店城首层101A",
+      "avg_price": 35,
+      "hours": "10:00-22:00",
+      "rating": 7.1,
+      "review_count": 1720,
+      "signature": "no",
+      "signature_note": "招牌是奶茶西多士，不以炒牛河见长",
+      "source": "DeepSeek禁搜",
+      "data_date": "2026-10"
+    },
+    {
+      "name": "锦记饮食世家",
+      "address": "青柳大街48-52号",
+      "avg_price": 75,
+      "signature": "unknown",
+      "source": "DeepSeek联网",
+      "data_date": "2022-10"
+    }
+  ]
+}
