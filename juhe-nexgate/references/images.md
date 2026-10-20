@@ -23,6 +23,7 @@
 
 ```bash
 curl --silent --show-error --fail-with-body \
+  --connect-timeout 30 --max-time 300 \
   "$JUHE_BASE_URL/v1/images/generations" \
   -H "Authorization: Bearer $JUHE_API_KEY" \
   -H 'Content-Type: application/json' \
@@ -36,6 +37,14 @@ curl --silent --show-error --fail-with-body \
 ```
 
 替换 `model` 即可请求另外两款 Image-2.5 型号。生成结果从 `data[]` 中读取，按响应中的 `b64_json` 或 `url` 保存。
+
+### 超时与响应体积
+
+- 图片生成本身耗时远高于文本，`--max-time` 建议设 `180`–`300` 秒。默认无限等待会让故障请求一直挂着。
+- 设到 300 秒仍无任何响应、或返回 524，属于该型号上游问题，继续加大等待无效，按 [常见报错与处理](troubleshooting.md) 中的“单型号无响应判定”换型号。
+- 同一提示词横向测试型号时只改 `model`，其余字段保持一致，便于对比耗时。
+- `b64_json` 响应体常在 2–4 MB，务必用 `--output` 写入文件后解码，不要直接把响应读进变量或终端管道。
+- `url` 形式的结果链接带签名和有效期，生成后及时下载保存，过期后需重新生成。
 
 ### 保存生成结果
 
