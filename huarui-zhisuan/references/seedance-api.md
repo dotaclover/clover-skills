@@ -1,6 +1,6 @@
 # 华锐智算 Seedance API 接入说明
 
-服务地址：`http://suanli.huaruiai.com`
+服务地址：`https://suanli.huaruiai.com`
 
 提供 Seedance 视频生成、任务查询与下载，以及账号私有素材管理。视频接口支持火山方舟格式和 OpenAI Video 格式，两种格式任选一种创建即可。
 
@@ -27,7 +27,7 @@ API Key 不等于登录密码。不要把真实 Key 放入前端代码、公开�
 以下 curl 使用 Bash 语法，可在 Git Bash / WSL 中运行。Apipost 中配置同样的 URL、Header 和 JSON Body 即可：
 
 ```bash
-export HUARUI_BASE_URL='http://suanli.huaruiai.com'
+export HUARUI_BASE_URL='https://suanli.huaruiai.com'
 read -rsp 'API Key: ' HUARUI_API_KEY; echo
 export HUARUI_API_KEY
 ```
@@ -40,7 +40,17 @@ curl --silent --show-error --fail-with-body \
   -H "Authorization: Bearer $HUARUI_API_KEY"
 ```
 
-当前地址为 HTTP，不提供 TLS 传输加密。敏感生产业务请先联系服务方确认 HTTPS 地址；不要用 `curl -k` 绕过证书校验。
+### 1.1 协议要求
+
+服务仅接受 HTTPS。`http://suanli.huaruiai.com` 会返回 `301 Moved Permanently` 跳转到 HTTPS，多数客户端跟随 301 时把 POST 降级为 GET，导致请求落到不存在的 GET 路由：
+
+| 客户端行为 | 响应 |
+|---|---|
+| Python `urllib` 跟随 301 | `404 {"error":{"message":"Invalid URL (GET /v1/videos)"}}` |
+| curl 未加 `-L` | `301` + `Location: https://...`，响应体为 nginx 的 HTML |
+| `POST /?Action=...` 走 HTTP | `200` 且 `Content-Type: text/html`，返回前端页面而非接口结果 |
+
+判定方式：接口层的正常响应必为 `application/json`；`200` 加 `text/html` 说明请求未进入接口层。此类 404 与 Key、权限、余额无关，改用 HTTPS 重发即可。HTTPS 使用受信任证书，客户端保持默认校验，不要使用 `curl -k`。
 
 ## 2. 火山方舟格式：创建、查询视频
 
@@ -74,7 +84,38 @@ curl --silent --show-error --fail-with-body \
 
 这里的 ID 是占位示例。后续请求必须使用你实际收到的 `id`。受理成功不等于视频已经生成完成。
 
-### 2.2 查询任务
+### 2.2 提示词规范与内容审核
+
+创建接口返回 200 只代表受理成功。提示词不通过上游版权审核时，任务以 `failed` 结束：
+
+```json
+{
+  "status": "failed",
+  "error": {"message": "The request failed because the output video may be related to copyright restrictions. Request id: ..."},
+  "usage": {}
+}
+```
+
+触发条件：提示词点名具体作品、工作室、导演或"某某风格"。同一段画面描述，去掉来源名称即可通过。改写原则是把风格意图翻译为画面语言，角色与场景一律原创：
+
+| 避免 | 改为 |
+|---|---|
+| 吉卜力风格 / 宫崎骏风格 | 原创手绘水彩插画风格，2D 赛璐璐上色，水彩晕染背景 |
+| 某知名动画角色 | 原创角色：扎双马尾的少女，白色连衣裙 |
+| 复刻某导演镜头 | 镜头从侧面缓慢横移并轻轻推近 |
+
+提示词结构建议：风格 + 主体 + 动作 + 环境 + 光线色调 + 镜头运动 + 时长与无水印要求。示例：
+
+```text
+原创手绘水彩插画风格，治愈系夏日乡野。一个扎双马尾的原创少女站在青草山坡上，
+白色连衣裙被风吹起，她伸手按住草帽；天空湛蓝飘着大朵积云，远处红色屋顶的小屋和一棵大树，
+草浪随风起伏，空中飘着白色绒絮，暖色调柔和光线，水彩晕染质感，
+镜头从侧面缓慢横移并轻轻推近，5 秒完整镜头，无字幕、无水印
+```
+
+审核失败同样消耗一次提交，出现该错误应先改写提示词，不要原样重试。
+
+### 2.3 查询任务
 
 `GET /api/v3/contents/generations/tasks/{id}`
 
@@ -131,6 +172,8 @@ curl --silent --show-error --fail-with-body \
 
 保存响应中的 `id`。
 
+> 路由说明：`POST /v1/videos` 存在，空 body 返回 `400 {"error":{"message":"Model name not specified, model name cannot be empty","type":"new_api_error"}}`。若收到 `404 Invalid URL (GET /v1/videos)`，说明请求经 HTTP 被 301 降级，见 1.1。查询路由为 `GET /v1/videos/{task_id}`，不存在的 id 返回 `400 {"code":"task_not_exist"}`。
+
 ### 3.2 查询任务
 
 `GET /v1/videos/{id}`
@@ -172,6 +215,35 @@ curl --silent --show-error --fail-with-body --location \
 | 获取成片 | `content.video_url` | `GET /v1/videos/{id}/content` |
 
 HTTP 200 不代表生成已经成功，必须继续读取任务状态。失败时读取响应中的 `error`；不要自动重复提交生成。
+
+### 4.1 成功响应字段
+
+```json
+{
+  "id": "task_xxx",
+  "model": "doubao-seedance-2-0-mini-260615",
+  "status": "succeeded",
+  "content": {"video_url": "https://.../xxx.mp4?X-Tos-Signature=..."},
+  "duration": 5,
+  "resolution": "720p",
+  "ratio": "16:9",
+  "framespersecond": 24,
+  "generate_audio": true,
+  "output_format": "mp4",
+  "seed": 10559,
+  "created_at": 1792476509,
+  "updated_at": 1792476647,
+  "upstream_id": "cgt-...",
+  "execution_expires_after": 172800,
+  "usage": {"completion_tokens": 108900, "total_tokens": 108900}
+}
+```
+
+- `content.video_url` 为带签名的临时链接，签名有效期 24 小时（`X-Tos-Expires=86400`），须立即下载保存。
+- `usage.completion_tokens` 可用于核对计费。
+- `upstream_id` 为上游任务号，报障时提供。
+- 5 秒 720p 任务通常在 2–3 分钟内完成，轮询间隔 10 秒即可。
+- 下载后可校验产物：h264 / 1280×720 / 24fps / 时长约 5.1 秒，含 aac 音轨。
 
 ## 5. 图片、视频、音频与首尾帧
 
@@ -233,6 +305,8 @@ X-Clover-Model: doubao-seedance-2-0-260128
 | `ProjectName` | JSON Body，可选 | 默认 `"default"`；后续访问使用创建时相同的项目名 |
 
 素材属于创建账号。同一账号的多个 Key 在权限允许时可访问本人素材；不同账号不能查看、修改、删除或生成引用对方素材。其他平台创建的素材 ID 不会自动成为本账号素材。
+
+新账号的 `ListAssetGroups` / `ListAssets` 返回 `Result.TotalCount: 0` 属正常空态。验证接口连通性应使用「创建临时素材组 → 查询 → 删除」链路，该链路不产生计费，且不应用于创建素材或视频任务。
 
 ### 6.2 操作与参数
 
@@ -329,10 +403,46 @@ curl --silent --show-error --fail-with-body \
 
 | Action | JSON Body 参数 | 返回内容 |
 |---|---|---|
-| `CreateVisualValidateSession` | `CallbackURL`、可选 `ProjectName` | `Result.BytedToken`、`Result.H5Link` |
+| `CreateVisualValidateSession` | 可选 `CallbackURL`、`ProjectName` | `Result.BytedToken`、`Result.H5Link` |
 | `GetVisualValidateResult` | `BytedToken`、可选 `ProjectName` | 授权结果；成功时包含 `GroupId` |
 
-`CallbackURL` 必须为客户可控的 HTTPS 地址。将 `H5Link` 交给授权人完成操作，再用同一账号的 Key 和返回的 `BytedToken` 查询结果。会话创建成功不表示授权完成；未完成会话最长有效 24 小时，过期后重新创建。
+`CallbackURL` 可省略，服务端根据已配置的公网域名生成通知地址；客户需要自行接收通知时，可填写自己控制的绝对 HTTPS 地址。`ProjectName` 默认为 `default`，查询时保持与创建一致。
+
+创建授权链接：
+
+```bash
+curl --silent --show-error --fail-with-body \
+  "$HUARUI_BASE_URL/?Action=CreateVisualValidateSession&Version=2024-01-01" \
+  -H "Authorization: Bearer $HUARUI_API_KEY" \
+  -H 'Content-Type: application/json' \
+  --data '{"ProjectName":"default"}'
+```
+
+需要自行接收通知时，将 Body 改为：
+
+```json
+{"ProjectName":"default","CallbackURL":"https://your-service.example/seedance/authorization/callback"}
+```
+
+保存响应中的 `Result.BytedToken`，将 `Result.H5Link` 交给授权人本人完成操作。会话创建成功、授权页面能打开都不表示认证或同意已经完成；未完成会话最长有效 24 小时，过期后重新创建。
+
+授权人完成操作后查询结果：
+
+```bash
+curl --silent --show-error --fail-with-body \
+  "$HUARUI_BASE_URL/?Action=GetVisualValidateResult&Version=2024-01-01" \
+  -H "Authorization: Bearer $HUARUI_API_KEY" \
+  -H 'Content-Type: application/json' \
+  --data '{"ProjectName":"default","BytedToken":"替换为本账号创建会话返回的Token"}'
+```
+
+查询必须使用同一账号的 API Key 和真实 `BytedToken`。成功结果需包含 `ResultCode=10000` 及 `GroupId`，不能通过自行填写组 ID 获得授权。使用返回的 `GroupId` 按第 6.5 节查询本人组内素材；真人组筛选使用 `Filter.GroupType="LivenessFace"`，不要继续使用普通组的 `AIGC`。待素材 `Active` 后，使用素材 ID 而不是组 ID 拼接 `asset://` 引用。
+
+自动核对功能启用后，服务端收到通知会核实授权结果，并约每分钟补查未完成且未过期的会话；客户无需配置定时任务或保持网页打开。客户指定自己的 `CallbackURL` 不影响服务端补查，也不影响主动查询。未完成、上游查询失败和伪造通知都不能视为授权成功。
+
+默认通知接收路径为 `POST /api/seedance/authorization/callback`，由服务端接收，客户无需主动调用。客户自设回调时，收到通知后仍应用自己的 API Key 查询结果，不能直接相信通知中的素材组或身份字段。
+
+真人授权与自动核对的开通状态请向服务方确认。旧授权链接若不支持自动核对，请重新创建；不要因为查询失败就无限重复创建。上游 `404 token not found` 不应直接解释成正常等待或授权成功，应保留脱敏错误并联系服务方排查。
 
 `BytedToken` 和 H5 链接属于敏感会话数据，不放入日志或共享示例。只有通过本人会话核验成功的素材组才可使用；自行填写 GroupId 或收到通知不能代替结果核验。
 
@@ -344,9 +454,11 @@ curl --silent --show-error --fail-with-body \
 | 401 | 检查 API Key 是否有效，是否正确携带 `Bearer ` 前缀 |
 | 403 | 检查 Key 权限、可用型号、账户余额和 Key 限额 |
 | 404 | 检查 ID 是否来自本人创建结果；他人、未绑定或过期资源不可访问 |
+| `404 Invalid URL (GET /v1/videos)` 等 | 请求使用 `http://` 被 301 降级（POST 变 GET），改用 `https://` 重发 |
 | 429 | 降低频率；素材接口每账号每分钟最多 120 次，多 Key 共用 |
-| 视频任务 `failed` | 读取任务 `error`，修正问题后再决定是否重新生成 |
-| HTTP 200 但返回 HTML | 检查地址和路径；成功接口应返回 JSON 或下载文件 |
+| 视频任务 `failed`，`error.message` 含 copyright restrictions | 提示词点名了作品/工作室/导演/风格来源，改为画面语言描述后重发，见 2.2 |
+| 视频任务 `failed`，其他原因 | 读取任务 `error` 和 `upstream_id`，修正问题后再决定是否重新生成 |
+| `200` 但返回 `text/html` | 请求未进入接口层，检查协议与路径；接口层响应必为 JSON 或下载文件 |
 
 素材错误可从 `ResponseMetadata.Error.Code` / `Message` 读取；视频请求错误按实际响应的 `error` 或 `code` / `message` 读取。
 

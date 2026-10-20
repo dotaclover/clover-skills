@@ -13,7 +13,7 @@ examples_en:
   - 'Which stir-fried rice noodle spot in Jiangnanxi is the best?'
   - 'Is this restaurant still open? Is it worth the trip?'
   - 'I want late-night food — which of these should I pick?'
-version: 1.0.0
+version: 1.0.1
 author: 独立开发者
 agent_created: true
 ---
