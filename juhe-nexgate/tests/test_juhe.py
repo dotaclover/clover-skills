@@ -186,6 +186,48 @@ class Tests(unittest.TestCase):
             self.assertNotIn("mock-hidden", output.getvalue())
         self.assertEqual(juhe.credential()[1], "saved")
 
+    def test_stdin_save_is_persisted_and_not_echoed(self):
+        stdin = io.StringIO("mock-stdin-key\n")
+        with patch.object(sys, "stdin", stdin), contextlib.redirect_stdout(io.StringIO()) as output:
+            self.assertEqual(juhe.main(["auth", "set", "--stdin"]), 0)
+            self.assertNotIn("mock-stdin-key", output.getvalue())
+            self.assertEqual(juhe.credential(), ("mock-stdin-key", "saved"))
+            # 第二次读取只报告状态，证明不会再次索要
+            self.assertFalse(juhe.status()["ask_user_for_key"])
+            self.assertNotIn("mock-stdin-key", json.dumps(juhe.status()))
+        if os.name == "nt":
+            self.assertNotIn("mock-stdin-key", (self.directory / "credential.json").read_text())
+
+    def test_stdin_rejects_tty_and_empty(self):
+        with patch.object(sys.stdin, "isatty", return_value=True):
+            with self.assertRaises(juhe.Failure) as result:
+                juhe.read_stream_key(sys.stdin)
+            self.assertEqual(result.exception.kind, "interaction")
+        for stream in (io.StringIO("   \n"), io.StringIO("")):
+            with self.assertRaises(juhe.Failure) as result:
+                juhe.read_stream_key(stream)
+            self.assertEqual(result.exception.kind, "credential")
+        with patch.object(sys, "stdin", io.StringIO("bad key with spaces")), contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(juhe.main(["auth", "set", "--stdin"]), 2)
+        self.assertFalse((self.directory / "credential.json").exists())
+
+    def test_clear_removes_saved_and_asks_again(self):
+        juhe.save_key("mock-clear")
+        self.assertFalse(juhe.status()["ask_user_for_key"])
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(juhe.main(["auth", "clear"]), 0)
+        self.assertEqual(juhe.status()["source"], "missing")
+        self.assertTrue(juhe.status()["ask_user_for_key"])
+        self.assertFalse((self.directory / "credential.json").exists())
+
+    def test_missing_status_requests_key(self):
+        stdin = io.StringIO("mock-new\n")
+        self.assertTrue(juhe.status()["ask_user_for_key"])
+        with patch.object(sys, "stdin", stdin), contextlib.redirect_stdout(io.StringIO()):
+            juhe.main(["auth", "set", "--stdin"])
+        with patch.object(juhe, "fetch_models", return_value=["qwen-image-3.0"]), contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(juhe.main(["resolve", "千问", "--task", "绘图"]), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

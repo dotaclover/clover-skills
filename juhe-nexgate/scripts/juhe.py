@@ -107,6 +107,33 @@ def save_key(key, directory=None):
     clear_cache(directory)
 
 
+def clear_saved(directory=None):
+    directory = directory or config_dir()
+    path = directory / "credential.json"
+    existed = path.exists()
+    path.unlink(missing_ok=True)
+    clear_cache(directory)
+    return {"cleared": existed, "configured": False, "source": "missing",
+            "saved_exists": False, "validated": False, "ask_user_for_key": True}
+
+
+def read_stream_key(stream):
+    """从管道读取用户提交的 Key；只在内存中处理，不回显、不记录。"""
+    try:
+        if stream.isatty():
+            raise Failure("interaction", "--stdin 只接受管道输入；交互终端请运行 auth set 隐藏输入。")
+    except (AttributeError, OSError):
+        raise Failure("interaction", "无法确认输入来源；请改用 auth set 隐藏输入。") from None
+    try:
+        value = stream.read()
+    except (OSError, UnicodeError):
+        raise Failure("interaction", "读取输入失败。") from None
+    value = value.strip()
+    if not value:
+        raise Failure("credential", "输入为空，未保存。")
+    return value
+
+
 def read_saved(directory=None):
     path = (directory or config_dir()) / "credential.json"
     if not path.exists():
@@ -148,7 +175,9 @@ def status(directory=None):
     key, source = credential(directory)
     return {"configured": bool(key), "source": source,
             "saved_exists": ((directory or config_dir()) / "credential.json").exists(),
-            "validated": False}
+            "validated": False,
+            # 供技能判断是否可以主动向用户索取 Key：已配置时必须停止询问。
+            "ask_user_for_key": not key}
 
 
 def base_url(value):
@@ -282,7 +311,9 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="安全凭据、实时型号与任务别名解析（不执行生成）")
     sub = parser.add_subparsers(dest="command", required=True)
     auth = sub.add_parser("auth")
-    auth.add_argument("action", choices=["status", "set"])
+    auth.add_argument("action", choices=["status", "set", "clear"])
+    auth.add_argument("--stdin", action="store_true",
+                      help="从管道读取用户提交的 Key 并加密保存；不接受命令行明文 Key")
     sub.add_parser("cache-clear")
     for name in ("models", "resolve"):
         cmd = sub.add_parser(name)
@@ -294,27 +325,34 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.command == "auth":
-            if args.action == "set":
-                if not sys.stdin.isatty():
-                    raise Failure("interaction", "请在交互终端运行 auth set；禁止通过参数、管道或聊天提供 Key。")
-                if os.name != "nt":
-                    print("注意：非 Windows 仅以目录0700/文件0600保存明文，不提供磁盘加密。", file=sys.stderr)
-                import warnings
-                with warnings.catch_warnings():
-                    warnings.simplefilter("error", getpass.GetPassWarning)
-                    try:
-                        value = getpass.getpass("输入 API Key（隐藏输入）：")
-                    except (getpass.GetPassWarning, EOFError):
-                        raise Failure("interaction", "无法保证隐藏输入，已取消保存。") from None
-                save_key(value)
-            result = status()
+            if args.action == "clear":
+                result = clear_saved()
+            elif args.action == "set":
+                if args.stdin:
+                    save_key(read_stream_key(sys.stdin))
+                else:
+                    if not sys.stdin.isatty():
+                        raise Failure("interaction", "交互保存需要终端；非交互环境请用 --stdin 从管道提交，或用环境变量。")
+                    if os.name != "nt":
+                        print("注意：非 Windows 仅以目录0700/文件0600保存明文，不提供磁盘加密。", file=sys.stderr)
+                    import warnings
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("error", getpass.GetPassWarning)
+                        try:
+                            value = getpass.getpass("输入 API Key（隐藏输入）：")
+                        except (getpass.GetPassWarning, EOFError):
+                            raise Failure("interaction", "无法保证隐藏输入，已取消保存。") from None
+                    save_key(value)
+                result = status()
+            else:
+                result = status()
         elif args.command == "cache-clear":
             clear_cache()
             result = {"cleared": True}
         else:
             key, source = credential()
             if not key:
-                raise Failure("missing_credential", "环境变量与安全存储均未配置；请在本机交互终端运行 auth set。")
+                raise Failure("missing_credential", "环境变量与安全存储均未配置；向用户索取 Key 后用 auth set --stdin 保存，之后不再重复询问。")
             ids, origin = get_models(base_url(args.base_url), key, args.cached)
             result = ({"models": [describe(m) for m in ids]} if args.command == "models"
                       else resolve(ids, args.alias, args.task))
