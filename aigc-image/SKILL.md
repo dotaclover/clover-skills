@@ -2,194 +2,188 @@
 name: aigc-image
 display_name: 图片生成接口
 display_name_en: Image Generation API
-description: "用用户自备的接口地址与 Key 调用图片生成 API：先判定同步 / 异步任务 / 私有协议三种接口形态，再选模型、构造参数、提交生成、解析 url 或 b64_json、保存并校验图片，给出可复现的 curl 与 SDK 示例。适用于调用 OpenAI 兼容格式的生图接口、做接口兼容性验证、按错误码排错；附 GPT Image 系、Qwen-Image、万相、Seedream 的实测差异参考。不预置接口地址与 Key，模型名以 /models 返回为准；不用于视频生成，也不替代平台内置的图片生成能力。"
-description_zh: "把接口地址与 Key 交给用户自己填：判定接口形态、挑选模型、核对参数、提交生成、解析 base64 或图片链接，出图后校验尺寸与文字，报错时按状态码定位原因。"
-description_en: 'Call any image generation API with an endpoint and key you provide: detect the API shape, pick a model, verify parameters, submit, decode base64 or download the returned URL, then check the image size and rendered text. Includes measured notes on GPT Image, Qwen-Image, Wan and Seedream. No endpoint or key is bundled.'
+description: "用自己的接口地址和 Key 出图，支持文生图与图生图。自带脚本，没 Key 也能验参数、拼请求；有 Key 一条命令出图并核对尺寸。支持 OpenAI 兼容接口与阿里云百炼 qwen-image，附公众号、小红书等常用尺寸模板。"
+description_zh: "用自己的接口出图，文生图和图生图都支持。自带脚本，没 Key 也能验参数、拼请求；有 Key 一条命令出图。附公众号、小红书常用尺寸模板。"
+description_en: 'Text-to-image and image editing with your own API endpoint and key. Ships with an offline-capable CLI: validate parameters and build requests without a key, then generate and verify sizes once configured. Supports OpenAI-compatible endpoints and Alibaba Cloud Bailian qwen-image, with size presets for WeChat and Xiaohongshu covers.'
 examples_zh:
-  - '用我自己的接口生成一张竖版海报'
+  - '用我的接口生成一张竖版海报'
   - '帮我验证这个图片接口能不能出图'
-  - '查一下这个接口报401的原因'
+  - '把这张图改成水彩画风格'
 examples_en:
   - 'Generate a vertical poster through my own image API'
   - 'Check whether this image endpoint and key work'
-  - 'My image API returns 401 — find the cause'
+  - 'Turn this photo into a watercolor painting'
 version: 1.0.1
 author: 独立开发者
 agent_created: true
 ---
 
-# 通用图片生成接口
+# 图片生成接口
 
-这个技能只提供**接口说明、参数含义、可复现示例和排错方法**。接口地址、Key、模型名一律由用户提供——技能里没有默认值，也不该有。
+用自己的接口地址和 Key 出图。**不预置接口地址、模型默认值或 Key**；唯一写死的域名是阿里云百炼官方 API，因为那是推荐路径。
 
-现在绝大多数生图服务都以 OpenAI 兼容格式对外提供接口：除了 OpenAI 自己，国内不少大厂也这么做（阿里、火山、百度、腾讯等），还有大量独立服务商和自建服务。字段覆盖程度各家不同，同一个模型名在不同服务上支持的范围也可能不一样。所以一切以手上那份接口文档和 `GET {base}/models` 的返回为准。
+自带 `scripts/image_api.py`，纯标准库，Python 3.8+，**不需要 pip 装任何东西**。下面命令里的 `python3` 在 Windows 上换成 `python` 即可。
 
-## 该用 / 不该用
-
-| 场景 | 判断 |
-|---|---|
-| 用户给了接口地址 + Key，要走 OpenAI 兼容格式的生图接口出图 | ✅ 主场景 |
-| 验证某个生图网站是否真兼容 OpenAI 图片格式 | ✅ 走兼容性检查 |
-| 用户问 `size`、`quality`、`response_format` 到底怎么填 | ✅ 查 `references/openai-compatible.md` |
-| 用户问 GPT Image、Qwen-Image、万相、Seedream 该选哪个 | ✅ 查 `references/models.md` |
-| 出图报 400 / 401 / 429，要定位原因 | ✅ 查 `references/troubleshooting.md` |
-| 用户只说「画张图」，没提接口 | ❌ 用平台内置图片生成能力，不要自己编一个接口 |
-| 用户要生成视频 | ❌ 走视频类技能 |
-| 用户问某家模型多少钱、怎么充值 | ❌ 不猜价格，让他看服务商自己的价目页 |
-
-## 一、常用模型参考
-
-以下按实测结果标注，只写验证过的事实，不写没跑过的好坏结论。
-
-| 模型名 | 来源 | 实测（2026-10） | 关键差异 |
-|---|---|---|---|
-| `gpt-image-2` | GPT Image 系，**默认首选** | 200，`1024x1024` 与竖图 `1024x1536` 均正常 | 返回 `b64_json` + `width`/`height` + `usage` |
-| `gpt-image-2.5-flare` | GPT Image 系，**默认首选** | 200，`1024x1024` | 与 `gpt-image-2` 同构返回 |
-| `gpt-image-2.5-sunburst` | GPT Image 系，**默认首选** | 200，`1024x1024` | 与 `gpt-image-2` 同构返回 |
-| `qwen-image-3.0` | 阿里通义千问 | 200，`1024x1024` | **只给 `url`**，`b64_json` 是空字符串；签名链接约 24 小时过期 |
-| `wan2.6-image` | 阿里通义万相 | 400 | 不是 OpenAI 兼容形态，走 `/images/generations` 会报 `enable_interleave` / `messages` 相关错误，必须换成万相自己的多模态生成接口 |
-| `doubao-seedream-5-0-flash-260915` | 火山方舟 | 未验证 | 需要先在方舟侧开通，模型列表里出现之前调不通 |
-
-默认先试 GPT Image 系这三支。**模型名写错不一定报错**，不少服务会悄悄回落成默认模型，所以出图风格不对劲时先回头核对实际模型名。
-
-各家的参数支持范围、返回结构差异、选型建议见 `references/models.md`。
-
-## 二、开工前必须拿到的四项
-
-| 项 | 说明 | 缺了会怎样 |
-|---|---|---|
-| 接口根地址 | 形如 `https://<host>/v1`，含版本段 | 拼错路径会拿到前端 HTML，不是 JSON |
-| 鉴权方式 | 多数是 `Authorization: Bearer <key>`，少数是 `x-api-key` 或 query 参数 | 401 且看不出原因 |
-| API Key | 用户当场提供或已存在环境变量里 | 不能调用 |
-| 模型名 | 从 `GET {base}/models` 取，或用户指定 | 404 / 模型被静默替换 |
-
-**四条硬规则：**
-
-1. 地址、Key、模型都不猜。缺哪项就直接问，不要拿上一次会话的 Key 顶上。
-2. 真实 Key 只走环境变量或请求头，不写进技能文件、请求 JSON、报告和最终回复。示例里统一写 `$IMAGE_API_KEY`、`<BASE_URL>`。
-3. 默认 `n: 1`。用户没说数量就不批量，避免无意产生费用。
-4. 一次成功就停。追加生成、换模型重试都要用户明确说要。
-
-## 三、先判定接口形态（决定后面全部写法）
-
-| 形态 | 特征 | 后续步骤 |
-|---|---|---|
-| **A. OpenAI 兼容同步** | `POST {base}/images/generations`，响应里直接有 `data[0].b64_json` 或 `data[0].url` | 最短路径，见 `references/openai-compatible.md` |
-| **B. 异步任务** | 提交只返回 `id` / `task_id` / `request_id`，要再查状态 | 提交 → 轮询 → 下载 → 转存，见 `references/api-patterns.md` |
-| **C. 私有协议** | 只有 `/chat/completions` 或自定义路由；图片藏在 Markdown 链接、消息内容或 base64 字段里 | 按服务商文档拼，参数别照搬 OpenAI |
-
-判定办法：先 `GET {base}/models` 看返回结构；拿不准就让用户贴一段文档或一次真实响应。**不要**拿 OpenAI 的参数去套私有协议，字段名不同会静默失败（HTTP 200 但没图），或者像 `wan2.6-image` 那样直接 400。
-
-同一个服务里，有的模型是形态 A，有的模型是形态 C，别按服务商一刀切，要按模型逐个确认。
-
-## 四、五步流程
-
-### 步骤 0 · 验鉴权 + 列模型
+## 快速开始
 
 ```bash
-curl -sS "$IMAGE_BASE_URL/models" \
-  -H "Authorization: Bearer $IMAGE_API_KEY"
+# 1. 先自检，确认脚本可用（不需要网络和 Key）
+python3 scripts/image_api.py self-test
+
+# 2. 存一次接口地址和 Key，之后不用每次传
+python3 scripts/image_api.py init
+# 也可以一条命令带参数：init --base-url https://your-host/v1 --key sk-xxx
+
+# 3. 校验参数并生成请求体（不发请求、不花钱）
+python3 scripts/image_api.py build --proto openai --model gpt-image-2 \
+  --prompt "一只橘猫坐在窗台上" --size 1024x1536 --n 1 --out req.json
+
+# 4. 出图并取回本地
+python3 scripts/image_api.py send --proto openai --request req.json --out resp.json
+python3 scripts/image_api.py save --response resp.json --out-dir out --expect-size 1024x1536
 ```
 
-返回 `200` + `{"data":[{"id":"..."}]}` 说明地址、鉴权都对。从 `data[].id` 里挑图片类模型名（含 `image`、`dall`、`flux`、`imagen`、`seedream`、`qwen-image`、`wan` 等）。**只见过名字不等于验证过它能出图**，不要说「已支持」。
+`init` 问答式引导，把地址和 Key 存到 `~/.aigc-image/config.json`，下次 `send` / `probe` 不用再传。`init --show` 查看当前配置（Key 只显示头尾）。这个文件是明文，别提交到 Git。
 
-### 步骤 1 · 写提示词
+`save` 会打印真实宽高。跟请求不一致会标 `size_mismatch`——服务端没照你说的尺寸出图，必须写进报告。
 
-提示词至少覆盖：主体、用途、构图、风格、画幅、必须出现的文字、禁止元素（水印、第三方 Logo）。海报类要把文案逐条写进 prompt，生成后必须目视核对拼写。
+## 常用模板（内容由用户补）
 
-### 步骤 2 · 构造请求
+模板只给尺寸、比例和风格骨架，**具体画什么由用户说**，提示词里留 `【用户补充的内容】` 占位。
 
-只填最小兼容字段 `model` / `prompt` / `size` / `n`，先跑通一次。服务商私有参数（`seed`、`negative_prompt`、`steps`、`guidance_scale`、`watermark`、`enable_interleave`）等跑通后再加——一上来堆参数，出错分不清是谁的问题。
+| 场景 | id | 尺寸 | 比例 | 适合 |
+|---|---|---|---|---|
+| 公众号封面首图 | `wechat-cover` | 1536x1024 | 3:2 | 左侧留白放标题 |
+| 公众号正文配图 | `wechat-inline` | 1024x1024 | 1:1 | 扁平插画，多图并排不亏 |
+| 小红书封面 | `xhs-cover` | 1024x1536 | 2:3 | 上方留标题区 |
+| 小红书实拍感 | `xhs-photo` | 1024x1024 | 1:1 | 要「不像 AI 生成」用这个 |
+| 竖版海报 | `poster` | 1024x1536 | 2:3 | 留标题与卖点位 |
+| 头像 / 人物图 | `avatar` | 1024x1024 | 1:1 | 半身正面，留裁切余量 |
 
-完整参数见 `references/openai-compatible.md`，可直接改的 curl / Python / Node / SDK 示例见 `references/examples.md`。
+```bash
+python3 scripts/image_api.py presets                 # 看全部
+python3 scripts/image_api.py presets --id xhs-cover  # 看完整提示词
+python3 scripts/image_api.py presets --scene 公众号   # 按场景过滤
+```
 
-### 步骤 3 · 提交（长超时 + 后台）
+**提问时就照这个问，一次只问场景和内容两件事：**
 
-出图不是秒回。单张常见 20–60 秒，高质量或大尺寸超过 2 分钟很正常。**默认 120 秒的前台超时会杀掉 curl，但服务端往往已经跑完并计费。**
+> 这张图用在哪？
+> - 公众号封面（1536x1024，左边留白放标题）
+> - 小红书封面（1024x1536 竖图，上面留标题区）
+> - 方图 / 头像（1024x1024）
+>
+> 内容你写一句就行，风格和参数我来补。
 
-- 生成请求一律加 `--max-time 480`，并放后台跑。
-- 被中断先看响应文件是否已写入，确认没出图再重试，别盲目重发。
-- 异步形态记得**轮询上限**（例如 60 次 × 5 秒），超了就报「仍在生成」，不要无限等。
+三条提前说清，别等交付后再扯：
 
-### 步骤 4 · 解析并保存
+- 公众号官方封面是 **2.35:1**，两家接口都不直接支持。按 1536x1024 出图，再裁成 900x383。
+- 小红书主流 **3:4**，接口只给 2:3，出图后上下各裁一点就接近。
+- **文字别让模型直接写**，小字容易糊，出图后自己加。
 
-两种返回必须都兼容，**判空不要判字段是否存在**：`qwen-image-3.0` 会返回 `"b64_json": ""`，字段在但是空的。
+## 命令速查
 
-| 字段 | 处理 |
-|---|---|
-| `data[0].b64_json` 非空 | Base64 解码后写成图片文件。**绝不把整段 Base64 贴给用户** |
-| `data[0].url` 有值 | 存下原始 URL，立刻下载转存。签名链接会过期（实测约 24 小时） |
-| 两者都空 | 说明接口形态判断错了，回第三章 |
-
-文件名带模型、尺寸、序号，例如 `image-<model>-1024x1536-01.png`。同时保留请求 JSON、脱敏后的 curl、原始响应，方便复现。
-
-### 步骤 5 · 校验
-
-- 文件能解码、能打开，不是 0 字节、不是 HTML 错误页。
-- PNG 宽高（偏移 16 与 20 处的大端 uint32）与请求尺寸一致；不一致说明服务端改了尺寸，要写进报告。
-- 主体、构图、品牌色、用途符合提示词。
-- 文字没拼错、没乱码、没缺字。
-- 没有用户禁止的水印或 Logo。
-- 需要透明底时确认真的带 alpha 通道（多数接口要求同时指定 `background: transparent` **和** `output_format: png|webp`）。
-
-## 五、核心参数速查
-
-| 参数 | 必填 | 常见取值 | 坑 |
-|---|---|---|---|
-| `model` | ✅ | 从 `/models` 取 | 名字错不一定报错，服务可能悄悄换成默认模型 |
-| `prompt` | ✅ | 中英文均可 | 文字渲染差是模型问题，不是参数问题 |
-| `n` | 否 | `1`（默认值就用 1） | 部分模型只支持 1；`n>1` 按张计费 |
-| `size` | 否 | `1024x1024` / `1536x1024` / `1024x1536` / `auto` | 各模型支持集合不同，乱填常被静默改成正方形；万相系用 `1024*1024` 这种星号写法 |
-| `quality` | 否 | `low` / `medium` / `high` / `auto`；老模型是 `standard` / `hd` | 两套枚举不通用 |
-| `response_format` | 否 | `url` / `b64_json` | 新模型往往只给 `b64_json`，强制 `url` 可能 400 或被忽略 |
-| `background` | 否 | `transparent` / `opaque` / `auto` | 透明底必须配 png/webp |
-| `output_format` | 否 | `png` / `jpeg` / `webp` | 与 `background: transparent` 冲突时透明失效 |
-| `user` | 否 | 任意稳定标识 | 只用于服务商侧风控溯源，不影响出图 |
-
-图生图 / 局部重绘走 `POST {base}/images/edits`，`multipart/form-data`，字段是 `image`（可多张）、`mask`、`prompt`。**用户提供的参考图必须他自己有使用权**，不接受来源不明的图。
-
-## 六、失败处理
-
-先看 HTTP 状态和响应体的 `error.message`，按 `references/troubleshooting.md` 对照。高频四类：
-
-| 状态 | 常见含义 | 正确动作 |
+| 子命令 | 要 Key | 干什么 |
 |---|---|---|
-| 401 / 403 | Key 错、Key 无该模型权限、Key 分组不对 | 让用户核对 Key 与模型授权，不要换地址试 |
-| 404 | 路径少了 `/v1`、或该服务没有这个路由 | 核对 base URL，别猜新路径 |
-| 400 | 尺寸/质量枚举不支持、提示词被内容策略拦截、模型根本不是这个协议的 | 读 `error.message`，先判断是不是模型选错 |
-| 429 | 限流或额度耗尽 | 看 `Retry-After`；额度问题直接告知用户，别循环重试 |
+| `presets` | 否 | 看常用尺寸模板：公众号、小红书、海报、头像 |
+| `self-test` | 否 | 24 项离线自检 |
+| `init` | 否 | 保存地址与 Key，`init --show` 查看（Key 打码） |
+| `validate` | 否 | 查模型名、size 写法、像素范围、宽高比、n 上限 |
+| `build` | 否 | 输出请求体 JSON + 等价 curl |
+| `size` | 否 | 读 PNG/JPEG 头报真实宽高 |
+| `probe` | 是 | `GET {base}/models`，列模型并标出图片类 |
+| `send` | 是 | 发请求，超时 480 秒，不走系统代理，存原始响应 |
+| `save` | 否 | 解析 url 或 base64，落盘并核对尺寸 |
 
-**不要**连续换模型重试付费请求。每次失败都要能说清「改了什么、为什么这么改」。
+`--proto` 四个取值：`openai`（文生图 / qwen 图生图，JSON）、`openai-edit`（multipart 图生图）、`dashscope`（百炼同步）、`dashscope-async`（百炼异步）。
 
-## 七、已知坑（实测，2026-10）
+参数细节跑 `python3 scripts/image_api.py <子命令> -h`。
 
-- **默认 120 秒前台超时会杀掉 curl，服务端往往已经出图并计费。** 生成请求一律 `--max-time 480` 放后台执行。
-- **不支持的 `size` 常被静默改成 `1024x1024`，不报错。** 出图后必须读回真实宽高。
-- **`b64_json` 字段存在但是空字符串。** `qwen-image-3.0` 就是这样，必须判空值而不是判键是否存在。
-- **新模型默认只返回 `b64_json`，`response_format: "url"` 会被忽略。** 两个字段都要判空，别只写一个分支。
-- **路径少写 `/v1` 时，返回的可能是前端 HTML，HTTP 状态还是 200。** 先看响应体开头是 `{` 还是 `<`。
-- **部分服务把不认识的 `model` 悄悄回落成默认模型。** 出图风格与预期不符时才暴露，报告里要写实际用的名字。
-- **`base64.b64decode` 遇到 `data:image/png;base64,` 前缀会直接报错。** 先 `split(",", 1)[-1]`。
-- **429 有两种。** 限流可退避后重试一次；额度耗尽或欠费重试只会继续失败，直接告知用户。
-- **异步任务拿到 `task_id` 就不要重提。** 重提等于重新排队、重新计费，先查状态。
-- **同一个服务里模型协议可能不统一。** `qwen-image-3.0` 走 OpenAI 兼容路由正常，同门的 `wan2.6-image` 走同一路由直接 400。
+## 选哪个系列
 
-## 八、报告格式
+用户没指定模型时，先问一句：
 
-- 鉴权是否通过，不显示 Key。
-- `/models` 是否可用、命中哪些图片模型。
-- 实际使用的接口形态、base URL（脱敏后的 host 即可）、模型、尺寸、`n`。
-- HTTP 状态、返回类型（`b64_json` / `url`）、文件大小、本地图片路径。
-- 请求 JSON、脱敏 curl、原始响应的保存位置。
-- 尺寸是否被服务端改写、文字是否需人工复核、透明底是否生效。
-- 若失败：原始错误码和 `error.message` 原文，不做美化。
+> 你有 OpenAI image 系列的接口吗？`gpt-image-2`、`gpt-image-2.5-flare`、`gpt-image-2.5-sunburst` 这一类。
 
-## 九、参考资料
+没有就推荐百炼，原话照说：
 
-| 文件 | 什么时候读 |
+> 没有的话建议用阿里云百炼的 qwen-image 系列，自己去百炼开通就行：实名认证后直接在控制台创建 API Key，不用信用卡，国内几分钟能拿到，新账号一般有免费额度。`qwen-image-3.0` 兼顾质量与速度，`qwen-image-2.1-turbo` 性价比最高，两者接口完全一样，换模型只改 `model`。
+
+| | OpenAI image 系列 | 百炼 qwen-image 系列 |
+|---|---|---|
+| 典型模型 | `gpt-image-2`、`gpt-image-2.5-flare`、`gpt-image-2.5-sunburst` | `qwen-image-3.0-pro`、`qwen-image-3.0`、`qwen-image-2.1-pro`、`qwen-image-2.1-turbo` |
+| 接入方式 | OpenAI Images 协议 | OpenAI 兼容、DashScope 同步、DashScope 异步，三种都支持 |
+| 图生图 | `/images/edits` multipart | 兼容模式用 `generations` + `image` 字段；DashScope 用 `content` 数组 |
+| 返回图片 | `b64_json`，另带宽高 | 只有 `url`，24 小时过期，不支持 b64 |
+| 尺寸控制 | 请求值即输出值 | 官方协议同左；第三方兼容层可能失准，见「已知坑」 |
+
+模型实测差异见 `references/models.md`。
+
+## 两种协议怎么写
+
+**OpenAI 兼容（P1）**：`POST {base}/images/generations`，JSON。
+最小请求体 `{"model":"...","prompt":"...","size":"1024x1024","n":1}`。
+`size` 用字母 `x`：`1024x1024`、`1024x1536`、`1536x1024`、`auto`。
+
+**百炼（P2/P3）**：`POST .../api/v1/services/aigc/multimodal-generation/generation`。异步换成 `.../image-generation/generation` 并加 `X-DashScope-Async: enable` 头，拿 `task_id` 轮询 `/api/v1/tasks/{id}`。
+`size` 用星号 `*`：`1024*1024`。文生图 `content` 只放一个 `{"text":"..."}`；图生图先放 `{"image":"..."}` 再放 `{"text":"..."}`，**只能有一个 text**。
+
+两套写反了不一定报错，常见是被静默忽略然后给默认尺寸。`validate` 会先拦。
+
+## 硬规则
+
+1. 地址、Key、模型都不猜。缺哪项直接问，不要拿上一次的 Key 顶上。
+2. Key 只走命令行参数、环境变量，或 `init` 保存的本地配置。**不写进请求 JSON、报告、最终回复**。脚本产出的 curl 里一律是 `$IMAGE_API_KEY`。
+3. 默认 `n: 1`。用户没说数量就不批量。
+4. 一次成功就停。追加生成、换模型重试都要用户明确说要。
+5. 图生图必须验原图主体有没有进去，不能只看 HTTP 200。
+
+## 图生图三条路
+
+| 路径 | 命令 | 实测 |
+|---|---|---|
+| gpt 系 | `--proto openai-edit --image file.png` | 正常，尺寸精确 |
+| qwen 官方写法 | `--proto openai`，`"image": "<url 或 data:...;base64,...>"` | 官方支持，但第三方兼容层可能直接丢弃这个字段 |
+| qwen multipart | `--proto openai-edit` | 部分服务能出图，但 `size` 被忽略 |
+
+qwen 的 `image` 只收公网 URL 或 `data:{MIME};base64,{data}`，**不收本地路径**；不能传 `null` 或空数组；张数上限 3.0 系 3 张、2.1 系 10 张。百炼协议更稳，比例和尺寸都可控。
+
+## 已知坑
+
+- **前台 120 秒超时会杀掉请求，但服务端往往已经出图并计费。** 一律放到 480 秒（脚本默认）。
+- **兼容层会静默丢弃 qwen 的 `image` 字段。** 实测传橘猫出的是船和长椅，HTTP 全程 200。
+- **qwen 走 `/images/edits` 时 `size` 失效**，锁 2K 档，比例跟输入图走。
+- **`n>1` 可能只回一张**，另一张藏在 `metadata.output.choices[].message.content[]`。
+- **`b64_json` 存在但是空字符串**，要判空值而不是判键是否存在。
+- **`size:"auto"` 在兼容层可能 400**，那一层只认显式尺寸。
+- **少写 `/v1` 会返回前端 HTML，状态码还是 200。** 先看响应体开头是 `{` 还是 `<`。
+- **`model_not_found` 常以 503 返回**，不是 404，说明渠道没上这个模型。
+
+## 错误码
+
+| 码 | 处理 |
 |---|---|
-| `references/models.md` | 要在 GPT Image 系、Qwen-Image、万相、Seedream 之间选模型，或想确认某个模型名到底走哪种协议 |
-| `references/openai-compatible.md` | 要确认某个参数的合法取值、模型差异、`/images/generations` 与 `/images/edits` 的完整字段 |
-| `references/api-patterns.md` | 接口是异步任务型、或只有 chat 路由、或响应结构不是标准 OpenAI 时 |
-| `references/examples.md` | 要直接抄一份 curl / Python requests / Node fetch / OpenAI SDK 的调用代码，含解码与保存 |
-| `references/troubleshooting.md` | 报错、超时、出了图但打不开、尺寸不对、URL 过期、返回 HTML 而不是 JSON |
+| 400 | 读 `error.message` 原文，按字段改，别整段重试 |
+| 401 / 403 | Key 错、地域不对，让用户核对，不要重试 |
+| 404 | 路径或模型名错，检查是否漏 `/v1` |
+| 429 | 限流可退避一次；额度耗尽直接告知 |
+| 503 | 上游故障或 `model_not_found`，别连续换模型重试 |
+
+## 报告格式
+
+鉴权是否通过（不显示 Key）、协议与模型、任务类型、HTTP 状态、返回类型、文件路径与真实尺寸、请求 JSON 和原始响应的位置。图生图要写是否确认原图主体被保留。失败就贴原始错误码和 `error.message`，不做美化。
+
+## 目录结构
+
+```
+aigc-image/
+├── SKILL.md
+├── scripts/
+│   └── image_api.py          九个子命令，零依赖
+└── references/
+    ├── models.md             模型清单与实测矩阵
+    ├── openai-compatible.md  P1 全字段与响应结构
+    └── dashscope.md          P2/P3 请求体、错误码
+```
+
+手写 curl 或 SDK 的等价写法，看 `references/openai-compatible.md` 和 `references/dashscope.md`；脚本只是省事。

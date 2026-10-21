@@ -39,9 +39,9 @@
 | 新版图像模型（`gpt-image-1` 系列、多数国产模型） | `1024x1024`、`1536x1024`、`1024x1536`、`auto` |
 | DALL·E 3 | `1024x1024`、`1792x1024`、`1024x1792`（每请求只能 1 张） |
 | DALL·E 2 | `256x256`、`512x512`、`1024x1024` |
-| 第三方（Flux / Seedream / Qwen-Image / Kolors 等） | 常见支持任意宽高比与 2K，具体看供应商文档；**不要假设 OpenAI 的尺寸表通用** |
+| 第三方（Flux / Qwen-Image / Kolors 等） | 常见支持任意宽高比与 2K，具体看供应商文档；**不要假设 OpenAI 的尺寸表通用** |
 
-竖版海报用 `1024x1536`，横版封面用 `1536x1024`。给了不支持的尺寸时，运气好报 400，运气不好被悄悄改成 `1024x1024`——所以生成后要读回真实宽高（见 `troubleshooting.md`）。
+竖版海报用 `1024x1536`，横版封面用 `1536x1024`。给了不支持的尺寸时，运气好报 400，运气不好被悄悄改成 `1024x1024`——所以生成后必须用 `save` 或 `size` 读回真实宽高（见 SKILL.md「已知坑」）。
 
 ## `/images/edits` 字段
 
@@ -71,6 +71,12 @@ curl -sS --max-time 480 -X POST "$IMAGE_BASE_URL/images/edits" \
   -F "mask=@./mask.png" \
   -o image-response.json
 ```
+
+实测补充（2026-10）：
+
+- **gpt-image 系**：`edits` 正常，`size` 精确生效（`1024x1024` 出 `1024x1024`），返回结构与 `generations` 完全一致，`usage.input_tokens_details.image_tokens` 会从 0 变成 200 左右，可以拿它确认输入图生效了。
+- **qwen-image 系走第三方兼容路由**：能出图，但 **`size` 被忽略**。方图输入出 `2048x2048`，竖图输入出 `1664x2496`，比例跟输入图走。要精确尺寸只能用 gpt-image 系，或改走百炼原生协议自己指定 `size`。
+- `mask` 支持度比 `size` 更差，很多兼容服务直接忽略；要「只改局部」，先用 prompt 说清区域，别指望 mask。
 
 ## 响应结构
 
@@ -130,13 +136,47 @@ curl -sS --max-time 480 -X POST "$IMAGE_BASE_URL/images/edits" \
 
 先跑这条。跑通后再逐个加 `quality`、`background`、`output_format`、供应商私有参数。一次性堆满参数，出错时无法定位。
 
+## qwen 兼容模式的专属字段
+
+百炼的 qwen-image 有一套官方 OpenAI 兼容端点（`{base}/compatible-mode/v1`），请求体所有字段平铺在顶层，没有 `input` / `parameters` 嵌套。核心差异：
+
+| 字段 | 说明 |
+|---|---|
+| `prompt` | 必填，推荐 ≤4500 Token |
+| `image` | **图生图靠它**。公网 URL 或 `data:{MIME};base64,{data}`；单图字符串，多图字符串数组。不传 = 文生图 |
+| `size` | `1024x1024`（字母 x）或 `auto`；不传由模型按提示词推荐 |
+| `n` | 1–6，必须整数 |
+| `negative_prompt` | 仅 3.0 系支持 |
+| `prompt_extend` | 默认 `true`，会改写提示词 |
+| `prompt_extend_mode` | `direct`（默认）/ `agent`；**`agent` 只给文生图，图生图传它会 400** |
+| `enable_thinking` | 默认 `true`，仅在 `prompt_extend=true` 时生效，更慢但质量更高 |
+| `watermark` / `seed` | 同 DashScope |
+
+图生图**不走** `/images/edits`，也不用 multipart 和 mask。官方明确这套兼容模式不支持：异步、流式、partial image、`/images/edits`、multipart、mask。`response_format: b64_json` 会被忽略，照样返回 URL。
+
+响应是 `data[].url` + 顶层 `usage`（`output_width` / `output_height` / `input_image_count` / `output_image_count`）。不返回 `request_id`，它在响应头 `x-request-id`。
+
+用 OpenAI SDK 时，上面这些扩展字段要塞进 `extra_body`：
+
+```python
+resp = client.images.generate(
+    model="qwen-image-3.0",
+    prompt="把这张图改成水彩画风格",
+    size="1024x1024",
+    n=1,
+    extra_body={"image": ["data:image/png;base64,..."], "prompt_extend": True},
+)
+```
+
+**但第三方兼容层不一定照这个实现。** 实测有服务把 `image` 字段直接丢掉（返回 200，图与输入无关），反而支持 `/images/edits`。落地前先用一张特征明显的图跑一次，确认输出里还有原图主体。
+
 ## 非标准但常见的第三方参数
 
 这些**不在** OpenAI 规范里，只有对应供应商支持，加了可能报 400 也可能被静默忽略：
 
 | 参数 | 出现在 | 作用 |
 |---|---|---|
-| `seed` | Flux、SD、Seedream 系 | 固定随机种子以复现同一张图 |
+| `seed` | Flux、SD 等 | 固定随机种子以复现同一张图 |
 | `negative_prompt` | SD、Kolors 系 | 明确不想要的内容 |
 | `steps` / `guidance_scale` | SD 系 | 采样步数与提示词贴合强度 |
 | `aspect_ratio` | 部分国产模型 | 用比例代替像素尺寸，与 `size` 冲突时以供应商文档为准 |

@@ -29,25 +29,28 @@
 ### 视频与数字人
 
 - `seedance-video`：生成新视频、参考素材、编辑/延长、提交和轮询。
+- `seedance-ark`：直连火山方舟官方，分开处理视频 API Key、素材 AK/SK、已有真人素材与 H5 认证。
+- `seedance-bd`：直连百度 AI 网关的 Seedance 兼容视频、素材与 H5；不混用千帆 QF、VOD 或火山凭据。
 - `doubao-web-video`：不开 API Key，用浏览器自动化操作豆包网页版出片并下载。
 - `zero-cost-video`：从零合成「底图 + 弹幕 + 多人 TTS」短片，不调用付费 API。
 - `video-post-production`：加工已有视频，不负责生成新视频。
 - `xiaoice-digital-human`：小冰数字人播报、形象/声音训练和任务管理。
 
-这五个 Skill 的输入和任务状态不同，不要在调用时互相替代。
+这些 Skill 的输入和任务状态不同，不要在调用时互相替代。
 
 `zero-cost-video` 与 `video-post-production` 的分界只有一句：**手上有没有源视频**。
 前者输入是文案和底图，后者必须有视频文件。两者技术栈有重叠（都用 edge-tts 与 ffmpeg amix），
 但**编码器假设相反**——前者假定目标机无 `libx264`、只能用 `libopenh264`，后者硬编码 `libx264 + CRF`。
 两套参数不能在同一台机器上互换，详见 `zero-cost-video/references/与后处理的边界.md`。
 
-`seedance-video` 与 `doubao-web-video` 都产出 Seedance 视频，但通道完全不同：前者走火山方舟 API（要 Key、可 1080p/4K、参数可控），后者走用户已登录的豆包网页版（零配置、仅 720p、消耗免费额度）。用户明确要 API 调用或高分辨率时只能用前者；只想"用我登录的豆包直接出片"时才用后者。
+`seedance-video` 负责生成工作流；`seedance-ark` 和 `seedance-bd` 负责供应商接入、素材控制面及真实连通性核验。`doubao-web-video` 则走用户已登录的豆包网页版。三类通道的凭据、端点与验收结论不可互换。
 
 ### 百度渠道
 
 - `baidu-vod-qianfan`：真实探测旧 VOD、新 VOD、千帆 QF 和 AI 网关 Seedance，并生成 new-api 渠道配置建议。
+- `seedance-bd`：只处理百度 AI 网关的 Seedance 视频与素材协议；需要排查旧/新 VOD 或千帆聊天时仍使用上一项。
 
-Seedance 视频属于 `seedance-video`；百度 AI 网关、千帆 FireSeries 等视频提供商差异应放在 Seedance 的参考资料中，不要把聊天接口和视频任务接口混为一个端点。
+实际生成工作流仍由 `seedance-video` 负责；百度 AI 网关的直连接口与素材排查使用 `seedance-bd`，千帆 FireSeries、VOD 和聊天渠道差异继续使用 `baidu-vod-qianfan`。不要把聊天接口和视频任务接口混为一个端点。
 
 ### Windows 操作
 
