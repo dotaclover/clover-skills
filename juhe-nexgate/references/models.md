@@ -4,6 +4,23 @@
 
 模型列表不代表实时健康度或请求一定成功；可用性受权限、额度、限流和服务状态影响。遇到错误时按 [常见报错与处理](troubleshooting.md) 排查。
 
+## 实时列表与任务解析
+
+运行 `python scripts/juhe.py models` 实时获取当前凭据的可见型号。运行 `python scripts/juhe.py resolve <别名或完整ID> --task <任务>` 与已知映射相交；显式 `--cached` 可复用15分钟缓存。输出中的 `capability_source: bundled-references` 指本文及其他随附参考，不代表刚查询到能力；`unknown` 表示未登记能力。新型号必须核实服务文档后才更新 `scripts/juhe.py` 的精确 ID 映射，不用前缀猜能力。
+
+| 中文/英文别名 | 任务区分 |
+|---|---|
+| 千问、通义千问、通义、qwen | chat 对应已知 qwen3.*；image 对应已知 qwen-image-3.0 |
+| 深度求索、deepseek | chat |
+| 智谱、glm；月之暗面、kimi | chat |
+| gpt、claude、gemini | chat |
+| image2、image 2、image-2、gpt image | image 或 image-edit |
+| 万相、通义万相、wan | image、image-edit、video 分开筛选 |
+| 豆包、即梦、seedance | video；参考输入以具体型号的已登记任务为准；别名不是完整产品能力声明 |
+| 快乐马、happyhorse | video、image-to-video、reference-image-to-video、video-edit 分开筛选 |
+
+任务别名：聊天/文本→chat；绘图/生图/文生图→image；改图/图片编辑→image-edit；视频/文生视频→video；图生视频→image-to-video；参考图生视频→reference-image-to-video；参考视频→reference-video；视频编辑→video-edit。任务必须显式指定。未知完整 ID 可以被列出但不会自动调用；系列查询只推荐已登记能力且实时可见的候选。多个候选不擅自排序为质量或价格推荐。
+
 ## GPT
 
 | `model` | 请求入口 |
