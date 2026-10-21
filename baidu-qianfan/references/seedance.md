@@ -1,26 +1,17 @@
-# FireSeries Seedance 视频任务
+# FireSeries Seedance 视频
 
-FireSeries 是异步付费任务。只有用户明确批准付费生成时，才创建任务；提交后要一直查询到终态。
+## 模型
 
-## 模型和端点
-
-| 目标能力 | FireSeries 模型 |
+| 能力 | FireSeries 模型 |
 | --- | --- |
 | Seedance 2.0 | `S2.0` |
 | Seedance 2.0 Fast | `S2.0-Fast` |
 | Seedance 2.0 Mini | `S2.0-Mini` |
 | Seedance 2.5 | `S2.5` |
 
-```text
-POST {BAIDU_QF_URL}/beta/video/generations/qianfan-video/fireseries
-GET  {BAIDU_QF_URL}/beta/video/generations/qianfan-video/fireseries?task_id={task_id}
-Authorization: Bearer <BAIDU_QF_KEY>
-```
-
-## 最小文本生成示例
+## 创建任务
 
 ```bash
-# 会产生费用：仅在得到明确授权后执行
 curl --fail-with-body -sS "$BAIDU_QF_URL/beta/video/generations/qianfan-video/fireseries" \
   -H "Authorization: Bearer $BAIDU_QF_KEY" \
   -H 'Content-Type: application/json' \
@@ -33,7 +24,9 @@ curl --fail-with-body -sS "$BAIDU_QF_URL/beta/video/generations/qianfan-video/fi
   }'
 ```
 
-成功创建响应通常含 `data.task_id`。保存该 ID 到私有系统后查询：
+创建响应中的任务 ID 位于 `data.task_id`。
+
+## 查询任务
 
 ```bash
 curl --fail-with-body -sS \
@@ -41,11 +34,7 @@ curl --fail-with-body -sS \
   -H "Authorization: Bearer $BAIDU_QF_KEY"
 ```
 
-等待实际响应中的成功或失败终态。任务处理中、排队中或未知状态都不是完成。
-
 ## 参考媒体
-
-输入媒体使用上游可访问的 URL，并按素材类型标注角色：
 
 ```json
 {
@@ -55,6 +44,4 @@ curl --fail-with-body -sS \
 }
 ```
 
-视频和音频对应 `video_url` / `audio_url` 及 `reference_video` / `reference_audio`。支持的素材数量、首尾帧、音频、分辨率和比例取决于模型与当前账号能力；在上线前用最小任务逐项验证。
-
-\n
+视频与音频使用 `video_url` / `audio_url`，角色分别为 `reference_video` / `reference_audio`。
