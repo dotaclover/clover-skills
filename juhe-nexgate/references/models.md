@@ -69,10 +69,10 @@ Messages 的参数和流式读取方式见 [文本接口](text.md#4-claude-messa
 |---|---|
 | `doubao-seedance-2-0-260128` | `/api/v3/contents/generations/tasks` |
 | `doubao-seedance-2-0-fast-260128` | `/api/v3/contents/generations/tasks` |
-| `doubao-seedance-2-0-mini-260615` | `/v1/videos` |
+| `doubao-seedance-2-0-mini-260615` | `/api/v3/contents/generations/tasks`（实测）或 `/v1/videos` |
 | `doubao-seedance-2-5-260628` | `/v1/videos` |
 
-方舟格式和 OpenAI Video 格式的参数见 [Seedance 请求](seedance.md)。
+内容接口格式和 OpenAI Video 格式的参数见 [Seedance 请求](seedance.md)。2026-10-22 已用 `doubao-seedance-2-0-mini-260615` 通过 `/api/v3/contents/generations/tasks` 实测 `reference_image` 和 `reference_video`；素材库用法见 [素材库](material.md)。
 
 ## 其他文本型号
 

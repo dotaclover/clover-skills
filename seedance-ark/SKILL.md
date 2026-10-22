@@ -1,6 +1,6 @@
 ---
 name: seedance-ark
-description: 直连火山方舟官方 Seedance 视频与私域素材 API，使用 API Key 调用视频、AK/SK 签名管理素材，实测排查已授权人像查询、H5 认证、素材引用和授权期限问题。用于官方渠道，不用于百度兼容渠道或客户网关。
+description: 直连火山方舟官方 Seedance 视频与私域素材 API，使用 API Key 调用视频、AK/SK 签名管理素材，实测排查已授权人像查询、H5 认证、素材引用和授权期限问题。用于官方渠道，不用于第三方兼容渠道或客户网关。
 agent_created: true
 ---
 
@@ -27,4 +27,4 @@ agent_created: true
 - 不自动删除既有真人素材，不把删除等同于撤回肖像授权。只针对用户明确指定的测试资源执行删除，保留上游失败结果。
 - 多用户系统在业务侧记录会员、渠道、项目与组/素材归属，禁止账号级库存自动归到所有用户；视频请求只能引用本用户合法授权的 `asset://`。
 
-视频字段、素材请求和 cURL 见 [references/api.md](references/api.md)。需要说明“现在究竟哪些可用”时，以 [references/verification.md](references/verification.md) 中对应端点和账号的真实结果为准；百度结果不能移作官方证据。
+视频字段、素材请求和 cURL 见 [references/api.md](references/api.md)。需要说明“现在究竟哪些可用”时，以 [references/verification.md](references/verification.md) 中对应端点和账号的真实结果为准；其他渠道结果不能移作官方证据。

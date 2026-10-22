@@ -16,6 +16,9 @@ from urllib import error, parse, request
 
 DEFAULT_BASE = "https://juhe.top"
 TTL = 900
+MATERIAL_GROUP_PATH = "/beta/aigc/generations/asset-groups"
+MATERIAL_ASSET_PATH = "/beta/aigc/generations/assets"
+MATERIAL_LIVENESS_PATH = "/beta/aigc/generations/liveness"
 
 
 class Failure(Exception):
@@ -193,6 +196,36 @@ class NoRedirect(request.HTTPRedirectHandler):
         return None
 
 
+def request_json(base, key, method, path, payload=None, query=None, timeout=60):
+    url = base + path
+    if query:
+        url += "?" + parse.urlencode(query)
+    headers = {"Authorization": "Bearer " + key, "Accept": "application/json"}
+    data = None
+    if payload is not None:
+        headers["Content-Type"] = "application/json"
+        data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    req = request.Request(url, data=data, headers=headers, method=method)
+    try:
+        with request.build_opener(NoRedirect()).open(req, timeout=timeout) as response:
+            raw = response.read()
+    except error.HTTPError as exc:
+        if exc.code == 401:
+            raise Failure("unauthorized", "HTTP 401：当前凭据被拒绝；检查来源，环境变量优先。") from None
+        raise Failure("http", "HTTP %s：服务拒绝请求；不输出响应正文。" % exc.code) from None
+    except (error.URLError, TimeoutError, OSError):
+        raise Failure("network", "网络、TLS 或超时错误；不代表 Key 失效。") from None
+    if not raw:
+        return {}
+    try:
+        result = json.loads(raw.decode("utf-8"))
+    except (UnicodeError, ValueError):
+        raise Failure("response", "服务返回的 JSON 无效。") from None
+    if not isinstance(result, dict):
+        raise Failure("response", "服务返回的 JSON 结构无效。")
+    return result
+
+
 def fetch_models(base, key):
     req = request.Request(base + "/v1/models", headers={"Authorization": "Bearer " + key})
     try:
@@ -265,7 +298,8 @@ register("qwen-image-3.0", "qwen", ["image"], "/v1/images/generations")
 register("wan2.7-image-pro", "wan", ["image"], "/v1/images/generations")
 register("wan2.6-image", "wan", ["image-edit"], "/v1/images/edits")
 register("doubao-seedance-2-0-260128 doubao-seedance-2-0-fast-260128", "seedance", ["video", "image-to-video", "reference-video"], "/api/v3/contents/generations/tasks")
-register("doubao-seedance-2-0-mini-260615 doubao-seedance-2-5-260628", "seedance", ["video"], "/v1/videos")
+register("doubao-seedance-2-0-mini-260615", "seedance", ["video", "image-to-video", "reference-video"], "/api/v3/contents/generations/tasks")
+register("doubao-seedance-2-5-260628", "seedance", ["video"], "/v1/videos")
 register("happyhorse-1.1-t2v", "happyhorse", ["video"], "/v1/videos")
 register("happyhorse-1.1-i2v", "happyhorse", ["image-to-video"], "/v1/videos")
 register("happyhorse-1.1-r2v", "happyhorse", ["reference-image-to-video"], "/v1/videos")
@@ -308,7 +342,7 @@ def resolve(ids, alias, task):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="安全凭据、实时型号与任务别名解析（不执行生成）")
+    parser = argparse.ArgumentParser(description="安全凭据、实时型号、任务解析与素材管理")
     sub = parser.add_subparsers(dest="command", required=True)
     auth = sub.add_parser("auth")
     auth.add_argument("action", choices=["status", "set", "clear"])
@@ -322,6 +356,60 @@ def main(argv=None):
         if name == "resolve":
             cmd.add_argument("alias")
             cmd.add_argument("--task", required=True)
+
+    material = sub.add_parser("material", help="管理 Seedance 素材分组与素材")
+    material.add_argument("--base-url", default=os.environ.get("JUHE_BASE_URL", DEFAULT_BASE))
+    resources = material.add_subparsers(dest="resource", required=True)
+    groups = resources.add_parser("groups")
+    group_actions = groups.add_subparsers(dest="action", required=True)
+    group_create = group_actions.add_parser("create")
+    group_create.add_argument("--name", required=True)
+    group_create.add_argument("--description", default="")
+    group_create.add_argument("--group-type", default="AIGC")
+    group_create.add_argument("--model")
+    group_list = group_actions.add_parser("list")
+    group_list.add_argument("--group-type", default="AIGC")
+    group_list.add_argument("--page-number", type=int, default=1)
+    group_list.add_argument("--page-size", type=int, default=20)
+    group_get = group_actions.add_parser("get")
+    group_get.add_argument("--id", required=True)
+    group_update = group_actions.add_parser("update")
+    group_update.add_argument("--id", required=True)
+    group_update.add_argument("--name", required=True)
+    group_update.add_argument("--description")
+    group_delete = group_actions.add_parser("delete")
+    group_delete.add_argument("--id", required=True)
+
+    assets = resources.add_parser("assets")
+    asset_actions = assets.add_subparsers(dest="action", required=True)
+    asset_create = asset_actions.add_parser("create")
+    asset_create.add_argument("--group-id", required=True)
+    asset_create.add_argument("--url", required=True)
+    asset_create.add_argument("--name")
+    asset_create.add_argument("--asset-type", required=True, choices=["Image", "Video", "Audio"])
+    asset_list = asset_actions.add_parser("list")
+    asset_list.add_argument("--group-id")
+    asset_list.add_argument("--status", action="append")
+    asset_list.add_argument("--page-number", type=int, default=1)
+    asset_list.add_argument("--page-size", type=int, default=20)
+    asset_get = asset_actions.add_parser("get")
+    asset_get.add_argument("--id", required=True)
+    asset_update = asset_actions.add_parser("update")
+    asset_update.add_argument("--id", required=True)
+    asset_update.add_argument("--name", required=True)
+    asset_delete = asset_actions.add_parser("delete")
+    asset_delete.add_argument("--id", required=True)
+
+    liveness = resources.add_parser("liveness")
+    liveness_actions = liveness.add_subparsers(dest="action", required=True)
+    liveness_create = liveness_actions.add_parser("create")
+    liveness_create.add_argument("--name", required=True)
+    liveness_create.add_argument("--description", default="")
+    liveness_create.add_argument("--model")
+    liveness_get = liveness_actions.add_parser("get")
+    liveness_get.add_argument("--id", required=True)
+    liveness_get.add_argument("--model")
+
     args = parser.parse_args(argv)
     try:
         if args.command == "auth":
@@ -349,6 +437,68 @@ def main(argv=None):
         elif args.command == "cache-clear":
             clear_cache()
             result = {"cleared": True}
+        elif args.command == "material":
+            key, _ = credential()
+            if not key:
+                raise Failure("missing_credential", "环境变量与安全存储均未配置；向用户索取 Key 后用 auth set --stdin 保存，之后不再重复询问。")
+            base = base_url(args.base_url)
+            method = "POST"
+            path = MATERIAL_GROUP_PATH if args.resource == "groups" else MATERIAL_ASSET_PATH
+            payload = None
+            query = None
+            if args.resource == "liveness":
+                path = MATERIAL_LIVENESS_PATH
+                if args.action == "create":
+                    payload = {"Name": args.name, "Description": args.description}
+                    query = {"model": args.model} if args.model else None
+                else:
+                    method = "GET"
+                    query = {"id": args.id}
+                    if args.model:
+                        query["model"] = args.model
+            elif args.resource == "groups":
+                if args.action == "create":
+                    query = {"model": args.model} if args.model else None
+                    payload = {"Name": args.name, "Description": args.description, "GroupType": args.group_type}
+                elif args.action == "list":
+                    path += "/list"
+                    payload = {"Filter": {"GroupType": args.group_type},
+                               "PageNumber": args.page_number, "PageSize": args.page_size}
+                elif args.action == "get":
+                    method = "GET"
+                    query = {"id": args.id}
+                elif args.action == "update":
+                    method = "PUT"
+                    payload = {"Id": args.id, "Name": args.name}
+                    if args.description is not None:
+                        payload["Description"] = args.description
+                else:
+                    method = "DELETE"
+                    payload = {"Id": args.id}
+            else:
+                if args.action == "create":
+                    payload = {"GroupId": args.group_id, "URL": args.url, "AssetType": args.asset_type}
+                    if args.name:
+                        payload["Name"] = args.name
+                elif args.action == "list":
+                    path += "/list"
+                    asset_filter = {}
+                    if args.group_id:
+                        asset_filter["GroupIds"] = [args.group_id]
+                    if args.status:
+                        asset_filter["Statuses"] = args.status
+                    payload = {"Filter": asset_filter, "PageNumber": args.page_number,
+                               "PageSize": args.page_size, "SortBy": "CreateTime", "SortOrder": "Desc"}
+                elif args.action == "get":
+                    method = "GET"
+                    query = {"id": args.id}
+                elif args.action == "update":
+                    method = "PUT"
+                    payload = {"ID": args.id, "Name": args.name}
+                else:
+                    method = "DELETE"
+                    query = {"id": args.id}
+            result = request_json(base, key, method, path, payload=payload, query=query)
         else:
             key, source = credential()
             if not key:

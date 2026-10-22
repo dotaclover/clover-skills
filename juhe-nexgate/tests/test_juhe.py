@@ -149,6 +149,9 @@ class Tests(unittest.TestCase):
         self.assertFalse(juhe.resolve(["qwen3.8-max"], "qwen3.8-max", "image")["candidates"])
         self.assertIsNone(juhe.resolve(["qwen3.8-max", "qwen3.8-flash"], "qwen", "chat")["selected"])
         self.assertEqual(juhe.resolve(["gpt-image-2"], "image2", "改图")["candidates"][0]["endpoint"], "/v1/images/edits")
+        mini = juhe.resolve(["doubao-seedance-2-0-mini-260615"], "seedance", "reference-video")["selected"]
+        self.assertEqual(mini, "doubao-seedance-2-0-mini-260615")
+        self.assertEqual(juhe.describe(mini)["endpoint"], "/api/v3/contents/generations/tasks")
 
     def test_https_and_no_redirect(self):
         for url in ["http://mock.invalid", "https://a:b@mock.invalid", "https://mock.invalid/v1", "https://mock.invalid?key=bad"]:
@@ -219,6 +222,96 @@ class Tests(unittest.TestCase):
         self.assertEqual(juhe.status()["source"], "missing")
         self.assertTrue(juhe.status()["ask_user_for_key"])
         self.assertFalse((self.directory / "credential.json").exists())
+
+    def test_material_cli_builds_group_and_asset_filters(self):
+        output = io.StringIO()
+        with patch.dict(os.environ, {"JUHE_API_KEY": "mock-material"}), \
+                patch.object(juhe, "request_json", return_value={"code": 0}) as call, \
+                contextlib.redirect_stdout(output):
+            self.assertEqual(juhe.main(["material", "groups", "create", "--name", "角色素材",
+                                        "--description", "参考素材", "--model", "doubao-seedance-2-0"]), 0)
+            self.assertEqual(call.call_args.args[2], "POST")
+            self.assertEqual(call.call_args.args[3], juhe.MATERIAL_GROUP_PATH)
+            self.assertEqual(call.call_args.kwargs["query"], {"model": "doubao-seedance-2-0"})
+            self.assertEqual(call.call_args.kwargs["payload"]["GroupType"], "AIGC")
+
+            self.assertEqual(juhe.main(["material", "groups", "list", "--group-type", "AIGC"]), 0)
+            self.assertEqual(call.call_args.args[3], juhe.MATERIAL_GROUP_PATH + "/list")
+            self.assertEqual(call.call_args.kwargs["payload"]["Filter"], {"GroupType": "AIGC"})
+
+            self.assertEqual(juhe.main(["material", "assets", "list", "--status", "Active"]), 0)
+            self.assertEqual(call.call_args.args[3], juhe.MATERIAL_ASSET_PATH + "/list")
+            self.assertEqual(call.call_args.kwargs["payload"]["Filter"],
+                             {"Statuses": ["Active"]})
+
+            self.assertEqual(juhe.main(["material", "assets", "list", "--group-id", "mock-group"]), 0)
+            self.assertEqual(call.call_args.args[3], juhe.MATERIAL_ASSET_PATH + "/list")
+            self.assertEqual(call.call_args.kwargs["payload"]["Filter"],
+                             {"GroupIds": ["mock-group"]})
+        self.assertNotIn("mock-material", output.getvalue())
+
+    def test_material_liveness_cli_uses_session_endpoints(self):
+        output = io.StringIO()
+        with patch.dict(os.environ, {"JUHE_API_KEY": "mock-material"}), \
+                patch.object(juhe, "request_json", return_value={"code": 0}) as call, \
+                contextlib.redirect_stdout(output):
+            self.assertEqual(juhe.main(["material", "liveness", "create", "--name", "真人认证",
+                                        "--description", "本人授权", "--model", "doubao-seedance-2-0"]), 0)
+            self.assertEqual(call.call_args.args[2], "POST")
+            self.assertEqual(call.call_args.args[3], juhe.MATERIAL_LIVENESS_PATH)
+            self.assertEqual(call.call_args.kwargs["payload"],
+                             {"Name": "真人认证", "Description": "本人授权"})
+            self.assertEqual(call.call_args.kwargs["query"], {"model": "doubao-seedance-2-0"})
+
+            self.assertEqual(juhe.main(["material", "liveness", "get", "--id", "mock-group",
+                                        "--model", "doubao-seedance-2-0"]), 0)
+            self.assertEqual(call.call_args.args[2], "GET")
+            self.assertEqual(call.call_args.args[3], juhe.MATERIAL_LIVENESS_PATH)
+            self.assertIsNone(call.call_args.kwargs["payload"])
+            self.assertEqual(call.call_args.kwargs["query"],
+                             {"id": "mock-group", "model": "doubao-seedance-2-0"})
+        self.assertNotIn("mock-material", output.getvalue())
+
+    def test_material_asset_delete_uses_query_id(self):
+        output = io.StringIO()
+        with patch.dict(os.environ, {"JUHE_API_KEY": "mock-material"}), \
+                patch.object(juhe, "request_json", return_value={"code": 0}) as call, \
+                contextlib.redirect_stdout(output):
+            self.assertEqual(juhe.main(["material", "assets", "delete", "--id", "mock-asset"]), 0)
+            self.assertEqual(call.call_args.args[2], "DELETE")
+            self.assertEqual(call.call_args.args[3], juhe.MATERIAL_ASSET_PATH)
+            self.assertEqual(call.call_args.kwargs["query"], {"id": "mock-asset"})
+            self.assertIsNone(call.call_args.kwargs["payload"])
+        self.assertNotIn("mock-material", output.getvalue())
+
+    def test_material_group_delete_uses_request_body(self):
+        output = io.StringIO()
+        with patch.dict(os.environ, {"JUHE_API_KEY": "mock-material"}), \
+                patch.object(juhe, "request_json", return_value={"code": 0}) as call, \
+                contextlib.redirect_stdout(output):
+            self.assertEqual(juhe.main(["material", "groups", "delete", "--id", "mock-group"]), 0)
+            self.assertEqual(call.call_args.args[2], "DELETE")
+            self.assertEqual(call.call_args.args[3], juhe.MATERIAL_GROUP_PATH)
+            self.assertEqual(call.call_args.kwargs["payload"], {"Id": "mock-group"})
+            self.assertIsNone(call.call_args.kwargs["query"])
+        self.assertNotIn("mock-material", output.getvalue())
+
+    def test_material_request_json_encodes_utf8_and_rejects_redirects(self):
+        response = io.BytesIO(b'{"code":0,"message":"ok"}')
+        with patch.object(juhe.request, "build_opener") as opener:
+            opener.return_value.open.return_value = response
+            result = juhe.request_json(
+                juhe.DEFAULT_BASE, "mock-key", "POST", juhe.MATERIAL_GROUP_PATH,
+                payload={"Name": "角色素材"}, query={"model": "doubao-seedance-2-0"},
+            )
+            req = opener.return_value.open.call_args.args[0]
+            self.assertEqual(result["code"], 0)
+            self.assertIn("model=doubao-seedance-2-0", req.full_url)
+            self.assertEqual(req.get_method(), "POST")
+            self.assertEqual(req.get_header("Authorization"), "Bearer mock-key")
+            self.assertEqual(json.loads(req.data.decode("utf-8")), {"Name": "角色素材"})
+            self.assertEqual(opener.return_value.open.call_args.kwargs["timeout"], 60)
+        self.assertIsNone(juhe.NoRedirect().redirect_request(None, None, 302, "", {}, "https://mock.invalid"))
 
     def test_missing_status_requests_key(self):
         stdin = io.StringIO("mock-new\n")

@@ -1,7 +1,7 @@
 ---
-name: juhe-nexgate  
-description: 调用聚合 Juhe Nexgate API，涵盖 GPT、Claude、DeepSeek、千问 Qwen、Seedance、Image-2 等系列。用于首次主动向用户索取 API Key 并加密持久保存、后续调用不再重复询问，实时查询支持型号、按中文英文别名和任务解析模型，以及文本对话、图片生成编辑、视频生成下载；提供标准库 Python 辅助 CLI 和接口参考。
-agent_created: true  
+name: juhe-nexgate
+description: 调用聚合 Juhe Nexgate API，涵盖 GPT、Claude、DeepSeek、千问 Qwen、Seedance、Image-2 等系列。用于首次主动向用户索取 API Key 并加密持久保存、后续调用不再重复询问，实时查询支持型号、按中文英文别名和任务解析模型，以及文本对话、图片生成编辑、视频生成下载、Seedance 素材库管理与真人认证；提供标准库 Python 辅助 CLI 和接口参考。
+agent_created: true
 ---
 
 # 聚合 Juhe Nexgate API
@@ -72,7 +72,8 @@ python scripts/juhe.py auth clear
 | Claude Messages           | `POST /v1/messages`                                   | [Messages 示例](references/text.md#4-claude-messages) |
 | Gemini 原生文本请求             | `POST /v1beta/models/{model}:generateContent`         | [Gemini 示例](references/text.md#5-gemini-原生格式)       |
 | Image-2 等图片生成与编辑          | `POST /v1/images/generations`、`POST /v1/images/edits` | [图片请求与保存结果](references/images.md)                   |
-| Seedance 视频               | 方舟格式或 OpenAI Video 格式                                 | [Seedance 参数与示例](references/seedance.md)            |
+| Seedance 视频               | 内容接口格式或 OpenAI Video 格式                              | [Seedance 参数与示例](references/seedance.md)            |
+| Seedance 素材库与真人认证        | `python scripts/juhe.py material ...`                 | [素材创建、查询、引用与真人认证](references/material.md)            |
 | 其他视频型号                    | `POST /v1/videos`                                     | [其他视频请求](references/other-video.md)                 |
 
 型号与请求入口见 [模型清单](references/models.md)，错误原因与处理方法见 [常见报错与处理](references/troubleshooting.md)。型号与可用性会随时间、Key 权限、额度及服务状态变化，以当前 `/v1/models` 和请求响应为准。
@@ -100,6 +101,8 @@ curl --silent --show-error --fail-with-body \
 - `GET /v1/models` 返回的 `data[].id` 是请求所用的型号名称；按文本、图片、视频任务选用对应接口。
 - 文本流式请求读取 SSE；图片响应可能是 Base64 或 URL；视频创建返回任务 ID，须查询到完成后下载。
 - 视频两种创建格式任选一种，同一需求只提交一次。超时或暂时查询失败时，先核对已有任务。
+- Seedance 素材库先导入公网 URL 并查询到 Active；查询结果的 `result.URL` 可直接作为 Seedance 媒体 URL。`asset://` 素材引用是聚合 API 扩展，提交时会校验归属、类型、状态与账户，并改写成服务原生资源 URI。详见 [素材库](references/material.md)。
+- 普通 AIGC 素材不等同真人模特或真人授权。真人模特使用 `material liveness create/get`：创建会话后把 `result.H5Link` 交给**真实自然人**本人完成认证，再轮询到 `completed`；程序侧不能代办或伪造。H5 链接不落库、不写日志。详见 [真人模特流程](references/material.md#真人模特与-livenessface)。
 - 发生错误时读取响应中的 `error`。`401` 检查 Key，`400` 检查参数，`403` 检查权限，`429` 根据具体错误区分限流与额度问题；`5xx` 或超时保留错误信息后再处理。
 - 图片、视频等长耗时任务必须显式设超时：图片 `--max-time 180`–`300`，视频创建后用任务 ID 轮询。不要依赖默认无限等待。
 - `/v1/models` 能列出型号不代表该型号当前可用。某型号超时或返回 `524` 时，先用文本型号发一条最小请求探活，再换同系列型号验证，不要持续加大等待时间；判定流程见 [常见报错与处理](references/troubleshooting.md)。

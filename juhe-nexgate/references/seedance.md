@@ -1,6 +1,6 @@
 # Seedance 参数与 curl 示例
 
-以下示例先执行 SKILL.md 中的环境变量设置。示例默认生成 5 秒、720p 视频；参考图片和视频地址需替换为实际可访问的 HTTPS URL。
+以下示例先执行 SKILL.md 中的环境变量设置。示例默认生成 5 秒、720p 视频；参考图片和视频地址需替换为实际可访问的 HTTPS URL。Seedance 素材库返回的 `result.URL` 也可直接作为远程媒体地址使用，完整流程见 [素材库](material.md)。
 
 | 型号                | `model`                           |
 | ----------------- | --------------------------------- |
@@ -11,7 +11,7 @@
 
 两种创建格式任选一种；同一需求只提交一次。遇到错误时见 [常见报错与处理](troubleshooting.md)。
 
-## 1. 方舟格式参数
+## 1. 内容接口格式参数
 
 使用 `POST /api/v3/contents/generations/tasks`，请求体为 JSON。
 
@@ -53,7 +53,53 @@ curl --silent --show-error --fail-with-body \
 {"id":"task_your_id"}
 ```
 
-## 3. 图片参考生成视频
+## 3. 素材库 URL 与素材 ID
+
+Seedance 素材库的流程是“公网 URL 导入 -> 异步审核 -> 查询 `Active` -> 引用”。详见 [素材库](material.md)。
+
+- 素材查询返回的 `result.URL` 可直接放入 `image_url.url`、`video_url.url` 或 `audio_url.url`。2026-10-22 使用 `doubao-seedance-2-0-mini-260615` 的真实付费测试中，素材库 URL 直接作为 `reference_image` 和 `reference_video` 输入均生成成功。
+- 引用前必须重新查询并确认 `result.Status` 为 `Active`。查询 URL 按接口说明有效期为 12 小时，不能长期缓存。
+- 测试中返回 URL 与最初导入的源 URL 相同，不一定是签名 URL；不要假设任意源 URL 都始终可读。
+- `asset://<素材ID>` 是 Juhe 聚合 API 扩展，不是公开的媒体 URL。平台会校验素材归属、类型、`Active` 状态、分组和账户，并把公共 ID 改写成服务原生资源 URI；调用方不要自行构造改写后的 URI。
+- 同一任务使用的素材应属于同一分组/服务账户。
+- 真人模特/`LivenessFace` 是独立授权链路，不是某个 `role` 值。使用 `material liveness create/get` 创建会话并轮询认证；必须由真实自然人本人完成 H5 认证，完成后再上传真人素材。普通 AIGC 素材或公网 URL 不能冒充真人授权。
+
+`/api/v3/contents/generations/tasks` 的素材元素位于顶层 `content`：
+
+```json
+{
+  "model": "doubao-seedance-2-0-mini-260615",
+  "content": [
+    {"type": "text", "text": "保持参考图中的主体外观，镜头缓慢推进，5秒，无字幕。"},
+    {"type": "image_url", "image_url": {"url": "asset://<素材ID>"}, "role": "reference_image"}
+  ],
+  "duration": 5,
+  "resolution": "720p",
+  "ratio": "16:9",
+  "watermark": false
+}
+```
+
+`/v1/video/generations` 和 `/v1/videos` 的素材元素位于 `metadata.content`。也可以把 `asset://<素材ID>` 换成素材查询返回的 `result.URL`：
+
+```json
+{
+  "model": "doubao-seedance-2-0-mini-260615",
+  "prompt": "参考视频中的运镜与运动节奏，生成海边日落场景，5秒，无字幕。",
+  "seconds": "5",
+  "metadata": {
+    "content": [
+      {"type": "text", "text": "参考视频中的运镜与运动节奏，生成海边日落场景，5秒，无字幕。"},
+      {"type": "video_url", "video_url": {"url": "asset://<素材ID>"}, "role": "reference_video"}
+    ],
+    "resolution": "720p",
+    "ratio": "adaptive",
+    "watermark": false
+  }
+}
+```
+
+## 4. 图片参考生成视频
 
 参考图片使用 `role: "reference_image"`。URL 必须能被远端读取，并在排队和生成期间保持有效。
 
@@ -77,7 +123,7 @@ curl --silent --show-error --fail-with-body \
 
 需要首帧或尾帧输入时，图片元素的 `role` 分别为 `first_frame`、`last_frame`，按所选型号允许的组合提交。
 
-## 4. 视频参考生成视频
+## 5. 视频参考生成视频
 
 参考视频使用 `role: "reference_video"`。
 
@@ -99,7 +145,7 @@ curl --silent --show-error --fail-with-body \
   }'
 ```
 
-## 5. 查询与下载
+## 6. 查询与下载
 
 把创建响应中的真实 `id` 填入 `TASK_ID`，不要使用示例占位值。
 
@@ -117,8 +163,10 @@ curl --silent --show-error --fail-with-body \
 | `running`   | 生成中                              |
 | `succeeded` | 已完成，从 `content.video_url` 获取成片地址 |
 | `failed`    | 失败，查看 `error.message`            |
+| `cancelled` | 已取消，终态；通常没有成片地址 |
+| `expired`   | 已过期，终态；通常没有成片地址 |
 
-`queued`、`running` 时继续间隔查询；`succeeded`、`failed` 时停止轮询。成功响应关键字段示意：
+`queued`、`running` 时继续间隔查询；`succeeded`、`failed`、`cancelled`、`expired` 时停止轮询。`failed` 读取 `error.message`，`cancelled` / `expired` 按终态处理且不要重复提交同一任务。成功响应关键字段示意：
 
 ```json
 {
@@ -139,7 +187,7 @@ curl --silent --show-error --fail-with-body --location \
 
 也可使用响应中的 `content.video_url` 下载成片。成片链接可能过期，完成后及时保存。
 
-## 6. OpenAI Video 格式
+## 7. OpenAI Video 格式
 
 文字生成使用 `prompt`，时长通过字符串 `seconds` 传入，画面参数放在 `metadata` 中。
 
@@ -161,7 +209,7 @@ curl --silent --show-error --fail-with-body \
   }'
 ```
 
-需要参考输入时，在 `metadata.content` 中同时写入文字与媒体元素，顶层 `prompt` 填写同一段文字。例如：
+需要参考输入时，在 `metadata.content` 中同时写入文字与媒体元素，顶层 `prompt` 填写同一段文字。媒体 URL 可以直接使用素材查询结果 `result.URL`，也可以使用聚合 API 扩展 `asset://<素材ID>`。例如：
 
 ```bash
 curl --silent --show-error --fail-with-body \
@@ -194,4 +242,4 @@ curl --silent --show-error --fail-with-body \
   -H "Authorization: Bearer $JUHE_API_KEY"
 ```
 
-此格式的状态为 `queued`、`in_progress`、`completed`、`failed`。`completed` 后，按第 5 节使用 `/v1/videos/{id}/content` 下载。
+此格式的状态为 `queued`、`in_progress`、`completed`、`failed`。`completed` 后，按第 6 节使用 `/v1/videos/{id}/content` 下载。

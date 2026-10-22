@@ -184,7 +184,7 @@ Authorization: <服务端实际计算的HMAC签名>
 
 成功结果只保证有 `Result.GroupId`，不能强制要求官方未列出的 `ResultCode` 或 `ExpireTime`。回跳查询串的 `resultCode=10000` 可作交互提示，不能代替服务端核验。`CallbackURL` 是点击“完成”后的浏览器 GET 回跳，不是已证实的服务端 POST 事件投递。
 
-当前官方账号创建 H5 返回 `SubscriptionRequired`，见 [实测](verification.md)。收到此错误应停止重复创建，核对本项目对应权益/开通条件；不要为了“试通”更换成百度后宣称官方已成功，也不要代替用户购买或订阅。
+当前官方账号创建 H5 返回 `SubscriptionRequired`，见 [实测](verification.md)。收到此错误应停止重复创建，核对本项目对应权益/开通条件；不要为了“试通”更换成第三方兼容渠道后宣称官方已成功，也不要代替用户购买或订阅。
 
 ### 创建、查询、删除素材
 
