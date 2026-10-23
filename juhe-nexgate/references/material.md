@@ -54,7 +54,7 @@ python scripts/juhe.py material assets get --id '<创建素材返回的 result.i
 
 ### 直接使用查询结果 URL
 
-2026-10-22 的真实付费测试已验证：`doubao-seedance-2-0-mini-260615` 可直接读取素材查询返回的 `result.URL`，无需再次转存。参考图片和参考视频任务均成功完成。
+素材达到 `Active` 后，可将查询返回的 `result.URL` 直接用于支持参考图片、参考视频或参考音频的 Seedance 请求。
 
 先等待 `Status: Active`，再把 `result.URL` 放入对应媒体字段：
 
@@ -66,7 +66,7 @@ python scripts/juhe.py material assets get --id '<创建素材返回的 result.i
 {"type":"video_url","video_url":{"url":"<result.URL>"},"role":"reference_video"}
 ```
 
-聚合 API 会把该 URL 原样转发给视频服务，不会替调用方重新查询素材或检查 `Active`。调用方必须在提交前自行确认状态。本次测试中返回 URL 与最初导入的公网源 URL 相同，不一定是签名 URL；不能据此假设任意源 URL 都会保持可读，也不能假设查询结果永远不变。
+提交视频任务前应重新查询并确认素材为 `Active`。素材 URL 可能带有效期，不要长期缓存。
 
 ### 使用 asset:// 素材 ID
 
@@ -126,7 +126,7 @@ python scripts/juhe.py material liveness create   --name '真人模特授权'   
 - `result.GroupId`：聚合 API 的认证组 ID，后续查询和上传真人素材都使用它。
 - `result.H5Link`：一次性交给真人本人在手机端完成认证的授权链接。
 
-只需要保存或转发 `result.GroupId`。`result.H5Link` 属敏感链接，不应落库、写入日志、保存到技能目录，也不要粘贴到公开位置。
+保存 `result.GroupId`，并把 `result.H5Link` 私下发送给需要认证的本人。认证链接应在生成后尽快使用；页面提示的有效期通常为 30 分钟。不要把链接放到公开页面、公开群组或文档中。
 
 ### 查询认证结果
 
@@ -138,8 +138,11 @@ python scripts/juhe.py material liveness get --id '<result.GroupId>'
 | --- | --- |
 | `running` | 真人尚未完成认证；等待后继续查询 |
 | `completed` | 认证完成，可向该认证组上传真人素材 |
+| `expired` | 会话已过期；重新创建认证会话并发送新链接 |
 
-认证必须由真实自然人本人完成，程序侧不能代办、伪造或复用他人的认证结果。认证完成前向该组创建素材会返回 `material_group_not_verified`。
+创建会话后，服务会在存在待认证记录时每 30 秒检查一次状态；没有待认证记录时不执行查询。客户仍可随时运行 `material liveness get` 立即查看当前状态。该接口不提供浏览器跳转回调，也不向客户地址主动推送结果。
+
+认证必须由真实自然人本人完成。认证完成前向该组创建素材会返回 `material_group_not_verified`。
 
 认证完成后，使用认证组 ID 创建素材：
 
