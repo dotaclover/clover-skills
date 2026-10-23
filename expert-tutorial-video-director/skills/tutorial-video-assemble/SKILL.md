@@ -8,7 +8,7 @@ agent_created: true
 
 这一段吃 `beats.json` 和素材，吐出成片。**音频定节奏**：先配音拿到真实时长，再决定卡片停多久、录屏压几倍。反过来一定返工。
 
-字段定义见 `references/beats契约.md`（唯一权威）。画布、卡片、台词怎么写不在这里——那分别归 `svg-lecture-deck` 和 `tutorial-series-plan`。
+字段定义见 `references/beats契约.md`（唯一权威）。画布、卡片、台词怎么写不在这里——那分别归 `svg-lecture-deck` 和 `tutorial-series-plan`；这说的是**知识分工**，不是安装依赖：本技能自带 `canvas.py`、`svg2png.py`、`video_pipeline.py`，整目录拷走单独也能跑。
 
 ## 录制实拍
 
@@ -39,7 +39,7 @@ python scripts/build_film.py --ep episodes/EP01 --preset 9:16      # 临时换�
 
 它会做：逐段 TTS（带缓存）→ 响度归一 `I=-16` → 卡片静帧片段 → 组装 `config.json` → 生成 SRT → 打表。
 
-画布缺省取 `beats.json` 的 `canvas`；没写就是 1920×1080。预设表和令牌在 `svg-lecture-deck/scripts/canvas.py`——**两个技能必须一起装**，卡片 SVG 的渲染脚本也在那边。
+画布缺省取 `beats.json` 的 `canvas`；没写就是 1920×1080。预设表和令牌在本技能的 `scripts/canvas.py`，卡片 SVG 的渲染脚本是同目录的 `scripts/svg2png.py`——**这两个文件都随本技能一起走**，不需要别的技能在场。
 
 ### 看那张表
 

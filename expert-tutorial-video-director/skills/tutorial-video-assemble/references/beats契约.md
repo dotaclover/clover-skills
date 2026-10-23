@@ -35,7 +35,7 @@
 | `3:4` | 1080×1440 | 平板 / 投屏 |
 | `4k` | 3840×2160 | 大屏母版 |
 
-宽高必须是偶数。显式写 `width/height` 会覆盖 preset。预设表在 `svg-lecture-deck/scripts/canvas.py`。
+宽高必须是偶数。显式写 `width/height` 会覆盖 preset。预设表在 `scripts/canvas.py`（三个技能各带一份，内容一致）。
 
 **同一集里所有素材必须是同一个画布**。渲染器用 `contain` 只缩不放，横屏素材进竖屏成片会左右补黑边，不会自动裁。
 

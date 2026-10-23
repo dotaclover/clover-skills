@@ -10,11 +10,17 @@ Agent 型（单个 AI 专家），内置三个单一职责技能。
 
 | 技能 | 管什么 | 能单独用吗 |
 |---|---|---|
-| `tutorial-series-plan` | 立项、分集、分镜台词，产出 `series.json` / `beats.json`。纯文字，不碰素材 | 能（只要大纲/脚本） |
-| `svg-lecture-deck` | SVG 卡设计 + 渲染 PNG + 导 PPTX，任意画布 | 能（只要一份能改字的 PPT） |
-| `tutorial-video-assemble` | 录屏、配音、字幕、剪辑出片，吃 `beats.json` | 能（只要把素材剪成片） |
+| `tutorial-series-plan` | 立项、分集、分镜台词，产出 `series.json` / `beats.json`。纯文字，不碰素材 | 能，自带 `canvas.py` |
+| `svg-lecture-deck` | SVG 卡设计 + 渲染 PNG + 导 PPTX，任意画布 | 能，自带 `canvas.py` |
+| `tutorial-video-assemble` | 录屏、配音、字幕、剪辑出片，吃 `beats.json` | 能，自带 `canvas.py` + `svg2png.py` + 渲染器 |
 
-共享契约只有一个：`beats.json`。字段定义在 `tutorial-video-assemble/references/beats契约.md`（唯一权威，改字段先改那里再改脚本）。
+**三个技能互不依赖**，单独拷走任何一个目录都能跑。共享契约只有一个：`beats.json`，字段定义在 `tutorial-video-assemble/references/beats契约.md`（唯一权威，改字段先改那里再改脚本）。
+
+### 关于重复代码
+
+`canvas.py` 在三处各有一份、`svg2png.py` 有两份，这是**故意的**：宁可重复，也不让一个技能因为另一个技能没装而断掉。
+
+改画布令牌时三份要一起改（deck 里的那份算规范源），改完 `md5sum` 对一下即可。允许它们暂时不一致——功能不受影响，只是同一份 beats 在不同画布下算出来的字号会不同。
 
 ## 画布
 
@@ -36,6 +42,7 @@ Agent 型（单个 AI 专家），内置三个单一职责技能。
 - 本机 `ffmpeg` / `ffprobe`（默认 `C:/ffmpeg/bin/`，可传参覆盖）
 - Python：`edge-tts`（配音）、`python-pptx` + `Pillow`（导 PPT）
 - Windows + Edge/Chrome（SVG 渲染、窗口录屏）
+- **不需要任何外部技能**。渲染器、画布令牌、SVG 转 PNG、SVG 转 PPTX 全部在包内，改这些文件不影响 `video-post-production` 那类独立技能。
 
 ## 使用示例
 

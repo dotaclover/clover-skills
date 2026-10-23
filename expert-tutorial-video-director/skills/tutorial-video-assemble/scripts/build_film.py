@@ -19,8 +19,10 @@
 
 画布：
     beats.json 里 "canvas": {"preset": "9:16"} 或 {"width":1080,"height":1920}。
-    预设表在 ../svg-lecture-deck/scripts/canvas.py，横屏/竖屏/方形/4K 都走同一套令牌。
+    预设表就是本目录的 canvas.py，横屏/竖屏/方形/4K 都走同一套令牌。
     缺省 16:9 = 1920×1080，与旧项目完全一致。
+
+本脚本自包含：canvas.py 与 svg2png.py 都放在同目录，不依赖任何其他技能。
 """
 import argparse
 import asyncio
@@ -33,14 +35,16 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-SKILLS_ROOT = HERE.parents[1]              # .../skills
-DECK_SCRIPTS = SKILLS_ROOT / "svg-lecture-deck" / "scripts"
 
+sys.path.insert(0, str(HERE))              # 本技能自带 canvas.py
 try:
-    sys.path.insert(0, str(DECK_SCRIPTS))
-    import canvas as canvas_mod           # noqa: E402
-except Exception:                          # 单独拷走本技能时的降级
-    canvas_mod = None
+    import canvas as canvas_mod            # noqa: E402
+except Exception:                          # 兜底：同包技能里有就读那份
+    try:
+        sys.path.insert(0, str(HERE.parents[1] / "svg-lecture-deck" / "scripts"))
+        import canvas as canvas_mod        # noqa: E402,F811
+    except Exception:
+        canvas_mod = None
 
 DEFAULT_FFMPEG = r"C:/ffmpeg/bin/ffmpeg.exe"
 DEFAULT_FFPROBE = r"C:/ffmpeg/bin/ffprobe.exe"
@@ -82,7 +86,7 @@ def resolve_canvas(cfg, preset_override=None):
     w, h = cfg.get("width"), cfg.get("height")
     if not w or not h:
         if cfg.get("preset") and cfg["preset"] not in ("16:9",):
-            raise SystemExit("画布预设需要同包的 svg-lecture-deck 技能，"
+            raise SystemExit("找不到 canvas.py（应在本脚本同目录），"
                              "或在 beats.json 里直接写 width/height")
         w, h = 1920, 1080
     return int(w) - int(w) % 2, int(h) - int(h) % 2
@@ -176,10 +180,11 @@ def card_clip(ffmpeg, clips: Path, png: Path, seconds, fps, name):
 
 
 def render_card_svg(svg: Path, png_dir: Path, w, h):
-    script = DECK_SCRIPTS / "svg2png.py"
+    script = HERE / "svg2png.py"                      # 本技能自带
     if not script.exists():
-        raise SystemExit("缺 %s：卡片 SVG 渲染脚本在 svg-lecture-deck 技能里，"
-                         "两个技能要一起装" % script)
+        script = HERE.parents[1] / "svg-lecture-deck" / "scripts" / "svg2png.py"
+    if not script.exists():
+        raise SystemExit("找不到 svg2png.py（应与本脚本同在 scripts/ 目录）")
     run([sys.executable, str(script), "--file", str(svg), "--out-dir", str(png_dir),
          "--width", str(w), "--height", str(h)])
 

@@ -17,9 +17,8 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-DECK_SCRIPTS = HERE.parents[1] / "svg-lecture-deck" / "scripts"
+sys.path.insert(0, str(HERE))          # 本技能自带 canvas.py，不依赖任何其他技能
 try:
-    sys.path.insert(0, str(DECK_SCRIPTS))
     import canvas as canvas_mod
 except Exception:
     canvas_mod = None
@@ -132,7 +131,7 @@ def main() -> int:
         desc = canvas_mod.describe(w, h)
     else:
         w, h = (1920, 1080)
-        desc = "1920×1080（未找到 svg-lecture-deck，退回默认）"
+        desc = "1920×1080（canvas.py 未加载，退回默认）"
 
     root = Path(a.root)
     (root / "assets/cards").mkdir(parents=True, exist_ok=True)

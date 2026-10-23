@@ -99,3 +99,5 @@ python scripts/init_project.py --root <项目目录> --title "系列名" --prese
 
 - 卡片怎么做：`svg-lecture-deck`
 - 怎么录、怎么配音、怎么出片：`tutorial-video-assemble`
+
+三个技能各自自包含（画布令牌、脚本都在各自目录里），只装这一个也能立项出 `beats.json`。

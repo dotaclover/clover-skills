@@ -57,7 +57,11 @@
 | `svg-lecture-deck` | SVG 卡 + 渲染 PNG + 导 PPTX，任意画布 | 只要一份能改字的 PPT |
 | `tutorial-video-assemble` | 录屏、配音、字幕、出片 | 把素材剪成片 |
 
-唯一的共享契约是 `beats.json`，权威定义在 `tutorial-video-assemble/references/beats契约.md`。`assemble` 的两个脚本要借用 `svg-lecture-deck/scripts`（画布令牌、卡片渲染），**三个技能必须一起装、一起改**，拆开卖会断。
+唯一的共享契约是 `beats.json`，权威定义在 `tutorial-video-assemble/references/beats契约.md`。
+
+**三个技能互不依赖，各自自包含**：`canvas.py` 三处各一份、`svg2png.py` 两处各一份，是故意重复的——宁可重复，也不让一个技能因为另一个没装而断掉。单独把任意一个目录拷走都能跑。改画布令牌时三份要一起改（`svg-lecture-deck` 里那份算规范源），改完 `md5sum` 对一下；允许暂时不一致，后果只是同一份 `beats` 在不同画布下算出的字号不同。
+
+整个包也不引用任何外部技能：渲染器、画布令牌、SVG→PNG、SVG→PPTX 全在包内。
 
 它与 `video-post-production` 的分界只有一句：**手上有没有成片之前的素材**。
 `video-post-production` 只管已有视频的二次加工；这个专家包从「一个主题」开始——分集大纲、分镜台词、讲义卡与 PPT、浏览器实拍、配音字幕，最后才把 `beats.json` 交给渲染器。内层 `tutorial-video-assemble/scripts/video_pipeline.py` 是 `video-post-production` 渲染器的原样副本，两端参数一致，不要分头改。
