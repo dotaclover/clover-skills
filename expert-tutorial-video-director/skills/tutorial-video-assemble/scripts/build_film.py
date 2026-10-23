@@ -2,25 +2,25 @@
 """系列教程视频：配音 + 讲义卡片 + 剪辑配置 + 字幕，一条命令。
 
 用法：
-    python build_film.py --ep <集目录>                 # 只生成 build/ 产物，不渲染
-    python build_film.py --ep <集目录> --render        # 生成后直接调 video_pipeline.py 出片
-    python build_film.py --ep <集目录> --force         # 忽略配音缓存，全部重录
-    python build_film.py --ep <集目录> --subs          # 烧字幕（默认不烧）
-    python build_film.py --ep <集目录> --fit stretch    # 配音超长时自动降速画面兜住
+    python build_film.py --ep <集目录>                  # 只生成 build/ 产物
+    python build_film.py --ep <集目录> --render         # 生成后直接渲染出片
+    python build_film.py --ep <集目录> --force          # 忽略配音缓存，全部重录
+    python build_film.py --ep <集目录> --subs           # 烧字幕（默认不烧）
+    python build_film.py --ep <集目录> --fit stretch     # 配音超长时自动降速画面兜住
+    python build_film.py --ep <集目录> --preset 9:16     # 临时覆盖画布
 
-输入：<集目录>/beats.json（分镜 + 台词）
+输入：<集目录>/beats.json（分镜 + 台词 + 画布）
 产物：
     build/audio/<id>.mp3|wav     逐段配音（wav 已响度归一）
     build/clips/<id>.mp4         讲义卡片片段（静帧，时长=配音+尾部停顿）
     build/config.json            交给 video_pipeline.py render
     build/plan.csv               每段槽位/配音/余量/判定
     build/<EP>_台词稿.md          带时间码的台词稿（交付物）
-    out/<EP>_成片.mp4             （加 --render 时）
 
-约定：
-- 卡片 PNG 缺失时，若同目录有同名 SVG 会自动用 svg2png.py 渲染。
-- 录屏原片只读，剪辑点写在 beats.json 里；任何源文件都不会被改写。
-- 段落顺序 = 成片顺序；同一段可重复引用。
+画布：
+    beats.json 里 "canvas": {"preset": "9:16"} 或 {"width":1080,"height":1920}。
+    预设表在 ../svg-lecture-deck/scripts/canvas.py，横屏/竖屏/方形/4K 都走同一套令牌。
+    缺省 16:9 = 1920×1080，与旧项目完全一致。
 """
 import argparse
 import asyncio
@@ -33,6 +33,14 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+SKILLS_ROOT = HERE.parents[1]              # .../skills
+DECK_SCRIPTS = SKILLS_ROOT / "svg-lecture-deck" / "scripts"
+
+try:
+    sys.path.insert(0, str(DECK_SCRIPTS))
+    import canvas as canvas_mod           # noqa: E402
+except Exception:                          # 单独拷走本技能时的降级
+    canvas_mod = None
 
 DEFAULT_FFMPEG = r"C:/ffmpeg/bin/ffmpeg.exe"
 DEFAULT_FFPROBE = r"C:/ffmpeg/bin/ffprobe.exe"
@@ -63,6 +71,27 @@ def duration(ffprobe, path):
         return float(out)
     except ValueError:
         raise SystemExit("读不到时长：%s" % path)
+
+
+def resolve_canvas(cfg, preset_override=None):
+    cfg = dict(cfg or {})
+    if preset_override:
+        cfg = {"preset": preset_override}
+    if canvas_mod:
+        return canvas_mod.resolve(cfg)
+    w, h = cfg.get("width"), cfg.get("height")
+    if not w or not h:
+        if cfg.get("preset") and cfg["preset"] not in ("16:9",):
+            raise SystemExit("画布预设需要同包的 svg-lecture-deck 技能，"
+                             "或在 beats.json 里直接写 width/height")
+        w, h = 1920, 1080
+    return int(w) - int(w) % 2, int(h) - int(h) % 2
+
+
+def sub_size(w, h):
+    if canvas_mod:
+        return canvas_mod.subtitle_size(w, h)
+    return max(16, int(round(min(w, h) * 0.045)))
 
 
 # ---------------------------------------------------------------- 台词与字幕
@@ -113,12 +142,12 @@ def cues_with_time(text, span):
     return out
 
 
-# ---------------------------------------------------------------- 配音
+# ---------------------------------------------------------------- 素材生成
 def make_voice(ffmpeg, aud: Path, bid, text, voice, rate, volume, loudnorm, force):
     mp3, wav = aud / (bid + ".mp3"), aud / (bid + ".wav")
     if force or not (mp3.exists() and mp3.stat().st_size > 0):
         if not text.strip():
-            raise SystemExit("段 %s 没有台词，无法配音。纯画面段请把 text 写成空串并配合 card 使用。" % bid)
+            raise SystemExit("段 %s 没有台词，无法配音。" % bid)
         import edge_tts
         asyncio.run(edge_tts.Communicate(text, voice, rate=rate, volume=volume).save(str(mp3)))
     if force or not (wav.exists() and wav.stat().st_size > 0):
@@ -146,6 +175,15 @@ def card_clip(ffmpeg, clips: Path, png: Path, seconds, fps, name):
     return out
 
 
+def render_card_svg(svg: Path, png_dir: Path, w, h):
+    script = DECK_SCRIPTS / "svg2png.py"
+    if not script.exists():
+        raise SystemExit("缺 %s：卡片 SVG 渲染脚本在 svg-lecture-deck 技能里，"
+                         "两个技能要一起装" % script)
+    run([sys.executable, str(script), "--file", str(svg), "--out-dir", str(png_dir),
+         "--width", str(w), "--height", str(h)])
+
+
 # ---------------------------------------------------------------- 主流程
 def main() -> int:
     ap = argparse.ArgumentParser()
@@ -153,6 +191,7 @@ def main() -> int:
     ap.add_argument("--beats", help="自定义 beats 路径，默认 <ep>/beats.json")
     ap.add_argument("--ffmpeg", default=DEFAULT_FFMPEG)
     ap.add_argument("--ffprobe", default=DEFAULT_FFPROBE)
+    ap.add_argument("--preset", help="临时覆盖画布：16:9 / 9:16 / 1:1 / 4:5 / 3:4 / 4k")
     ap.add_argument("--force", action="store_true", help="忽略配音/归一缓存")
     ap.add_argument("--subs", action="store_true", help="烧字幕（同时导出 SRT）")
     ap.add_argument("--fit", choices=["strict", "stretch"], default="strict",
@@ -167,9 +206,9 @@ def main() -> int:
     beats_path = Path(a.beats) if a.beats else ep_dir / "beats.json"
     cfg_in = json.loads(beats_path.read_text(encoding="utf-8"))
 
-    canvas = cfg_in.get("canvas", {})
-    W, H = int(canvas.get("width", 1920)), int(canvas.get("height", 1080))
-    FPS = int(canvas.get("fps", 30))
+    canvas_cfg = cfg_in.get("canvas", {})
+    W, H = resolve_canvas(canvas_cfg, a.preset)
+    FPS = int(canvas_cfg.get("fps", 30))
     v = cfg_in.get("voice", {})
     VOICE = v.get("name", "zh-CN-YunxiNeural")
     RATE = v.get("rate", "+8%")
@@ -187,6 +226,8 @@ def main() -> int:
     if clips.exists():
         shutil.rmtree(clips)
     clips.mkdir(parents=True)
+
+    print("画布 %d×%d @%dfps" % (W, H, FPS))
 
     rows, segs, script = [], [], []
     t_cursor = 0.0
@@ -208,16 +249,14 @@ def main() -> int:
             if not png.exists():
                 svg = cards_dir / (Path(b["png"]).stem + ".svg")
                 if svg.exists():
-                    run([sys.executable, str(HERE / "svg2png.py"), "--file", str(svg),
-                         "--out-dir", str(png_dir), "--width", str(W), "--height", str(H)])
+                    render_card_svg(svg, png_dir, W, H)
                 else:
                     missing.append(str(b["png"]))
                     continue
             slot = round(voice + TAIL, 2) if voice else float(b.get("seconds", 3.0))
             clip = card_clip(ffmpeg, clips, png, slot, FPS, bid)
             cdur = duration(ffprobe, clip)
-            seg = {"source": str(clip),
-                   "start": 0.0, "end": round(cdur - 0.002, 3)}
+            seg = {"source": str(clip), "start": 0.0, "end": round(cdur - 0.002, 3)}
             real = seg["end"]
         else:
             src = Path(b["src"])
@@ -267,27 +306,28 @@ def main() -> int:
            "resize_mode": "contain", "audio_mode": "replace",
            "subtitle_mode": "burn" if a.subs else "none",
            "font": cfg_in.get("font", "Microsoft YaHei"),
-           "font_size": int(cfg_in.get("font_size", max(16, int(W * 0.025)))),
+           "font_size": int(cfg_in.get("font_size", sub_size(W, H))),
            "segments": segs}
     (build / "config.json").write_text(json.dumps(cfg, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    # 交付物：分镜表 + 台词稿
     with (build / "plan.csv").open("w", newline="", encoding="utf-8-sig") as f:
-        w = csv.DictWriter(f, fieldnames=["id", "kind", "start", "slot", "voice", "margin", "chars", "fit"])
+        w = csv.DictWriter(f, fieldnames=["id", "kind", "start", "slot", "voice",
+                                          "margin", "chars", "fit"])
         w.writeheader()
         w.writerows(rows)
 
-    md = ["# %s 台词稿\n" % cfg_in.get("title", EP), "总时长约 %s\n" % hhmmss(t_cursor)]
+    md = ["# %s 台词稿\n" % cfg_in.get("title", EP),
+          "画布 %d×%d，总时长约 %s\n" % (W, H, hhmmss(t_cursor))]
     for bid, st, rl, vd, text in script:
         md.append("**[%s] %s**（%.1fs）\n\n%s\n" % (hhmmss(st), bid, rl, text or "（无台词）"))
     (build / ("%s_台词稿.md" % EP)).write_text("\n".join(md), encoding="utf-8")
 
-    # 控制台表格
     print("%-6s %-5s %7s %7s %7s %5s  %s" % ("段", "类型", "槽位", "配音", "余量", "字数", "判定"))
     for r in rows:
         print("%-6s %-5s %7.2f %7.2f %7.2f %5d  %s" % (r["id"], r["kind"], r["slot"], r["voice"],
                                                       r["margin"], r["chars"], r["fit"]))
-    print("总时长 %.2fs（%s）｜配音 %.2fs" % (t_cursor, hhmmss(t_cursor), sum(r["voice"] for r in rows)))
+    print("总时长 %.2fs（%s）｜配音 %.2fs" % (t_cursor, hhmmss(t_cursor),
+                                            sum(r["voice"] for r in rows)))
     if missing:
         print("[缺失素材]", len(missing))
         for m in missing:
@@ -310,14 +350,6 @@ def main() -> int:
         print("成片目录:", out_dir / ("%s_render" % EP))
 
     return 2 if (over or missing) else 0
-
-
-def _is_under(p: Path, base: Path) -> bool:
-    try:
-        p.resolve().relative_to(base.resolve())
-        return True
-    except ValueError:
-        return False
 
 
 def _rel(p: Path, base: Path) -> str:

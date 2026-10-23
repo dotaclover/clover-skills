@@ -4,39 +4,43 @@
 
 ## 类型
 
-Agent 型（单个 AI 专家），内置技能 `tutorial-video-pipeline`。
+Agent 型（单个 AI 专家），内置三个单一职责技能。
 
-## 功能
+## 三个技能怎么分工
 
-| 阶段 | 干什么 | 主要产物 |
+| 技能 | 管什么 | 能单独用吗 |
 |---|---|---|
-| 立项 | 主题拆集，定受众与固定开头结尾 | `series.json` |
-| 分镜 | 每集写成 card/demo 交替的 beats | `beats.json` |
-| 讲义卡 | 1920×1080 SVG，一套源喂视频和 PPT | `cards/*.svg`、`cards_png/*.png`、`讲义.pptx` |
-| 实拍 | 按窗口标题 ffmpeg 录屏，优雅收尾 | `rec/*.mp4` |
-| 配音 | edge-tts 逐段合成 + -16 LUFS 归一 | `build/audio/*.wav` |
-| 出片 | 音频定节奏，字幕按句摊时，可选烧录 | `final.mp4`、`subtitles.srt`、`report.json` |
-| 交付 | 台词稿、分镜表、验收记录 | `<EP>_台词稿.md`、`plan.csv` |
+| `tutorial-series-plan` | 立项、分集、分镜台词，产出 `series.json` / `beats.json`。纯文字，不碰素材 | 能（只要大纲/脚本） |
+| `svg-lecture-deck` | SVG 卡设计 + 渲染 PNG + 导 PPTX，任意画布 | 能（只要一份能改字的 PPT） |
+| `tutorial-video-assemble` | 录屏、配音、字幕、剪辑出片，吃 `beats.json` | 能（只要把素材剪成片） |
 
-内置脚本（`skills/tutorial-video-pipeline/scripts/`）：
+共享契约只有一个：`beats.json`。字段定义在 `tutorial-video-assemble/references/beats契约.md`（唯一权威，改字段先改那里再改脚本）。
 
-- `init_project.py` 建项目骨架
-- `svg2png.py` SVG → PNG（Edge 无头，避开缩放坑）
-- `svg2pptx.py` PNG → 16:9 PPTX（台词进备注）
-- `record_window.py` 按窗口录屏，`--stop-file` 收尾
-- `build_film.py` 配音 + 卡片片段 + 配置 + 字幕，一条命令
-- `video_pipeline.py` 配置驱动渲染器
+## 画布
+
+不锁 1920×1080。`u = min(宽,高)/1080`，字号、边距、线宽全部乘 `u`：
+
+| preset | 尺寸 | 用在 | PPT |
+|---|---|---|---|
+| `16:9` | 1920×1080 | 横屏教程（默认） | 13.33×7.5 in |
+| `9:16` | 1080×1920 | 抖音 / 视频号 | 7.5×13.33 in |
+| `1:1` | 1440×1440 | 方图 | 10×10 in |
+| `4:5` | 1440×1800 | 小红书 | 10×12.5 in |
+| `3:4` | 1080×1440 | 平板 / 投屏 | 7.5×10 in |
+| `4k` | 3840×2160 | 大屏母版 | 26.67×15 in |
+
+16:9 时 `u = 1`，和旧版逐像素一致。换画布不是缩放：竖屏要重排卡片、台词减字、实拍重录。
 
 ## 依赖
 
 - 本机 `ffmpeg` / `ffprobe`（默认 `C:/ffmpeg/bin/`，可传参覆盖）
-- Python：`edge-tts`、`python-pptx`（见 `skills/tutorial-video-pipeline/requirements.txt`）
+- Python：`edge-tts`（配音）、`python-pptx` + `Pillow`（导 PPT）
 - Windows + Edge/Chrome（SVG 渲染、窗口录屏）
 
 ## 使用示例
 
 - 我要做一套关于「用 AI 把活干完」的系列教程，先出分集大纲和第一集分镜
-- 把这集讲稿做成 SVG 讲义卡，再导出一份 PPT
+- 把这集讲稿做成竖屏 SVG 讲义卡，再导出一份竖屏 PPT
 - 录一段这个浏览器操作，配 edge-tts 配音和字幕，剪成成片
 
 ## 明确不做

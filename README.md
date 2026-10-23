@@ -47,10 +47,22 @@
 
 ### 专家包（Expert Package）
 
-- `expert-tutorial-video-director`（教程片厂）：**Agent 型专家包，不是单个 Skill**。目录里是完整的专家包结构——`.codebuddy-plugin/plugin.json` + `agents/` + `skills/` + `avatars/`，可整包导入 WorkBuddy 专家中心；内层技能是 `skills/tutorial-video-pipeline`（SVG 讲义卡、录屏、配音、字幕、出片的脚本与规范都在这里）。
+- `expert-tutorial-video-director`（教程片厂）：**Agent 型专家包，不是单个 Skill**。目录里是完整的专家包结构——`.codebuddy-plugin/plugin.json` + `agents/` + `skills/` + `avatars/`，可整包导入 WorkBuddy 专家中心。
 
-它和 `video-post-production` 的分界只有一句：**手上有没有成片之前的素材**。
-`video-post-production` 只管已有视频的二次加工；这个专家包从「一个主题」开始——分集大纲、分镜台词、讲义卡与 PPT、浏览器实拍、配音字幕，最后才把 `beats.json` 交给渲染器。内层 `skills/tutorial-video-pipeline/scripts/video_pipeline.py` 是 `video-post-production` 渲染器的原样副本，两端参数一致，不要分头改。
+里面是三个单一职责技能，按「能不能单独交付」切，不按步骤切：
+
+| 技能 | 管什么 | 单独可用 |
+|---|---|---|
+| `tutorial-series-plan` | 立项、分集、分镜台词（`series.json` / `beats.json`），纯文字 | 要大纲脚本 |
+| `svg-lecture-deck` | SVG 卡 + 渲染 PNG + 导 PPTX，任意画布 | 只要一份能改字的 PPT |
+| `tutorial-video-assemble` | 录屏、配音、字幕、出片 | 把素材剪成片 |
+
+唯一的共享契约是 `beats.json`，权威定义在 `tutorial-video-assemble/references/beats契约.md`。`assemble` 的两个脚本要借用 `svg-lecture-deck/scripts`（画布令牌、卡片渲染），**三个技能必须一起装、一起改**，拆开卖会断。
+
+它与 `video-post-production` 的分界只有一句：**手上有没有成片之前的素材**。
+`video-post-production` 只管已有视频的二次加工；这个专家包从「一个主题」开始——分集大纲、分镜台词、讲义卡与 PPT、浏览器实拍、配音字幕，最后才把 `beats.json` 交给渲染器。内层 `tutorial-video-assemble/scripts/video_pipeline.py` 是 `video-post-production` 渲染器的原样副本，两端参数一致，不要分头改。
+
+画布不锁 1920×1080：`u = min(宽,高)/1080`，令牌全乘 `u`，16:9 / 9:16 / 1:1 / 4:5 / 3:4 / 4K 同一套流程。16:9 时 `u=1`，与旧版逐像素一致。
 
 同步口径：改完先更新 `~/.workbuddy/plugins/marketplaces/my-experts/plugins/tutorial-video-director` 并重跑 `validate_expert.py` + `register_expert.py`，再整目录覆盖到这里，两边保持逐字节一致。
 
