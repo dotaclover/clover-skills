@@ -1,0 +1,27 @@
+{
+  "series": "AI 实战课",
+  "audience": "有一点技术背景、但没接触过 AI 工具的业务/技术岗",
+  "promise": "看完能把一件真实的活交给 AI 跑完，而不是只会聊天",
+  "style": {
+    "canvas": "1920x1080",
+    "palette": {
+      "bg": "#121A14",
+      "text": "#EDEAE0",
+      "muted": "#97A38F",
+      "accent": "#6F8F5A",
+      "gold": "#D8A73C",
+      "line": "#2E3B2E"
+    },
+    "font": "Source Han Sans SC, Microsoft YaHei, sans-serif",
+    "voice": "zh-CN-YunxiNeural",
+    "rate": "+8%",
+    "loudnorm": "loudnorm=I=-16:TP=-1.5:LRA=11"
+  },
+  "fixed_open": "大家好，我是 Clover，你们也可以叫我顺哥。",
+  "fixed_close": "我是顺哥，我们下个视频见。",
+  "episodes": [
+    { "id": "EP01", "title": "大模型和智能体差在哪", "goal": "分清模型产品和智能体，看见差别", "status": "done" },
+    { "id": "EP02", "title": "把第一份成果做出来", "goal": "从原始记录到可交付文档", "status": "planned" },
+    { "id": "EP03", "title": "在网页里直接改", "goal": "成品二次修改，不重跑", "status": "planned" }
+  ]
+}

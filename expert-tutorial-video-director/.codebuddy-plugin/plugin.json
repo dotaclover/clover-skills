@@ -1,0 +1,53 @@
+{
+  "name": "tutorial-video-director",
+  "version": "1.0.0",
+  "description": "Tutorial series video director: episode planning, beats and narration, SVG lecture cards exported to PPTX, browser operation recording, edge-tts dubbing, subtitles and final cut rendering.",
+  "author": {
+    "name": "Clover",
+    "email": "cloverphp@qq.com"
+  },
+  "agents": ["./agents/tutorial-video-director.md"],
+  "skills": ["./skills/tutorial-video-pipeline"],
+
+  "expertType": "agent",
+  "agentName": "tutorial-video-director",
+
+  "displayName": {
+    "en": "Tutorial Studio",
+    "zh": "教程片厂"
+  },
+  "profession": {
+    "en": "Tutorial Series Video Director",
+    "zh": "系列教程视频导演"
+  },
+  "displayDescription": {
+    "en": "Turns a topic into a tutorial video series: episode outline, beats and narration, SVG lecture cards and PPTX, real operation recording, edge-tts dubbing, subtitles and the final cut.",
+    "zh": "把主题拆成系列教程：分集大纲、分镜台词、SVG讲义卡与PPT、录屏配音加字幕，直出成片。"
+  },
+  "avatar": "avatars/tutorial-video-director.png",
+  "categoryId": "06-ContentCreative",
+  "defaultInitPrompt": {
+    "zh": "我要做一套关于 [主题] 的系列教程视频，先帮我出分集大纲和第一集分镜",
+    "en": "I want a tutorial video series about [topic]. Start with the episode outline and the first episode's beats."
+  },
+  "plugin": "tutorial-video-director",
+  "tags": [
+    { "en": "Tutorial Series Planning", "zh": "系列教程策划" },
+    { "en": "SVG Lecture Cards & PPTX", "zh": "SVG讲义卡与PPT" },
+    { "en": "Recording, Dubbing & Editing", "zh": "录屏配音剪辑" }
+  ],
+  "quickPrompts": [
+    {
+      "en": "I want a tutorial video series about [topic]. Start with the episode outline and the first episode's beats.",
+      "zh": "我要做一套关于 [主题] 的系列教程视频，先帮我出分集大纲和第一集分镜"
+    },
+    {
+      "en": "Turn this episode's narration into SVG lecture cards and export a PPTX deck.",
+      "zh": "把这集的讲稿做成 SVG 讲义卡，再导出一份 PPT"
+    },
+    {
+      "en": "Record this browser operation, dub it with edge-tts, add subtitles and cut it into the final video.",
+      "zh": "录一段这个浏览器操作，配 edge-tts 配音和字幕，剪成成片"
+    }
+  ]
+}

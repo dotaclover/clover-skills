@@ -1,0 +1,62 @@
+{
+  "episode": "EP01",
+  "title": "大模型和智能体，到底差在哪",
+  "canvas": { "width": 1920, "height": 1080, "fps": 30 },
+  "voice": { "name": "zh-CN-YunxiNeural", "rate": "+8%", "volume": "+0%" },
+  "loudnorm": "loudnorm=I=-16:TP=-1.5:LRA=11",
+  "card_tail": 0.9,
+  "font": "Microsoft YaHei",
+  "cards_dir": "cards",
+  "cards_png_dir": "cards_png",
+  "rec_dir": "rec",
+  "beats": [
+    {
+      "id": "c01",
+      "kind": "card",
+      "png": "C01_片头.png",
+      "text": "大模型和智能体，到底差在哪。同一份会议记录，交给两个工具各做一次。"
+    },
+    {
+      "id": "c02",
+      "kind": "card",
+      "png": "C02_我是谁.png",
+      "text": "先说清楚我是谁，以及这个系列不讲什么。"
+    },
+    {
+      "id": "d1",
+      "kind": "demo",
+      "src": "demo01.mp4",
+      "start": 0.0,
+      "end": 8.5,
+      "speed": 1.0,
+      "text": "把同一句话，分别粘进两个输入框。"
+    },
+    {
+      "id": "d2",
+      "kind": "demo",
+      "src": "demo01.mp4",
+      "start": 8.5,
+      "end": 68.0,
+      "speed": 3.0,
+      "text": "它先去读文件，再挑工具，中间自己写了个脚本核对原文。这段我压了三倍速，真实跑了两分钟。"
+    },
+    {
+      "id": "c05",
+      "kind": "card",
+      "png": "C05_对照.png",
+      "text": "把两边放一起看，差别不在谁更聪明。一边给你内容，一边给你成果。"
+    },
+    {
+      "id": "c08",
+      "kind": "card",
+      "png": "C08_课后作业.png",
+      "text": "留个作业：你需要的是一个答案，还是把这件事做完？"
+    },
+    {
+      "id": "c99",
+      "kind": "card",
+      "png": "C99_结束卡.png",
+      "text": "下一集，我们从这份记录开始，把第一个成果真正做出来。我是顺哥，我们下个视频见。"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <title>单概念卡 模板 1920×1080</title>
+  <desc>改三处：①右上系列名 ②卡标题 ③最多三条正文（主文字 48 + 注释 30）。底色/线/强调色照 series.json 色板。</desc>
+
+  <rect x="0" y="0" width="1920" height="1080" fill="#121A14"/>
+
+  <!-- 四叶草标记：固定，不参与排版 -->
+  <g fill="none" stroke="#6F8F5A" stroke-width="2" opacity="0.9">
+    <path d="M150 150 C124 142 124 108 150 96 C176 108 176 142 150 150 Z" transform="rotate(45 150 150)"/>
+    <path d="M150 150 C124 142 124 108 150 96 C176 108 176 142 150 150 Z" transform="rotate(135 150 150)"/>
+    <path d="M150 150 C124 142 124 108 150 96 C176 108 176 142 150 150 Z" transform="rotate(225 150 150)"/>
+    <path d="M150 150 C124 142 124 108 150 96 C176 108 176 142 150 150 Z" transform="rotate(315 150 150)"/>
+  </g>
+
+  <!-- ① 卡标题 -->
+  <text x="225" y="178" font-family="Source Han Sans SC, Microsoft YaHei, PingFang SC, sans-serif"
+        font-size="72" font-weight="500" letter-spacing="8" fill="#EDEAE0">卡标题</text>
+
+  <!-- ② 右上系列名 -->
+  <text x="1785" y="170" text-anchor="end" font-family="Source Han Sans SC, Microsoft YaHei, PingFang SC, sans-serif"
+        font-size="34" letter-spacing="3" fill="#6F8F5A">EP01 · 集名</text>
+
+  <line x1="0" y1="238" x2="1920" y2="238" stroke="#2E3B2E" stroke-width="2"/>
+
+  <!-- ③ 正文：最多三条，一条一个点 -->
+  <text x="135" y="392" font-family="Source Han Sans SC, Microsoft YaHei, PingFang SC, sans-serif"
+        font-size="48" fill="#EDEAE0">第一条：说清一个点，不超过三十个字</text>
+  <text x="135" y="446" font-family="Source Han Sans SC, Microsoft YaHei, PingFang SC, sans-serif"
+        font-size="30" fill="#97A38F">下面一行注释，给例子或限定条件</text>
+
+  <text x="135" y="576" font-family="Source Han Sans SC, Microsoft YaHei, PingFang SC, sans-serif"
+        font-size="48" fill="#EDEAE0">第二条</text>
+  <text x="135" y="630" font-family="Source Han Sans SC, Microsoft YaHei, PingFang SC, sans-serif"
+        font-size="30" fill="#97A38F">注释</text>
+
+  <text x="135" y="760" font-family="Source Han Sans SC, Microsoft YaHei, PingFang SC, sans-serif"
+        font-size="48" fill="#EDEAE0">第三条</text>
+  <text x="135" y="814" font-family="Source Han Sans SC, Microsoft YaHei, PingFang SC, sans-serif"
+        font-size="30" fill="#97A38F">注释</text>
+
+  <!-- 可选：底部一句强调（金色） -->
+  <text x="135" y="1000" font-family="Source Han Sans SC, Microsoft YaHei, PingFang SC, sans-serif"
+        font-size="36" fill="#D8A73C">一句收口的话</text>
+</svg>

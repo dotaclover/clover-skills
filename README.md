@@ -45,6 +45,15 @@
 
 `seedance-video` 负责生成工作流；`seedance-ark` 和 `seedance-bd` 负责供应商接入、素材控制面及真实连通性核验。`doubao-web-video` 则走用户已登录的豆包网页版。三类通道的凭据、端点与验收结论不可互换。
 
+### 专家包（Expert Package）
+
+- `expert-tutorial-video-director`（教程片厂）：**Agent 型专家包，不是单个 Skill**。目录里是完整的专家包结构——`.codebuddy-plugin/plugin.json` + `agents/` + `skills/` + `avatars/`，可整包导入 WorkBuddy 专家中心；内层技能是 `skills/tutorial-video-pipeline`（SVG 讲义卡、录屏、配音、字幕、出片的脚本与规范都在这里）。
+
+它和 `video-post-production` 的分界只有一句：**手上有没有成片之前的素材**。
+`video-post-production` 只管已有视频的二次加工；这个专家包从「一个主题」开始——分集大纲、分镜台词、讲义卡与 PPT、浏览器实拍、配音字幕，最后才把 `beats.json` 交给渲染器。内层 `skills/tutorial-video-pipeline/scripts/video_pipeline.py` 是 `video-post-production` 渲染器的原样副本，两端参数一致，不要分头改。
+
+同步口径：改完先更新 `~/.workbuddy/plugins/marketplaces/my-experts/plugins/tutorial-video-director` 并重跑 `validate_expert.py` + `register_expert.py`，再整目录覆盖到这里，两边保持逐字节一致。
+
 ### 百度渠道
 
 - `baidu-vod-qianfan`：真实探测旧 VOD、新 VOD、千帆 QF 和 AI 网关 Seedance，并生成 new-api 渠道配置建议。
