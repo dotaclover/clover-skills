@@ -118,7 +118,7 @@
 
 | 状态 | 数量 | 目录 |
 |---|---|---|
-| 健康 | 12 | xhs / toutiao / wechat-mp / douyin / kuaishou / wxchannels / grid-image-splitter / seedance-video / video-post-production / windows-computer-use / trae-computer-use / find-your-project |
+| 健康 | 11 | xhs / toutiao / wechat-mp / douyin / kuaishou / wxchannels / grid-image-splitter / seedance-video / video-post-production / computer-use / find-your-project |
 | 历史需重构 | 1 | `xiaoice-digital-human`（当时主文件 739 行 + 坏链；当前已迁入 `media-creator`） |
 | 空壳 | 0 | ~~find-your-project~~ 已修复 |
 
@@ -245,7 +245,7 @@ description 要覆盖 6 平台全部触发词，会膨胀到 600+ 字符且互�
 | 候选 | 判断 |
 |---|---|
 | `seedance-dev` / `media-creator` | 已按用户确认合并为图片视频创作专家；生成、二次加工、数字人仍在专家内部保持独立路由 |
-| `windows-computer-use` + `trae-computer-use` | 保持分立。已是正确的"通用 + 适配"分层 |
+| `windows-computer-use` + `trae-computer-use` | 已合并为 `computer-use`，统一通用 Windows 操作与 Trae 适配层 |
 
 ---
 
@@ -273,8 +273,7 @@ clover-skills/
 │   ├── video-post-production/
 │   └── grid-image-splitter/
 ├── desktop-automation/       # 桌面自动化（2）
-│   ├── windows-computer-use/
-│   └── trae-computer-use/
+│   └── computer-use/
 ├── workspace/                # 工作区定位（1）← README 漏收录
 │   └── find-your-project/
 ├── api-integration/          # 厂商 API 接入（1）
@@ -299,7 +298,7 @@ clover-skills/
 | ⬜ | P1 | `xiaoice` 根目录 3 个 `avatars_page*.json` | 实为 `scripts/01-list-avatars.sh` 的运行产物，混在源目录里 |
 | ⬜ | P2 | 建 `_templates/` + 同步脚本（方案 C） | 降低 6 工坊维护成本 |
 | ⬜ | P2 | 仓库目录按 6 大类分组 | 可读性 |
-| ⬜ | P2 | `trae-computer-use` 隔离（平台错配，WorkBuddy 下跑不起来） | 会被误触发 |
+| ✅ | P2 | 合并 `windows-computer-use` 与 `trae-computer-use` 为 `computer-use` | 统一各种 Windows 与 Trae 场景，避免重复入口 |
 
 ---
 

@@ -64,10 +64,9 @@
 
 ### Windows 操作
 
-- `windows-computer-use`：通用 Windows UI Automation 和输入注入。
-- `trae-computer-use`：Trae/TraeWork 专属适配层，包含 Trae 后端和工具调用方式。
+- `computer-use`：统一 Windows 电脑控制技能，覆盖桌面应用、浏览器、IDE、办公软件和 Trae/TraeWork 场景；按后端选择 UI Automation、坐标注入或 computer-use MCP。
 
-Trae Skill 可以借鉴通用 Windows Skill，但不能假设其他 Windows 工具具备 Trae 的后端。
+原 `windows-computer-use` 与 `trae-computer-use` 已合并到 `computer-use`，不再保留两个重复激活入口。
 
 ### 创业与经营
 
