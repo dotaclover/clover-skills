@@ -42,7 +42,7 @@ Agent 型（单个 AI 专家），内置三个单一职责技能。
 - 本机 `ffmpeg` / `ffprobe`（默认 `C:/ffmpeg/bin/`，可传参覆盖）
 - Python：`edge-tts`（配音）、`python-pptx` + `Pillow`（导 PPT）
 - Windows + Edge/Chrome（SVG 渲染、窗口录屏）
-- **不需要任何外部技能**。渲染器、画布令牌、SVG 转 PNG、SVG 转 PPTX 全部在包内，改这些文件不影响 `video-post-production` 那类独立技能。
+- **不需要任何外部技能**。渲染器、画布令牌、SVG 转 PNG、SVG 转 PPTX 全部在包内，改这些文件不影响仓库其他技能。
 
 ## 使用示例
 

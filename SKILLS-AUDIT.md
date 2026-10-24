@@ -20,7 +20,7 @@
 
 **结构**：主文件只保留每轮必用的部分——前置条件、输入三要素、五步执行流程、四项硬核验、已知坑、路由表；能力边界（44 行）、实测样例（70 行）、手动挡（31 行）按需加载。
 
-**为什么拆**：这三块都是「查的时候才看」而非「每次都要看」。拆完主文件 12.0KB，与 `xunzhao-chuangye-xiangmu`（12KB）持平，远低于 `xiaoice-digital-human` 拆分前的 39KB。
+**为什么拆**：这三块都是「查的时候才看」而非「每次都要看」。拆完主文件 12.0KB，与 `xunzhao-chuangye-xiangmu`（12KB）持平。历史记录保留当时的拆分结论；该技能后续已并入 `media-creator` 专家包。
 
 **能力边界的价值**：这一节记的是实测结论，不是推测——`cua_execute` 只能排坐标动作和截图、**没有 JS eval 入口**，所以 `document.body.innerText` 这条路根本不存在；大众点评的评分数字用自定义字体加密，DOM 文本取到的是 PUA 乱码，**截图 + 多模态读图反而是唯一低成本解**。不写下来，下次还会有人试着用 innerText 一把梭。
 
@@ -74,10 +74,10 @@
 | 1 | 14 个 `SKILL.md` 全部补回 `agent_created: true` | ✅ 14/14 通过校验 |
 | 2 | `README.md` 改为 WorkBuddy 口径 | ✅ 第 3 行改为「WorkBuddy（及 Codex 等）」，字段规范那行补上 `agent_created` 说明 |
 | 3 | `README.md` 补收录 `find-your-project` | ✅ 新增「工作区定位」分类，收录 14/14 |
-| 4 | 修 `xiaoice-digital-human` 坏链 | ✅ 删除不存在的 `scripts/deploy-nginx.conf` 引用 |
+| 4 | 修历史版 `xiaoice-digital-human` 坏链 | ✅ 删除不存在的 `scripts/deploy-nginx.conf` 引用；后续已并入 `media-creator` 专家包 |
 | 5 | 拆分 `xiaoice-digital-human` 主文件 | ✅ 739 行 / 39KB → **130 行 / 8.7KB** + 6 个 references（32.4KB） |
 
-**拆分后的 `xiaoice-digital-human`**（主文件只留路由骨架，内容按需加载）：
+**历史拆分后的 `xiaoice-digital-human`**（主文件只留路由骨架，内容按需加载；当前内容已随媒体创作能力迁入 `media-creator` 专家包）：
 
 | 文件 | 大小 | 内容 |
 |---|---|---|
@@ -111,7 +111,7 @@
 | 状态 | 数量 | 目录 |
 |---|---|---|
 | 健康 | 12 | xhs / toutiao / wechat-mp / douyin / kuaishou / wxchannels / grid-image-splitter / seedance-video / video-post-production / windows-computer-use / trae-computer-use / find-your-project |
-| 需重构 | 1 | `xiaoice-digital-human`（主文件 739 行 + 坏链） |
+| 历史需重构 | 1 | `xiaoice-digital-human`（当时主文件 739 行 + 坏链；当前已迁入 `media-creator`） |
 | 空壳 | 0 | ~~find-your-project~~ 已修复 |
 
 ---
@@ -187,7 +187,7 @@ README 分 5 个分类列了 **13 个** skill，实际目录 **14 个**。唯一
 | 形象训练 / 声音训练 | 679–717 | `references/training.md` |
 | 素材准备 + 时长标定 | 107–123 / 728–739 | `references/assets-and-timing.md` |
 
-### 5. `xiaoice-digital-human` 根目录散落文件（未处理）
+### 5. 历史记录：`xiaoice-digital-human` 根目录散落文件（已随专家包迁移）
 
 `avatars_page1.json` / `page2` / `page3` 直接躺在 skill 根目录，应移到 `assets/`。
 
@@ -199,7 +199,7 @@ README 分 5 个分类列了 **13 个** skill，实际目录 **14 个**。唯一
 
 126 行主文件里塞了完整 API 表格、请求体、素材限制、模型 ID。应拆到 `references/api.md`。
 
-### 8. `video-post-production` 的 5 个 assets JSON 为泛引用（未处理）
+### 8. 历史记录：`video-post-production` 的 5 个 assets JSON（已随专家包迁移）
 
 主文件只写"`assets/` 中 JSON 模板"，未点名具体文件。建议逐个列出用途。
 
@@ -236,7 +236,7 @@ description 要覆盖 6 平台全部触发词，会膨胀到 600+ 字符且互�
 
 | 候选 | 判断 |
 |---|---|
-| `seedance-video` / `video-post-production` / `xiaoice-digital-human` | 不合并。生成 / 二次加工 / 数字人是三种不相交能力，README 也已说明 |
+| `seedance-dev` / `media-creator` | 已按用户确认合并为图片视频创作专家；生成、二次加工、数字人仍在专家内部保持独立路由 |
 | `windows-computer-use` + `trae-computer-use` | 保持分立。已是正确的"通用 + 适配"分层 |
 
 ---
@@ -286,7 +286,7 @@ clover-skills/
 | ✅ | P0 | 14 个 skill 补回 `agent_created: true` | 已补，14/14 |
 | ✅ | P1 | 拆分 `xiaoice` 主文件 | 739 行 → 130 行 + 6 references |
 | ⬜ | P1 | 确认 `~/.workbuddy/skills/` 是否需要同步 | 两边版本已不一致（仓库已改，安装目录仍是旧版） |
-| ⬜ | P1 | 移出 `video-post-production` 三份开发文档 | 防止 AI 误读为任务输入 |
+| ✅ | 已完成 | 将 `video-post-production` 及相关媒体能力迁入 `media-creator` 专家包并删除仓库根目录独立副本 | 精简根目录，专家内部仍保留完整资料 |
 | ⬜ | P1 | `baidu-vod-qianfan/agents/` 处置 | 规范外的死文件 |
 | ⬜ | P1 | `xiaoice` 根目录 3 个 `avatars_page*.json` | 实为 `scripts/01-list-avatars.sh` 的运行产物，混在源目录里 |
 | ⬜ | P2 | 建 `_templates/` + 同步脚本（方案 C） | 降低 6 工坊维护成本 |

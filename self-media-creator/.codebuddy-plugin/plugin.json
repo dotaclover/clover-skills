@@ -1,0 +1,37 @@
+{
+  "name": "self-media-creator",
+  "version": "1.0.0",
+  "description": "Routes content creation by platform and writing genre across short-video scripts, social notes, long-form articles and comparison reviews, without merging all platform rules into one template.",
+  "agents": ["./agents/self-media-creator.md"],
+  "skills": [
+    "./skills/douyin-script-studio",
+    "./skills/kuaishou-script-studio",
+    "./skills/wxchannels-script-studio",
+    "./skills/xhs-note-studio",
+    "./skills/wechat-mp-studio",
+    "./skills/toutiao-article-studio",
+    "./skills/versus-script-studio"
+  ],
+  "expertType": "agent",
+  "agentName": "self-media-creator",
+  "displayName": {"en": "Self Media Creator", "zh": "自媒体创作"},
+  "profession": {"en": "Platform Content Specialist", "zh": "内容创作专家"},
+  "displayDescription": {
+    "en": "Creates platform-specific scripts, social notes, articles and comparison reviews, with titles, cover plans and factual checks.",
+    "zh": "按平台与文体创作短视频脚本、图文笔记、长文及对比测评，提供选题标题、封面建议与事实合规检查。"
+  },
+  "avatar": "avatars/expert.png",
+  "categoryId": "06-ContentCreative",
+  "defaultInitPrompt": {"en": "Write a 45-second Douyin script about my topic, including three titles, an opening hook and narration.", "zh": "围绕我的选题写一条45秒抖音脚本，给出三个标题、开场钩子和完整口播稿。"},
+  "plugin": "self-media-creator",
+  "tags": [
+    {"en": "Video Scripts", "zh": "短视频脚本"},
+    {"en": "Social Notes and Articles", "zh": "图文长文"},
+    {"en": "Comparison Reviews", "zh": "对比测评"}
+  ],
+  "quickPrompts": [
+    {"en": "Write a 45-second Douyin script about my topic, including three titles, an opening hook and narration.", "zh": "围绕我的选题写一条45秒抖音脚本，给出三个标题、开场钩子和完整口播稿。"},
+    {"en": "Adapt the same source material into a Xiaohongshu note and a WeChat article, keeping their platform rules separate.", "zh": "把同一份素材分别改成小红书笔记和公众号文章，保留各自的平台表达与结构。"},
+    {"en": "Use my real experience with two tools to draft a three-minute comparison review and list facts requiring verification.", "zh": "根据我真实使用两个工具的记录写三分钟对比测评，列出还需核实的价格与功能。"}
+  ]
+}

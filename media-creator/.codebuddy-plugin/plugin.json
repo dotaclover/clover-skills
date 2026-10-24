@@ -1,0 +1,36 @@
+{
+  "name": "media-creator",
+  "version": "1.0.0",
+  "description": "Routes image and video work through Seedance provider development, personal Huarui integration, video post-production, digital humans, grid splitting and zero-cost pipeline planning with explicit spending and asset boundaries.",
+  "agents": ["./agents/media-creator.md"],
+  "skills": [
+    "./skills/seedance-dev",
+    "./skills/huarui-dev",
+    "./skills/video-post-production",
+    "./skills/zero-cost-video",
+    "./skills/xiaoice-digital-human",
+    "./skills/grid-image-splitter"
+  ],
+  "expertType": "agent",
+  "agentName": "media-creator",
+  "displayName": {"en": "Media Creator", "zh": "影像创作"},
+  "profession": {"en": "Image and Video Creation Specialist", "zh": "图片视频创作专家"},
+  "displayDescription": {
+    "en": "Plans and routes media generation, video editing, digital-human production and grid splitting with explicit permissions and cost controls.",
+    "zh": "按生成、加工、数字人、切图及零成本流水线路由图片视频任务，明确渠道、费用授权、凭据和素材边界。"
+  },
+  "avatar": "avatars/expert.png",
+  "categoryId": "06-ContentCreative",
+  "defaultInitPrompt": {"en": "Plan a Seedance video workflow and compare Ark, Baidu and Huarui routes without making requests or incurring charges.", "zh": "帮我规划一条Seedance视频生成流程，区分官方、百度和华锐渠道，先不发请求或产生费用。"},
+  "plugin": "media-creator",
+  "tags": [
+    {"en": "Media Generation", "zh": "影像生成"},
+    {"en": "Video Post-production", "zh": "视频加工"},
+    {"en": "Digital Humans and Image Splitting", "zh": "数字人与切图"}
+  ],
+  "quickPrompts": [
+    {"en": "Plan a Seedance video workflow and compare Ark, Baidu and Huarui routes without making requests or incurring charges.", "zh": "帮我规划一条Seedance视频生成流程，区分官方、百度和华锐渠道，先不发请求或产生费用。"},
+    {"en": "Trim and join my local videos for portrait delivery while keeping the original audio; inspect the inputs first.", "zh": "把我的本地视频剪辑拼接成竖屏版本，保留原音，先检查素材并给出加工方案。"},
+    {"en": "Split this grid image into nine files and outline a digital-human narration plan without uploading assets.", "zh": "把这张九宫格切成九张独立图片，并规划数字人口播方案，暂不上传素材。"}
+  ]
+}

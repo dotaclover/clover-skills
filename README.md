@@ -2,48 +2,32 @@
 
 这个目录保存可直接被 WorkBuddy（以及 Codex 等支持 Agent Skills 的工具）发现的独立 Skill。每个 Skill 都必须是一个目录，并包含 UTF-8 编码的 `SKILL.md`；较长的流程、平台差异、示例和脚本放在 `references/`、`scripts/` 或 `assets/` 中。
 
+## 开发与客户交付边界
+
+- 自用接口开发、集成和业务逻辑技能使用 `-dev` 标识；与客户/用户交付包分开维护，不直接改名覆盖交付包。
+- `baidu-api-dev` 是百度开发统一入口及唯一百度接口事实源，已合并原 `baidu-vod`、`baidu-qianfan`、`baidu-vod-qianfan`、`seedance-bd`；旧入口仅作历史，不再活跃，协议和凭据在内部仍分别管理。
+- `seedance-dev` 是自用 Seedance 接口整合入口；华锐开发唯一事实源为 `huarui-dev`，不读取客户包或内部视频包。
+- 华锐三类边界：`huarui-dev` 仅用于自用开发，使用环境变量且不含客户配置；`huarui-zhisuan` 是客户交付包，内容保持独立且不改；`huarui-video` 是华锐内部官方真人视频生成包，承接内部 hardcode Key 和真人素材，仅限内部使用，不是通用入口。
+- `juhe-nexgate` 是客户开发交付包；客户包 hardcode 配置只能按明确交付约定保留在原包内，不得复制、迁移或放入开发包。
+- `expert-tutorial-video-director` 是视频录制与制作的 WorkBuddy 专家包，保留原目录结构及内置技能，不参与华锐重组。
+
 ## 推荐的技能边界
 
-### 内容创作
+### 内容与媒体创作
 
-以下技能都遵循“输入简报 → 选题/标题 → 正文或口播 → 封面/配图 → 合规检查”的流程，但保留各平台的独立规则：
+内容创作和图片视频创作已分别收敛为两个 WorkBuddy 专家包，避免同一能力同时暴露为大量独立触发入口：
 
-- `douyin-script-studio`
-- `kuaishou-script-studio`
-- `wxchannels-script-studio`
-- `xhs-note-studio`
-- `wechat-mp-studio`
-- `toutiao-article-studio`
+- `self-media-creator`：自媒体创作专家。按抖音、快手、视频号、小红书、公众号、头条和双对象横评等平台/文体路由，内置原内容创作技能与参考资料。
+- `media-creator`：图片视频创作专家。按 Seedance 生成、华锐开发、视频后处理、数字人、宫格切图和零成本视频规划路由，内置对应技能与参考资料。
 
-不要把六个平台合并成一个无差别的触发入口；平台差异会影响标题、时长、文体、封面和合规检查。
+专家包已注册到 WorkBuddy 专家目录，并同步保存在本仓库的 `self-media-creator/` 与 `media-creator/`；仓库不再保留上述能力的独立副本。需要分享或迁移时，使用 `outputs/self-media-creator.zip` 和 `outputs/media-creator.zip`。同步时以专家目录为源，先更新专家包，再复制到本仓库。
 
-第七个内容技能按**文体**切、不按平台切：
+仍保持独立的媒体能力：
 
-- `versus-script-studio`（对决稿）⚠️ **v0.1 未完成，待完善**
+- `aigc-image`：独立图片生成技能，按要求保留，不并入 `media-creator`。
+- `doubao-web-video`：豆包网页版视频生成，依赖浏览器自动化，不使用 API Key，按要求保留独立入口。
 
-只做 3–4 分钟的双对象横评口播（九段骨架、金句收束、短板双向、结尾不给赢家）。平台侧规则仍回三个口播工坊补，两边正交，不要合并。
-
-> ⚠️ **状态：draft（v0.1）**。可用部分＝九段骨架 / 段落节奏表 / 四条写作规则 / 事实纪律；
-> 未完成＝无可执行脚本、案例库只有 1 条、不出拆条与分镜。完成标准见该技能 `SKILL.md` 的待完善清单。
-
-### 视频与数字人
-
-- `seedance-video`：生成新视频、参考素材、编辑/延长、提交和轮询。
-- `seedance-ark`：直连火山方舟官方，分开处理视频 API Key、素材 AK/SK、已有真人素材与 H5 认证。
-- `seedance-bd`：直连百度 AI 网关的 Seedance 兼容视频、素材与 H5；不混用千帆 QF、VOD 或火山凭据。
-- `doubao-web-video`：不开 API Key，用浏览器自动化操作豆包网页版出片并下载。
-- `zero-cost-video`：从零合成「底图 + 弹幕 + 多人 TTS」短片，不调用付费 API。
-- `video-post-production`：加工已有视频，不负责生成新视频。
-- `xiaoice-digital-human`：小冰数字人播报、形象/声音训练和任务管理。
-
-这些 Skill 的输入和任务状态不同，不要在调用时互相替代。
-
-`zero-cost-video` 与 `video-post-production` 的分界只有一句：**手上有没有源视频**。
-前者输入是文案和底图，后者必须有视频文件。两者技术栈有重叠（都用 edge-tts 与 ffmpeg amix），
-但**编码器假设相反**——前者假定目标机无 `libx264`、只能用 `libopenh264`，后者硬编码 `libx264 + CRF`。
-两套参数不能在同一台机器上互换，详见 `zero-cost-video/references/与后处理的边界.md`。
-
-`seedance-video` 负责生成工作流；`seedance-ark` 和 `seedance-bd` 负责供应商接入、素材控制面及真实连通性核验。`doubao-web-video` 则走用户已登录的豆包网页版。三类通道的凭据、端点与验收结论不可互换。
+`seedance-dev`、`baidu-api-dev`、`huarui-dev`、`huarui-zhisuan` 与 `huarui-video` 仍按开发、客户交付和内部使用边界独立维护；它们不是普通媒体技能的重复副本。客户包的 hardcode Key 与账号素材不得迁入开发入口；各通道的凭据、端点、素材归属与验收结论不可互换。
 
 ### 专家包（Expert Package）
 
@@ -63,19 +47,19 @@
 
 整个包也不引用任何外部技能：渲染器、画布令牌、SVG→PNG、SVG→PPTX 全在包内。
 
-它与 `video-post-production` 的分界只有一句：**手上有没有成片之前的素材**。
-`video-post-production` 只管已有视频的二次加工；这个专家包从「一个主题」开始——分集大纲、分镜台词、讲义卡与 PPT、浏览器实拍、配音字幕，最后才把 `beats.json` 交给渲染器。内层 `tutorial-video-assemble/scripts/video_pipeline.py` 是 `video-post-production` 渲染器的原样副本，两端参数一致，不要分头改。
+它与 `media-creator` 的分界只有一句：**手上有没有成片之前的素材**。
+`media-creator` 负责已有视频的二次加工；这个专家包从「一个主题」开始——分集大纲、分镜台词、讲义卡与 PPT、浏览器实拍、配音字幕，最后才把 `beats.json` 交给渲染器。内层 `tutorial-video-assemble/scripts/video_pipeline.py` 保留独立副本，避免教程专家脱离 `media-creator` 后无法工作。
 
 画布不锁 1920×1080：`u = min(宽,高)/1080`，令牌全乘 `u`，16:9 / 9:16 / 1:1 / 4:5 / 3:4 / 4K 同一套流程。16:9 时 `u=1`，与旧版逐像素一致。
 
 同步口径：改完先更新 `~/.workbuddy/plugins/marketplaces/my-experts/plugins/tutorial-video-director` 并重跑 `validate_expert.py` + `register_expert.py`，再整目录覆盖到这里，两边保持逐字节一致。
 
-### 百度渠道
+### 百度渠道（开发）
 
-- `baidu-vod-qianfan`：真实探测旧 VOD、新 VOD、千帆 QF 和 AI 网关 Seedance，并生成 new-api 渠道配置建议。
-- `seedance-bd`：只处理百度 AI 网关的 Seedance 视频与素材协议；需要排查旧/新 VOD 或千帆聊天时仍使用上一项。
-
-实际生成工作流仍由 `seedance-video` 负责；百度 AI 网关的直连接口与素材排查使用 `seedance-bd`，千帆 FireSeries、VOD 和聊天渠道差异继续使用 `baidu-vod-qianfan`。不要把聊天接口和视频任务接口混为一个端点。
+- `baidu-api-dev`：统一旧 VOD、新 VOD、千帆 QF、AI 网关 Seedance 的接口开发、最小测试及 new-api 渠道集成。
+- 原四个技能已合并，不保留重复激活入口；旧主文件作为 `references/legacy-*.md` 保存供追溯。
+- VOD 聊天、QF FireSeries、网关视频任务/素材/H5分别按需加载资料；合并技能不等于合并端点、账号、凭据或计费权限。
+- 三个 Python CLI 和 PowerShell 探测脚本均保留；真实计费、外部写入及批量探测必须按当前用户授权执行。
 
 ### Windows 操作
 
@@ -104,7 +88,7 @@ Trae Skill 可以借鉴通用 Windows Skill，但不能假设其他 Windows 工�
 
 - `food-radar`（美食雷达）：把「XX 最好吃的是哪家」拆成可核验的事实——门牌地址、招牌菜归属、人均、分时段营业时间，剔除同名异地与过期数据，输出一张能直接照着走的决策表。
 
-它不评价「哪家更好吃」，只回答「哪家值得专门跑一趟」：主观评价留给用户，客观项必须查实。与内容创作类技能正交——探店文案走 `xhs-note-studio` / `douyin-script-studio`，这里只管行前核查。
+它不评价「哪家更好吃」，只回答「哪家值得专门跑一趟」：主观评价留给用户，客观项必须查实。与内容创作类能力正交——探店文案走 `self-media-creator`，这里只管行前核查。
 
 `scripts/radar.py` 是唯一的脚本（零依赖，标准库）：管理候选池、跑四项硬判定、按早/午/晚/宵夜出表。数据落在工作目录的 `.food-radar/`，跟着项目走，跨会话不丢。
 
@@ -112,9 +96,9 @@ Trae Skill 可以借鉴通用 Windows Skill，但不能假设其他 Windows 工�
 
 > 前置：WorkBuddy 已连接浏览器扩展（`type: "extension"`），点评类站点已登录。缺任何一项仍可走 `manual.md`，流程不残。
 
-### 工具型 Skill
+### 工具型能力
 
-- `grid-image-splitter`：宫格图片切分，保持独立、短流程和明确输入输出。
+宫格图片切分已并入 `media-creator`，不再作为仓库根目录的独立 Skill 暴露。
 
 ## 维护规则
 
@@ -125,6 +109,6 @@ Trae Skill 可以借鉴通用 Windows Skill，但不能假设其他 Windows 工�
 - **市场详情页的「试试这样问我」由 `examples_zh` / `examples_en` 两个数组字段填充**，不写就显示 `-`。写法照已上架技能的实际惯例：各 3 条、中文单条约 10–19 字、动词开头的具体场景句（不要写成功能描述）。这两个字段在管理后台的表单里没有输入框，只能通过 frontmatter 传入，改完必须重新提交包。
 - **上架的 Skill 只允许 4 个顶层条目**：`SKILL.md`、`references/`、`scripts/`、`templates/`。`assets/`、`examples/`、`agents/` 等目录不在这份白名单里，打包时会被平台判为异常或直接忽略，示例数据请放进 `references/`。
 - 打包后再自查一遍：zip 内路径必须是正斜杠（`food-radar/SKILL.md`），根目录必须就是 `{skill-name}/`。
-- 不在 Skill 中写入真实 API Key、Cookie、长期有效的私有凭据或未经确认的生产地址。
+- 自用开发与公开通用 Skill 不写入真实 API Key、Cookie 或未经确认的生产地址；客户专用交付包可按明确交付约定内置指定 Key，但不得跨客户/开发包复用、在报告中回显或未经授权扩大分发。
 - 真实请求、费用和外部写操作必须保留用户授权边界；测试脚本只输出脱敏结果。
 
