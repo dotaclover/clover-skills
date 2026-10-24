@@ -7,11 +7,19 @@
 
 ---
 
-## 2026-10-18 新增 food-radar（v2.4.0）
+## 新增 juhe-nexgate-dev（国内版开发）
+
+- 以本地 `mcwlapi`、`mcwlcpa` 源码与仓库文档为依据，新增独立开发技能；保留 `juhe-nexgate` 客户运行时调用包不变。
+- 主入口 + 6 篇 references：架构、网关开发、国内供应商、授权账号池、部署、验收与排障。
+- 明确 new-api 负责百度/阿里/火山渠道与统一业务账本，CLIProxyAPI 负责 GPT/Codex、Claude 授权账号池。
+- 明确 CPA 主模板 v8 与历史顶层配置的兼容差异，区分四层凭据，不复制真实账号凭据或生产配置。
+- 仅做技能静态验证与打包；没有修改两个业务项目、执行授权登录、真实推理或部署。
+
+## 2026-10-18 新增 workbuddy-food（v2.4.0）
 
 | # | 动作 | 结果 |
 |---|---|---|
-| 1 | 新增 `food-radar`（美食雷达） | 1 个目录 / 6 个文件 / 47KB |
+| 1 | 新增 `workbuddy-food`（美食雷达） | 1 个目录 / 6 个文件 / 47KB |
 | 2 | 按仓库三类目录规范整理 | 原 `examples/` 拆成 `references/sample.md` + `assets/sample-pool.json` |
 | 3 | 主文件拆分 | 275 行 / 15.8KB → **218 行 / 12.0KB** + 3 个 references |
 | 4 | frontmatter 按仓库口径 | `name` / `description` / `agent_created` / `metadata`（display_name、category、version、author） |
@@ -47,7 +55,7 @@
 
 | # | 动作 | 结果 |
 |---|---|---|
-| 1 | 新增 `xunzhao-chuangye-xiangmu`（创业全流程） | 1 个目录 / 9 个文件 / 47KB |
+| 1 | 重构并新增 `chuangye-quanan-team`（寻找与运营项目专家组） | 1 个专家包目录 + 共享方法库；六角色协作，课程照片/题库作为方法与验收资料 |
 | 2 | frontmatter 按仓库口径收敛 | 顶层只留 `name` / `description` / `agent_created` / `metadata`；原 `display_name`、`display_name_en`、`category`、`version`、`author` 收进 `metadata` |
 | 3 | 校验 | 8 个 references 引用全部有效，无坏链、无中文弯引号 |
 | 4 | 分类 | `README.md` 新增「创业与经营」，与「工作区定位」并列 |
@@ -55,7 +63,7 @@
 | 6 | **补 `scripts/calc_unit_economics.py`**（v2.2.0） | 10 个文件 / 58KB。单件成本结构、毛利率、盈亏平衡销量、安全边际、三档情景，并直接生成 03 档案片段与 98 台账行 |
 | 7 | 消触发冲突 | description 去掉裸「找项目」，改为「找商机、选项目」，并显式排除「代码项目根目录定位（find-your-project）」 |
 
-**结构**：主文件 12KB 只做阶段路由与 7 条全局硬规则，内容分 8 个 references（理论层 / 阶段细则 / 市场分析 / 开办与运营 / 创业计划书 / 模块地图 / 输出模板 / AI赋能）+ 1 个脚本。
+**结构**：共享方法库保留阶段路由、证据边界、财务规则、课程资料边界和输出模板；专家包新增项目经理、创始人输入、机会研究、运营推广与美工、客服、采购及仓储物流、财务风控六成员。原始课程照片和测试题保留在原资料目录，不打入专家包。
 
 **跨技能复用点**：`references/AI赋能.md`（19KB）不绑定创业场景，五级降级取数、可信度打分卡、交叉验证三层法可被任何"查不到数据"的技能引用，不必重写。
 

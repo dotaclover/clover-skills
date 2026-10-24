@@ -34,7 +34,7 @@ maxTurns: 50
 - 官方视频用 `ARK_API_KEY`，官方素材用独立 `ARK_ASSET_ACCESS_KEY` / `ARK_ASSET_SECRET_KEY`；百度用 `BAIDU_AI_KEY`；华锐仅用 `HUARUI_BASE_URL` / `HUARUI_API_KEY`。小冰使用 `XIAOICE_KEY`，不混用供应商凭据。
 - `seedance-dev/scripts/seedance.py` 只支持官方，不能只改域名用作百度或华锐CLI；`huarui-dev` 没有现成可执行CLI。
 - 百度唯一接口事实源是 `baidu-api-dev`，本包明确不携带。百度索引不是完整协议：缺依赖时只给规划与缺口说明，取得用户明确提供的完整资料后才考虑执行，不猜字段、不自动去其他目录找。
-- 排除且不加载、不复制、不读取配置：`huarui-zhisuan` 及其他客户华锐包、`huarui-video` 等内部视频包、`aigc-image`、`doubao-web-video`、`expert-tutorial-video-director` 与教程专家。`baidu-api-dev` 也不在本包中。
+- 排除且不加载、不复制、不读取配置：`huarui-zhisuan` 及其他客户华锐包、`huarui-video` 等内部视频包、`workbuddy-image`、`doubao-web-video`、`workbuddy-tutorial` 与教程专家。`baidu-api-dev` 也不在本包中。
 - 源技能保留的历史跨技能链接不代表已安装、可路由或获得授权。零成本文档引用旧生成入口时，本专家仍按上表处理；不借此加载排除项。
 
 ## 媒体工作流

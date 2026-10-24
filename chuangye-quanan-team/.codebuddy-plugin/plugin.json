@@ -1,0 +1,173 @@
+{
+  "name": "chuangye-quanan-team",
+  "version": "1.0.0",
+  "description": "A complete entrepreneurship team for discovering, validating, launching, operating, and financially managing business projects.",
+  "author": {
+    "name": "Independent Developer"
+  },
+  "agents": [
+    "./agents/chuangye-quanan-team-team-lead.md",
+    "./agents/founder.md",
+    "./agents/opportunity-researcher.md",
+    "./agents/operations-designer.md",
+    "./agents/customer-service.md",
+    "./agents/procurement-fulfillment.md",
+    "./agents/finance-risk-controller.md"
+  ],
+  "skills": [
+    "./skills/chuangye-quanan"
+  ],
+  "expertType": "team",
+  "agentName": "chuangye-quanan-team-team-lead",
+  "teamInfo": {
+    "leadAgent": "chuangye-quanan-team-team-lead",
+    "memberAgents": [
+      "founder",
+      "opportunity-researcher",
+      "operations-designer",
+      "customer-service",
+      "procurement-fulfillment",
+      "finance-risk-controller"
+    ]
+  },
+  "displayName": {
+    "en": "Entrepreneurship Blueprint Team",
+    "zh": "创业全案专家组"
+  },
+  "profession": {
+    "en": "Entrepreneurship Blueprint Team",
+    "zh": "创业全案专家组"
+  },
+  "displayDescription": {
+    "en": "A coordinated team covering opportunity discovery, market validation, launch planning, operations, customer service, procurement, finance, and risk control.",
+    "zh": "覆盖找项目、市场验证、开办筹备、运营增长、客服履约、采购物流、财务计算与风险控制的创业全案专家组。"
+  },
+  "avatar": "avatars/team.png",
+  "categoryId": "12-IndustryConsultant",
+  "defaultInitPrompt": {
+    "zh": "我想做一份完整创业方案，请从我的资源和目标开始，帮我找项目、做运营规划并完成财务测算。",
+    "en": "I want a complete entrepreneurship plan. Start with my resources and goals, then help me find a project, plan operations, and calculate the finances."
+  },
+  "plugin": "chuangye-quanan-team",
+  "tags": [
+    {
+      "en": "Venture Discovery",
+      "zh": "项目寻找"
+    },
+    {
+      "en": "Business Operations",
+      "zh": "项目运营"
+    },
+    {
+      "en": "Fulfillment Control",
+      "zh": "履约管理"
+    }
+  ],
+  "quickPrompts": [
+    {
+      "en": "I want a complete entrepreneurship plan. Start with my resources and goals, then help me find a project, plan operations, and calculate the finances.",
+      "zh": "我想做一份完整创业方案，请从我的资源和目标开始，帮我找项目、做运营规划并完成财务测算。"
+    },
+    {
+      "en": "Evaluate these project ideas and choose the smallest validation test worth running first.",
+      "zh": "帮我比较这几个项目，筛出最值得先做小规模验证的一个，并列出验证动作。"
+    },
+    {
+      "en": "Review my operating project across growth, customer service, procurement, fulfillment, cash flow, and stop-loss conditions.",
+      "zh": "复盘我正在运营的项目，检查运营、客服、采购履约、现金流和止损条件。"
+    }
+  ],
+  "members": [
+    {
+      "id": "chuangye-quanan-team-team-lead",
+      "displayName": {
+        "en": "Cheng Zhou",
+        "zh": "周成事"
+      },
+      "profession": {
+        "en": "Venture Project Manager",
+        "zh": "创业项目经理"
+      },
+      "avatar": "avatars/chuangye-quanan-team-team-lead.png",
+      "role": "lead"
+    },
+    {
+      "id": "founder",
+      "displayName": {
+        "en": "Kai Lin",
+        "zh": "林开局"
+      },
+      "profession": {
+        "en": "Founder Decision Advisor",
+        "zh": "创始人决策顾问"
+      },
+      "avatar": "avatars/founder.png",
+      "role": "member"
+    },
+    {
+      "id": "opportunity-researcher",
+      "displayName": {
+        "en": "Zhen Xu",
+        "zh": "许实证"
+      },
+      "profession": {
+        "en": "Opportunity Researcher",
+        "zh": "项目机会研究员"
+      },
+      "avatar": "avatars/opportunity-researcher.png",
+      "role": "member"
+    },
+    {
+      "id": "operations-designer",
+      "displayName": {
+        "en": "Ying Zeng",
+        "zh": "应增长"
+      },
+      "profession": {
+        "en": "Operations and Visual Designer",
+        "zh": "运营推广与美工设计师"
+      },
+      "avatar": "avatars/operations-designer.png",
+      "role": "member"
+    },
+    {
+      "id": "customer-service",
+      "displayName": {
+        "en": "Fu He",
+        "zh": "何复务"
+      },
+      "profession": {
+        "en": "Customer Service Specialist",
+        "zh": "客服专员"
+      },
+      "avatar": "avatars/customer-service.png",
+      "role": "member"
+    },
+    {
+      "id": "procurement-fulfillment",
+      "displayName": {
+        "en": "Cheng Qian",
+        "zh": "钱成货"
+      },
+      "profession": {
+        "en": "Procurement and Fulfillment Specialist",
+        "zh": "采购及仓储物流专员"
+      },
+      "avatar": "avatars/procurement-fulfillment.png",
+      "role": "member"
+    },
+    {
+      "id": "finance-risk-controller",
+      "displayName": {
+        "en": "Shou Qian",
+        "zh": "钱守成"
+      },
+      "profession": {
+        "en": "Finance and Risk Controller",
+        "zh": "财务风控师"
+      },
+      "avatar": "avatars/finance-risk-controller.png",
+      "role": "member"
+    }
+  ]
+}

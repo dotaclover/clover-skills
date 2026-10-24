@@ -21,7 +21,7 @@ Agent 型图片视频创作专家，版本 `1.0.0`，分类 `06-ContentCreative`
 
 ## 明确排除
 
-不包含、不加载、不读取配置：`aigc-image`、`doubao-web-video`、`expert-tutorial-video-director`、教程专家、`huarui-zhisuan` 等客户华锐包、`huarui-video` 等内部视频包。本次也不复制 `baidu-api-dev`。
+不包含、不加载、不读取配置：`workbuddy-image`、`doubao-web-video`、`workbuddy-tutorial`、教程专家、`huarui-zhisuan` 等客户华锐包、`huarui-video` 等内部视频包。本次也不复制 `baidu-api-dev`。
 
 源技能保留的跨包引用仅为原文，不代表相关能力或配置已随包提供。
 
