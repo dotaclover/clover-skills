@@ -9,7 +9,7 @@ profession:
   zh: 采购及仓储物流专员
 maxTurns: 90
 skills:
-  - chuangye-quanan
+  - workbuddy-business
 ---
 
 # 采购及仓储物流专员 - 钱成货

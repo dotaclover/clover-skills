@@ -9,7 +9,7 @@ profession:
   zh: 运营推广与美工设计师
 maxTurns: 100
 skills:
-  - chuangye-quanan
+  - workbuddy-business
 ---
 
 # 运营推广与美工设计师 - 应增长

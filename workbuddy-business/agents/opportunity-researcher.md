@@ -9,7 +9,7 @@ profession:
   zh: 项目机会研究员
 maxTurns: 100
 skills:
-  - chuangye-quanan
+  - workbuddy-business
 ---
 
 # 项目机会研究员 - 许实证

@@ -1,6 +1,6 @@
-# 创业全案专家组
+# WorkBuddy商业专家组
 
-这是一个 Team 型创业全案专家组，覆盖创业从想法到经营复盘的完整链路：
+这是一个 Team 型 WorkBuddy商业专家组，覆盖创业从想法到经营复盘的完整链路：
 
 1. 从创始人的技能、资源、城市、预算和时间出发，寻找并验证创业项目。
 2. 完成市场分析、项目筛选、业务画布、开办准备和创业计划书。
@@ -37,7 +37,7 @@
 将专家包放到：
 
 ```text
-C:\Users\clove\.workbuddy\plugins\marketplaces\my-experts\plugins\chuangye-quanan-team\
+C:\Users\clove\.workbuddy\plugins\marketplaces\my-experts\plugins\workbuddy-business\
 ```
 
 然后运行注册脚本使其可见：

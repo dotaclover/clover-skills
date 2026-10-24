@@ -1,12 +1,12 @@
 {
-  "name": "chuangye-quanan-team",
+  "name": "workbuddy-business",
   "version": "1.0.0",
   "description": "A complete entrepreneurship team for discovering, validating, launching, operating, and financially managing business projects.",
   "author": {
     "name": "Independent Developer"
   },
   "agents": [
-    "./agents/chuangye-quanan-team-team-lead.md",
+    "./agents/workbuddy-business-team-lead.md",
     "./agents/founder.md",
     "./agents/opportunity-researcher.md",
     "./agents/operations-designer.md",
@@ -15,12 +15,12 @@
     "./agents/finance-risk-controller.md"
   ],
   "skills": [
-    "./skills/chuangye-quanan"
+    "./skills/workbuddy-business"
   ],
   "expertType": "team",
-  "agentName": "chuangye-quanan-team-team-lead",
+  "agentName": "workbuddy-business-team-lead",
   "teamInfo": {
-    "leadAgent": "chuangye-quanan-team-team-lead",
+    "leadAgent": "workbuddy-business-team-lead",
     "memberAgents": [
       "founder",
       "opportunity-researcher",
@@ -31,16 +31,16 @@
     ]
   },
   "displayName": {
-    "en": "Entrepreneurship Blueprint Team",
-    "zh": "创业全案专家组"
+    "en": "WorkBuddy Business Team",
+    "zh": "WorkBuddy商业专家组"
   },
   "profession": {
-    "en": "Entrepreneurship Blueprint Team",
-    "zh": "创业全案专家组"
+    "en": "WorkBuddy Business Team",
+    "zh": "WorkBuddy商业专家组"
   },
   "displayDescription": {
-    "en": "A coordinated team covering opportunity discovery, market validation, launch planning, operations, customer service, procurement, finance, and risk control.",
-    "zh": "覆盖找项目、市场验证、开办筹备、运营增长、客服履约、采购物流、财务计算与风险控制的创业全案专家组。"
+    "en": "A coordinated team for business discovery, launch, operations, fulfillment, finance, and risk control.",
+    "zh": "覆盖项目寻找、开办运营、客服采购、财务计算与风险控制的WorkBuddy商业专家组。"
   },
   "avatar": "avatars/team.png",
   "categoryId": "12-IndustryConsultant",
@@ -48,7 +48,7 @@
     "zh": "我想做一份完整创业方案，请从我的资源和目标开始，帮我找项目、做运营规划并完成财务测算。",
     "en": "I want a complete entrepreneurship plan. Start with my resources and goals, then help me find a project, plan operations, and calculate the finances."
   },
-  "plugin": "chuangye-quanan-team",
+  "plugin": "workbuddy-business",
   "tags": [
     {
       "en": "Venture Discovery",
@@ -79,7 +79,7 @@
   ],
   "members": [
     {
-      "id": "chuangye-quanan-team-team-lead",
+      "id": "workbuddy-business-team-lead",
       "displayName": {
         "en": "Cheng Zhou",
         "zh": "周成事"
@@ -88,7 +88,7 @@
         "en": "Venture Project Manager",
         "zh": "创业项目经理"
       },
-      "avatar": "avatars/chuangye-quanan-team-team-lead.png",
+      "avatar": "avatars/workbuddy-business-team-lead.png",
       "role": "lead"
     },
     {

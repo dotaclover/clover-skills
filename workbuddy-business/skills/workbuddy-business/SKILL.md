@@ -1,16 +1,16 @@
 ---
-name: xunzhao-chuangye-quanan
+name: xunzhao-workbuddy-business
 description: 创业项目专家组的共享方法库。用于从个人资源和市场机会中寻找项目、筛选项目、完成市场验证、开办准备、运营改进、客服履约、财务测算和止损复盘。由创始人、市场研究、项目设计、运营增长、客服履约、财务风控六个角色协作使用；课程照片只作为方法论参考，测试题只作自测校验，模拟商城与模拟交易内容排除。不承诺收益，不替用户编造数据。
 agent_created: true
 metadata:
-  display_name: 创业全案专家组
-  display_name_en: Entrepreneurship Blueprint Team
+  display_name: WorkBuddy创业专家组
+  display_name_en: WorkBuddy Entrepreneurship Team
   category: 创业与项目运营
   version: 3.0.0
   author: 独立开发者
 ---
 
-# 创业全案专家组
+# WorkBuddy创业专家组
 
 本目录处于资料全量核读与专家组重构中，现有岗位划分仅为草稿，不代表 PPT 原始岗位。先逐张核对 images 中的课程照片，建立文件级来源索引，再据原始资料定稿。用户是创始人和最终决策者，AI 项目经理兼主理人负责调度，不替用户拍板。测试题作为独立验收集，与课程知识整理分开。
 

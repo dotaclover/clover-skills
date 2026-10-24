@@ -7,7 +7,7 @@
 - 自用接口开发、集成和业务逻辑技能使用 `-dev` 标识；与客户/用户交付包分开维护，不直接改名覆盖交付包。
 - `baidu-api-dev` 是百度开发统一入口及唯一百度接口事实源，已合并原 `baidu-vod`、`baidu-qianfan`、`baidu-vod-qianfan`、`seedance-bd`；旧入口仅作历史，不再活跃，协议和凭据在内部仍分别管理。
 - `seedance-dev` 是自用 Seedance 接口整合入口；华锐开发唯一事实源为 `huarui-dev`，不读取客户包或内部视频包。
-- 华锐三类边界：`huarui-dev` 仅用于自用开发，使用环境变量且不含客户配置；`huarui-zhisuan` 是客户交付包，内容保持独立且不改；`huarui-video` 是华锐内部官方真人视频生成包，承接内部 hardcode Key 和真人素材，仅限内部使用，不是通用入口。
+- 华锐三类边界：`huarui-dev` 仅记录 `C:\code\cloverapi` 内部开发功能（百度 AI Gateway、Seedance、工作台与 OAuth 路线），不作为对外接口包且不含客户配置；`huarui-zhisuan` 是客户交付包，内容保持独立且不改；`huarui-video` 是华锐内部官方真人视频生成包，承接内部 hardcode Key 和真人素材，仅限内部使用，不是通用入口。
 - `juhe-nexgate` 是客户开发交付包，面向已部署聚合 API 的运行时调用；客户包 hardcode 配置只能按明确交付约定保留在原包内，不得复制、迁移或放入开发包。
 - `juhe-nexgate-dev` 是 Juhe 国内版自用开发入口：`C:/code/mcwlapi`（new-api 网关，接百度/阿里/火山）+ `C:/code/mcwlcpa`（CLIProxyAPI 授权 GPT/Claude 账号池），覆盖渠道、模型映射、计费、CPA v8/旧版配置、部署与验收；不改客户交付包。
 - `workbuddy-tutorial` 是视频录制与制作的 WorkBuddy 专家包，保留原目录结构及内置技能，不参与华锐重组。
@@ -71,7 +71,7 @@ Trae Skill 可以借鉴通用 Windows Skill，但不能假设其他 Windows 工�
 
 ### 创业与经营
 
-- `chuangye-quanan-team`（创业全流程）：从「我适不适合创业」到「一份能交的创业计划书」，11 个阶段＋一套横切的 AI 取证方法。
+- `workbuddy-business`（商业全流程）：从「我适不适合创业」到「一份能交的创业计划书」，覆盖项目寻找、开办、运营、履约、财务与风险控制。
 
 主文件只做阶段路由与全局硬规则，内容按需加载到 8 个 references：理论层（判断尺子）、阶段细则（1–6 找项目）、市场分析（7）、开办与运营（8–10）、创业计划书（11）、模块地图、输出模板、AI 赋能。
 
@@ -83,7 +83,7 @@ Trae Skill 可以借鉴通用 Windows Skill，但不能假设其他 Windows 工�
 
 `references/AI赋能.md` 是**唯一一个可以跨技能复用**的部分：五级降级取数阶梯（L1–L5）、"足不出户"的替代取证表、**统计数据的认源与认口径（S1–S4 / 口径六问 / 年份三坑）**、0–10 分可信度打分卡、多模型交叉验证三层法、98 证据台账。任何需要"查不到数据时怎么办"或"这个行业规模数字能不能用"的技能都可以引用它，不必重写。核心结论只有一句：**AI 输出的证据等级上限是 B，A 级必须靠真实交易与实地走访。**
 
-> 目录名沿用拼音 slug（`chuangye-quanan-team`）而不用英文——上架包与提交记录已用该 name，改名会造成同一技能两个身份。
+> 技术标识采用短英文 slug `workbuddy-business`，展示名使用 `WorkBuddy商业专家组`，便于在 WorkBuddy 专家中心识别和调用。
 
 ### 生活决策
 

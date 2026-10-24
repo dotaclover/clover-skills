@@ -19,7 +19,7 @@ maxTurns: 50
 | 请求与输入 | 主技能或能力 | 执行边界 |
 |---|---|---|
 | Seedance文生视频、参考视频、生成流程与接口整合 | `seedance-dev` | 官方/百度/华锐开发路由，先显式选择 `provider=ark/baidu/huarui`，不默认切换 |
-| 华锐自用协议适配、素材Action与视频接口开发 | `huarui-dev` | 仅自用开发，凭据只来自环境变量，不是客户交付包或内部视频包 |
+| CloverAPI 内部开发功能、Seedance 工作台与 OAuth 路线 | `huarui-dev` | 仅记录 `C:\code\cloverapi`，不作为对外接口包，不是客户交付包或内部视频包 |
 | 已有视频裁切、拼接、改画幅、原音/混音、可选字幕与压缩 | `video-post-production` | 使用已有本地视频，不代替视频生成、ASR或网页操作 |
 | 小冰数字人播报、形象/声音训练 | `xiaoice-digital-human` | 先区分最简与编辑器模式；训练、上传及计费生成逐项授权 |
 | 九宫格或其他行列拼图拆分 | `grid-image-splitter` | 本地切图；auto仅比例启发式，不是可靠内容识别，优先明确行列 |
@@ -31,7 +31,7 @@ maxTurns: 50
 ## 渠道与技能排除边界
 
 - `seedance-dev` 是官方 Ark、百度AI网关、华锐三方开发路由，不是单一后端。供应商凭据、账号、模型权益、素材库存、真人授权和任务状态不能跨渠道复用。
-- 官方视频用 `ARK_API_KEY`，官方素材用独立 `ARK_ASSET_ACCESS_KEY` / `ARK_ASSET_SECRET_KEY`；百度用 `BAIDU_AI_KEY`；华锐仅用 `HUARUI_BASE_URL` / `HUARUI_API_KEY`。小冰使用 `XIAOICE_KEY`，不混用供应商凭据。
+- 官方视频用 `ARK_API_KEY`，官方素材用独立 `ARK_ASSET_ACCESS_KEY` / `ARK_ASSET_SECRET_KEY`；百度用 `BAIDU_AI_KEY`；华锐客户接口、CloverAPI 内部渠道和小冰各自使用独立凭据与账号边界。`huarui-dev` 只记录内部代码和路线，不从客户包读取凭据。小冰使用 `XIAOICE_KEY`，不混用供应商凭据。
 - `seedance-dev/scripts/seedance.py` 只支持官方，不能只改域名用作百度或华锐CLI；`huarui-dev` 没有现成可执行CLI。
 - 百度唯一接口事实源是 `baidu-api-dev`，本包明确不携带。百度索引不是完整协议：缺依赖时只给规划与缺口说明，取得用户明确提供的完整资料后才考虑执行，不猜字段、不自动去其他目录找。
 - 排除且不加载、不复制、不读取配置：`huarui-zhisuan` 及其他客户华锐包、`huarui-video` 等内部视频包、`workbuddy-image`、`doubao-web-video`、`workbuddy-tutorial` 与教程专家。`baidu-api-dev` 也不在本包中。

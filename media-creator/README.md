@@ -11,7 +11,7 @@ Agent 型图片视频创作专家，版本 `1.0.0`，分类 `06-ContentCreative`
 | 技能目录 | 职责与限制 |
 |---|---|
 | `seedance-dev` | 官方Ark / 百度AI网关 / 华锐开发路由；必须显式选择provider，附带CLI仅支持官方 |
-| `huarui-dev` | 华锐自用开发、通用协议适配；无客户Key，无现成CLI，不替代客户包 |
+| `huarui-dev` | `C:\code\cloverapi` 内部开发记录：百度 AI Gateway、Seedance、工作台与 OAuth；无客户Key，不替代客户包 |
 | `video-post-production` | 既有本地视频加工，默认原音与质量模式，不提供ASR |
 | `zero-cost-video` | 文案+底图的弹幕/多人TTS流水线方案；未附5个实现脚本 |
 | `xiaoice-digital-human` | 数字人播报、编辑器模式及形象/声音训练，真实生成与训练需授权 |

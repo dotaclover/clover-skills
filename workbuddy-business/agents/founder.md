@@ -9,7 +9,7 @@ profession:
   zh: 创始人决策顾问
 maxTurns: 80
 skills:
-  - chuangye-quanan
+  - workbuddy-business
 ---
 
 # 创始人决策顾问 - 林开局

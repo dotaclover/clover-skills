@@ -9,7 +9,7 @@ profession:
   zh: 财务风控师
 maxTurns: 100
 skills:
-  - chuangye-quanan
+  - workbuddy-business
 ---
 
 # 财务风控师 - 钱守成

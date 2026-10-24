@@ -9,7 +9,7 @@ profession:
   zh: 客服专员
 maxTurns: 90
 skills:
-  - chuangye-quanan
+  - workbuddy-business
 ---
 
 # 客服专员 - 何复务
