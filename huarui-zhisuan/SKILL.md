@@ -156,6 +156,7 @@ curl --silent --show-error --fail-with-body \
 - 创建任务与真人授权会话均可能计费或占用额度，仅为实际业务需求调用，不得为验证接口反复创建付费任务；确认接口连通性应使用素材组的创建与删除，不产生计费。
 - 素材须属于当前账号且状态为 `Active`，通过素材 ID 而非组 ID 拼接 `asset://` 引用。
 - 普通素材入库不代替真人授权。授权须由本人完成，打开链接或创建会话不表示授权成功。
-- 真人授权的 `CallbackURL` 可省略；需要接收通知时指定自有 HTTPS 地址。开通状态以服务方确认为准。
+- 真人授权的 `CallbackURL` 可省略；省略时服务端在创建后 3 分钟内每 15 秒自动查询，授权人须尽快完成 H5；超时后用保存的 `BytedToken` 主动调 `GetVisualValidateResult`。需要接收通知时指定自有 HTTPS 地址。开通状态以服务方确认为准。
+- 授权成功后服务端自动绑定真人组，无需再上传；用 `ListAssets` 传 `Filter.GroupIds` 与 `Filter.GroupType="LivenessFace"` 获取素材，状态 `Active` 后再用素材 ID 拼接 `asset://`。
 - 不要输出或分享真实 API Key、授权 token 与带签名的媒体链接。
 - 更多参数、素材引用与错误细节见 [接口、参数与示例](references/seedance-api.md)。

@@ -424,7 +424,7 @@ curl --silent --show-error --fail-with-body \
 {"ProjectName":"default","CallbackURL":"https://your-service.example/seedance/authorization/callback"}
 ```
 
-保存响应中的 `Result.BytedToken`，将 `Result.H5Link` 交给授权人本人完成操作。会话创建成功、授权页面能打开都不表示认证或同意已经完成；未完成会话最长有效 24 小时，过期后重新创建。
+保存响应中的 `Result.BytedToken`，将 `Result.H5Link` 交给授权人本人完成操作。会话创建成功、授权页面能打开都不表示认证或同意已经完成；授权人须在创建后约 3 分钟内完成 H5 操作，服务端会话本地保留 30 分钟，超时后重新创建。
 
 授权人完成操作后查询结果：
 
@@ -438,7 +438,9 @@ curl --silent --show-error --fail-with-body \
 
 查询必须使用同一账号的 API Key 和真实 `BytedToken`。成功结果需包含 `ResultCode=10000` 及 `GroupId`，不能通过自行填写组 ID 获得授权。使用返回的 `GroupId` 按第 6.5 节查询本人组内素材；真人组筛选使用 `Filter.GroupType="LivenessFace"`，不要继续使用普通组的 `AIGC`。待素材 `Active` 后，使用素材 ID 而不是组 ID 拼接 `asset://` 引用。
 
-自动核对功能启用后，服务端收到通知会核实授权结果，并约每分钟补查未完成且未过期的会话；客户无需配置定时任务或保持网页打开。客户指定自己的 `CallbackURL` 不影响服务端补查，也不影响主动查询。未完成、上游查询失败和伪造通知都不能视为授权成功。
+自动核对功能启用后，服务端收到通知会核实授权结果；即使不设置 `CallbackURL`，服务端也会在会话创建后的 3 分钟内每 15 秒自动查询一次，客户无需配置定时任务或保持网页打开。超过 3 分钟仍未核验成功的会话，服务端不再自动补查，须用保存的 `BytedToken` 主动调用 `GetVisualValidateResult`（本地会话 30 分钟内有效）。客户指定自己的 `CallbackURL` 不影响服务端自动查询，也不影响主动查询。未完成、上游查询失败和伪造通知都不能视为授权成功。
+
+授权成功后，服务端自动把返回的 `GroupId` 绑定为本人真人组，无需另行 `CreateAsset` 上传。需要素材列表时，调用 `ListAssets` 并传 `Filter.GroupIds`（仅 1 个本人组）与 `Filter.GroupType="LivenessFace"`，服务端会从上游刷新该组素材后返回；刚授权后素材是否已生成、状态是否 `Active` 以实际返回为准，为空时稍后重试，不要重复创建授权会话。
 
 默认通知接收路径为 `POST /api/seedance/authorization/callback`，由服务端接收，客户无需主动调用。客户自设回调时，收到通知后仍应用自己的 API Key 查询结果，不能直接相信通知中的素材组或身份字段。
 
