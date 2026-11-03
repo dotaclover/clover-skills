@@ -55,7 +55,7 @@
 
 同步口径：改完先更新 `~/.workbuddy/plugins/marketplaces/my-experts/plugins/workbuddy-tutorial` 并重跑 `validate_expert.py` + `register_expert.py`，再整目录覆盖到这里，两边保持逐字节一致。
 
-- `workbuddy-butler`（WorkBuddy管家）：**Agent 型专家包**，人设是"老陈"，只管一件事——WorkBuddy 自己的磁盘占用。目录同样是 `.codebuddy-plugin/plugin.json` + `agents/` + `skills/` + `avatars/` 的完整专家包结构。
+- `workbuddy-butler`（WB空间清理大师）：**Agent 型专家包**，人设是"老陈"，只管一件事——WorkBuddy 自己的磁盘占用。目录同样是 `.codebuddy-plugin/plugin.json` + `agents/` + `skills/` + `avatars/` 的完整专家包结构。
 
 它内置单一技能 `workbuddy-disk-audit`，四个脚本各管一段，互不依赖：
 

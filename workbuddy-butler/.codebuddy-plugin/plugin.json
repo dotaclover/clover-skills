@@ -1,7 +1,7 @@
 {
   "name": "workbuddy-butler",
   "version": "1.0.0",
-  "description": "WorkBuddy local storage butler: audits disk usage, cleans caches and session residue, manages workspaces, and safely reclaims space.",
+  "description": "WorkBuddy local storage cleanup: audits disk usage, removes caches and session residue, prunes workspace records, and reclaims space safely.",
   "author": {
     "name": "clover",
     "email": "clove@cloverhub.local"
@@ -13,12 +13,12 @@
   "agentName": "workbuddy-butler",
 
   "displayName": {
-    "en": "WorkBuddy Butler",
-    "zh": "WorkBuddy管家"
+    "en": "WB Space Cleanup Master",
+    "zh": "WB空间清理大师"
   },
   "profession": {
-    "en": "WorkBuddy Space & Disk Butler",
-    "zh": "WorkBuddy空间管家"
+    "en": "WorkBuddy Space Cleanup & Governance",
+    "zh": "WorkBuddy空间清理与治理"
   },
   "displayDescription": {
     "en": "Locates what is eating your WorkBuddy disk: caches, session residue, stale installs and recycle-bin leftovers. Backs up before every change, and only removes regenerable data.",
