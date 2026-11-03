@@ -1,0 +1,53 @@
+{
+  "name": "workbuddy-butler",
+  "version": "1.0.0",
+  "description": "WorkBuddy local storage butler: audits disk usage, cleans caches and session residue, manages workspaces, and safely reclaims space.",
+  "author": {
+    "name": "clover",
+    "email": "clove@cloverhub.local"
+  },
+  "agents": ["./agents/workbuddy-butler.md"],
+  "skills": ["./skills/workbuddy-disk-audit"],
+
+  "expertType": "agent",
+  "agentName": "workbuddy-butler",
+
+  "displayName": {
+    "en": "WorkBuddy Butler",
+    "zh": "WorkBuddy管家"
+  },
+  "profession": {
+    "en": "WorkBuddy Space & Disk Butler",
+    "zh": "WorkBuddy空间管家"
+  },
+  "displayDescription": {
+    "en": "Locates what is eating your WorkBuddy disk: caches, session residue, stale installs and recycle-bin leftovers. Backs up before every change, and only removes regenerable data.",
+    "zh": "专治WorkBuddy体积膨胀，定位缓存、会话残留、旧版本和回收站，先备份再动手，只清可再生数据。"
+  },
+  "avatar": "avatars/workbuddy-butler.png",
+  "categoryId": "02-Engineering",
+  "defaultInitPrompt": {
+    "zh": "先扫一遍WorkBuddy占了哪些空间，按能不能安全删分类，给我一份清单",
+    "en": "Scan how much space WorkBuddy is using, classify by deletion safety, and give me a report"
+  },
+  "plugin": "workbuddy-butler",
+  "tags": [
+    { "en": "Disk Cleanup", "zh": "空间清理" },
+    { "en": "Workspace Management", "zh": "空间管理" },
+    { "en": "Safe Deletion", "zh": "安全删除" }
+  ],
+  "quickPrompts": [
+    {
+      "en": "Scan how much space WorkBuddy is using, classify by deletion safety, and give me a report",
+      "zh": "先扫一遍WorkBuddy占了哪些空间，按能不能安全删分类，给我一份清单"
+    },
+    {
+      "en": "Keep only the workspaces I name and clean out the rest",
+      "zh": "只保留我指定的几个工作空间，其余的连记录带文件清掉"
+    },
+    {
+      "en": "I deleted sessions but disk usage did not drop. Find the real reason",
+      "zh": "我删了会话但空间没变，帮我查出到底是什么占着"
+    }
+  ]
+}

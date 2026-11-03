@@ -55,6 +55,23 @@
 
 同步口径：改完先更新 `~/.workbuddy/plugins/marketplaces/my-experts/plugins/workbuddy-tutorial` 并重跑 `validate_expert.py` + `register_expert.py`，再整目录覆盖到这里，两边保持逐字节一致。
 
+- `workbuddy-butler`（WorkBuddy管家）：**Agent 型专家包**，人设是"老陈"，只管一件事——WorkBuddy 自己的磁盘占用。目录同样是 `.codebuddy-plugin/plugin.json` + `agents/` + `skills/` + `avatars/` 的完整专家包结构。
+
+它内置单一技能 `workbuddy-disk-audit`，四个脚本各管一段，互不依赖：
+
+| 脚本 | 管什么 |
+|---|---|
+| `scan_space.py` | 盘清 `.workbuddy`、Roaming、安装目录、旧版本残留四处总量，一级目录按 A/B/C/D 打标，按工作空间归组算会话占用 |
+| `purge.py` | `SHFileOperationW` 永久删除（不带 `FOF_ALLOWUNDO`），默认拒绝盘根、`workbuddy.db`、`binaries`、`blobs` |
+| `recycle_audit.py` | 解析 `$I*` 元数据还原被删路径，`--match` 精确筛，`--purge` 永久删 |
+| `session_clean.py` | 软删除会话残留清理、工作空间记录裁剪，改库前自动 sqlite 备份 |
+
+核心约束写在 Agent 正文里：**收益只认 `disk_usage` 前后差值**，必须分栏报"移动量 / 进回收站量 / 真正释放量"，不许拿移动量冒充释放量；改库前先 sqlite backup；`binaries`、`blobs`、`workbuddy.db` 一律不碰。
+
+`references/已知坑位.md` 沉淀了 10 个真踩过的坑，其中三条值得单独记：本机 python 的删除可能被 safe-delete 垫片重定向到回收站（`rmtree` 后目录"消失"但空间没少）、同盘移动不释放空间、`%USERPROFILE%\WorkBuddy` 是旧版安装残留而不是临时工作区。
+
+同步口径同上：先改专家目录、重跑 `validate_expert.py` + `register_expert.py`，再整目录覆盖到本仓库。
+
 ### 百度渠道（开发）
 
 - `baidu-api-dev`：统一旧 VOD、新 VOD、千帆 QF、AI 网关 Seedance 的接口开发、最小测试及 new-api 渠道集成。
