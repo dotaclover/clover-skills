@@ -321,6 +321,112 @@ class Tests(unittest.TestCase):
         with patch.object(juhe, "fetch_models", return_value=["qwen-image-3.0"]), contextlib.redirect_stdout(io.StringIO()):
             self.assertEqual(juhe.main(["resolve", "千问", "--task", "绘图"]), 0)
 
+    def test_clear_preserves_environment_credential_status(self):
+        juhe.save_key("saved-fixture")
+        with patch.dict(os.environ, {"JUHE_API_KEY": "env-fixture"}):
+            result = juhe.clear_saved()
+        self.assertTrue(result["cleared"])
+        self.assertTrue(result["configured"])
+        self.assertEqual(result["source"], "environment")
+        self.assertFalse(result["saved_exists"])
+        self.assertFalse(result["ask_user_for_key"])
+
+    def test_image_submit_preserves_original_utf8_and_idempotency(self):
+        source = self.directory / "request.json"
+        raw = '{ "prompt": "一只猫", "model": "gpt-image-2", "n": 1 }\n'.encode("utf-8")
+        source.write_bytes(raw)
+        output = self.directory / "task.json"
+        response = io.BytesIO(b'{"task_id":"img_fixture","status":"pending","request_id":"req_fixture"}')
+        with patch.dict(os.environ, {"JUHE_API_KEY": "test-only"}), \
+                patch.object(juhe.request, "build_opener") as opener, \
+                contextlib.redirect_stdout(io.StringIO()):
+            opener.return_value.open.return_value = response
+            code = juhe.main(["images", "submit", "--request-file", str(source),
+                              "--idempotency-key", "order-1", "--output", str(output)])
+            self.assertEqual(code, 0)
+            opener.return_value.open.assert_called_once()
+            req = opener.return_value.open.call_args.args[0]
+            self.assertEqual(req.full_url, juhe.DEFAULT_BASE + "/v1/images/tasks")
+            self.assertEqual(req.data, raw)
+            self.assertEqual(req.get_header("Idempotency-key"), "order-1")
+        self.assertEqual(json.loads(output.read_text(encoding="utf-8"))["task_id"], "img_fixture")
+        self.assertEqual(source.read_bytes(), raw)
+
+    def test_image_get_skips_models_and_does_not_print_base64(self):
+        output = self.directory / "result.json"
+        response = {"task_id": "img_fixture", "status": "completed", "result": {"data": [{"b64_json": "PRIVATE_IMAGE_BYTES"}]}}
+        stdout = io.StringIO()
+        with patch.dict(os.environ, {"JUHE_API_KEY": "test-only"}), \
+                patch.object(juhe, "get_models", side_effect=AssertionError("queries must not check models")), \
+                patch.object(juhe, "request_json", return_value=response) as call, \
+                contextlib.redirect_stdout(stdout):
+            self.assertEqual(juhe.main(["images", "get", "--id", "img_fixture", "--output", str(output)]), 0)
+            call.assert_called_once()
+            self.assertEqual(call.call_args.args[2:], ("GET", "/v1/images/tasks/img_fixture"))
+        self.assertNotIn("PRIVATE_IMAGE_BYTES", stdout.getvalue())
+        self.assertEqual(json.loads(output.read_text(encoding="utf-8")), response)
+
+    def test_image_needs_review_is_returned_without_resubmission(self):
+        output = self.directory / "result.json"
+        stdout = io.StringIO()
+        with patch.dict(os.environ, {"JUHE_API_KEY": "test-only"}), \
+                patch.object(juhe, "request_json", return_value={"task_id": "img_fixture", "status": "needs_review"}) as call, \
+                contextlib.redirect_stdout(stdout):
+            self.assertEqual(juhe.main(["images", "get", "--id", "img_fixture", "--output", str(output)]), 0)
+            call.assert_called_once()
+        self.assertEqual(json.loads(stdout.getvalue())["status"], "needs_review")
+
+    def test_image_submit_failures_never_retry_or_fall_back(self):
+        source = self.directory / "request.json"
+        source.write_text('{"model":"gpt-image-2","prompt":"test"}', encoding="utf-8")
+        for failure in (error.HTTPError("https://example.invalid", 409, "conflict", {}, None),
+                        error.HTTPError("https://example.invalid", 503, "disabled", {}, None),
+                        error.URLError("not an actual network call")):
+            stderr = io.StringIO()
+            with self.subTest(failure=type(failure).__name__), \
+                    patch.dict(os.environ, {"JUHE_API_KEY": "test-only"}), \
+                    patch.object(juhe.request, "build_opener") as opener, \
+                    contextlib.redirect_stderr(stderr):
+                opener.return_value.open.side_effect = failure
+                self.assertEqual(juhe.main(["images", "submit", "--request-file", str(source),
+                    "--idempotency-key", "order-1", "--output", str(self.directory / "failed.json")]), 2)
+                opener.return_value.open.assert_called_once()
+                result = json.loads(stderr.getvalue())
+                if isinstance(failure, error.HTTPError):
+                    self.assertEqual(result["http_status"], failure.code)
+                self.assertNotIn("test-only", stderr.getvalue())
+
+    def test_image_rejects_source_overwrite_invalid_count_and_stream(self):
+        source = self.directory / "request.json"
+        with patch.dict(os.environ, {"JUHE_API_KEY": "test-only"}), \
+                patch.object(juhe, "request_json") as call, contextlib.redirect_stderr(io.StringIO()):
+            for extra in ({"n": 129}, {"n": True}, {"stream": True}, {"stream": 0}):
+                source.write_text(json.dumps({"model": "gpt-image-2", "prompt": "test", **extra}), encoding="utf-8")
+                self.assertEqual(juhe.main(["images", "submit", "--request-file", str(source),
+                    "--idempotency-key", "order-1", "--output", str(self.directory / "invalid.json")]), 2)
+            self.assertEqual(juhe.main(["images", "submit", "--request-file", str(source),
+                "--idempotency-key", "order-1", "--output", str(source)]), 2)
+            call.assert_not_called()
+
+    def test_image_output_failure_preserves_server_task_id(self):
+        stderr = io.StringIO()
+        with patch.dict(os.environ, {"JUHE_API_KEY": "test-only"}), \
+                patch.object(juhe, "request_json", return_value={"task_id": "img_fixture", "status": "completed"}), \
+                patch.object(juhe, "write_task_result", side_effect=PermissionError()), contextlib.redirect_stderr(stderr):
+            self.assertEqual(juhe.main(["images", "get", "--id", "img_fixture", "--output", str(self.directory / "result.json")]), 2)
+        self.assertIn("img_fixture", stderr.getvalue())
+
+    def test_result_writer_preserves_workspace_permissions(self):
+        workspace = self.directory / "shared-work"
+        workspace.mkdir(mode=0o755)
+        before = stat.S_IMODE(workspace.stat().st_mode)
+        output = workspace / "result.json"
+        juhe.write_task_result(output, {"status": "completed"})
+        self.assertEqual(stat.S_IMODE(workspace.stat().st_mode), before)
+        self.assertEqual(json.loads(output.read_text(encoding="utf-8")), {"status": "completed"})
+        if os.name != "nt":
+            self.assertEqual(stat.S_IMODE(output.stat().st_mode), 0o600)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -5,7 +5,7 @@
 | 层级 | 检查 | 能证明什么 |
 |---|---|---|
 | 静态 | 路由、类型、配置解析器、模型映射 | 代码存在相应实现 |
-| 离线 | 限定包单测、mock、前端 typecheck/build | 在指定环境下回归通过 |
+| 构建/回归 | Go build、相关回归、前端 typecheck/build | 在指定环境下构建或回归通过，不证明上游可用 |
 | 只读 HTTP | status、models | 服务可达且指定认证/模型列表可用 |
 | 真实推理 | 一次最小文本、流式或任务 | 指定模型/账号/协议在当时可用 |
 | 业务 | 额度、租户、日志、结算退款 | 本次链路符合业务规则 |
@@ -14,10 +14,10 @@
 
 ## 只读 HTTP 示例
 
-下面使用 PowerShell；变量由用户在当前进程提供，示例不包含真实 Key。不自动执行；远端请求也要有授权。不要打印响应头中的凭据或把详细错误全量写入公开日志。
+下面使用 PowerShell；变量由当前进程提供，示例不包含真实 Key。按用户授权的环境运行，不重复请求已有许可；不打印凭据或全量公开错误正文。
 
 ```powershell
-Invoke-RestMethod -Uri "http://127.0.0.1:3201/api/status"
+Invoke-RestMethod -Uri "$env:JUHE_GATEWAY_BASE_URL/api/status"
 $gatewayHeaders = @{ Authorization = "Bearer $env:JUHE_GATEWAY_TOKEN" }
 Invoke-RestMethod -Uri "$env:JUHE_GATEWAY_BASE_URL/v1/models" -Headers $gatewayHeaders
 $cpaHeaders = @{ Authorization = "Bearer $env:JUHE_CPA_TOKEN" }
@@ -28,7 +28,7 @@ Invoke-RestMethod -Uri "http://127.0.0.1:12301/v1/models" -Headers $cpaHeaders
 
 ## 授权后单次文本验收
 
-先让用户明确模型、环境、次数和可能费用。模型名必须取自授权的模型配置，不猜测。以下命令只提交一次非流式 Chat：
+从当前任务确定模型、环境和最小验证量；已有真实验证授权就继续，仅在范围缺失且影响执行时询问。模型名取自授权的配置。以下命令提交一次非流式 Chat：
 
 ```powershell
 $payload = @{
@@ -41,7 +41,9 @@ Invoke-RestMethod -Method Post -Uri "$env:JUHE_GATEWAY_BASE_URL/v1/chat/completi
 
 Responses、Messages、流式和工具调用是额外测试，不因为上面命令通过就自动批量执行。测试不写真实客户数据；需要最大输出限制时按目标协议与模型支持设置字段，不一概强加不支持的参数。
 
-## 必验清单
+## 按变更范围选择验收项
+
+仅验证本次受影响的协议和业务，不把图片修改或打包任务扩大为全协议付费测试。异步图片优先使用下方专用检查。
 
 - [ ] 网关用户令牌与 CPA 服务 Key 不可互换；错误认证返回明确拒绝。
 - [ ] 对外模型映射到预期渠道/上游模型，分组没有串线。
@@ -75,4 +77,10 @@ Responses、Messages、流式和工具调用是额外测试，不因为上面命
 
 ## 交付记录
 
-每次维护输出：目标环境/分支、变更文件、渠道/协议矩阵、测试命令与脱敏结果、费用与任务数、未验证项、回滚步骤。未知内容明确标为未知，不用历史文档替代当前运行状态。
+交付说明目标环境/分支、变更、实际验证、费用与任务数、未验证项。纯文档不需要生成完整协议矩阵。未知内容标未知，不以历史文档替代当前运行状态。
+
+## 异步图片专用检查
+
+按 [async-images](async-images.md) 验证提交/查询/费用。pending 长期不变先查 Redis 版本、ZPOPMIN 权限、队列 key 与数据库是否配套、worker 是否开启；needs_review 停止重新生成，按 request_id 核账。不得让视频超时/退款扫描处理 local_image。
+
+验证环境分别记录为源码、离线、本地真实、目标部署；本地出图不能证明公网已开启异步接口。维护公开技能时标注上线前提，不将内部路径、渠道编号和本地账本数据复制出去。

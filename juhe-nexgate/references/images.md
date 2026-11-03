@@ -1,6 +1,6 @@
 # 图片生成与编辑
 
-先设置 SKILL.md 中的环境变量。图片型号与请求入口见 [模型清单](models.md)。
+按 SKILL.md 复用已有凭据，不为示例重复索取或覆盖 Key。图片型号见 [模型清单](models.md)。需要提交后立即拿 task_id 时读 [异步图片](async-images.md)，先确认服务已启用；本页是同步生成/编辑。
 
 ## 1. Image-2 系列
 
@@ -41,10 +41,10 @@ curl --silent --show-error --fail-with-body \
 ### 超时与响应体积
 
 - 图片生成本身耗时远高于文本，`--max-time` 建议设 `180`–`300` 秒。默认无限等待会让故障请求一直挂着。
-- 设到 300 秒仍无任何响应、或返回 524，属于该型号上游问题，继续加大等待无效，按 [常见报错与处理](troubleshooting.md) 中的“单型号无响应判定”换型号。
-- 同一提示词横向测试型号时只改 `model`，其余字段保持一致，便于对比耗时。
+- 超时/524 可能来自网络、反代、排队或上游，不足以断定型号不可用，也不表示未生成/未扣费。保留请求 ID，先核查原结果；不自动换型号或重提，见 [排障](troubleshooting.md)。
+- 用户明确要求横向测试时才发额外生成，先核对不同型号支持的参数，不假设只改 model 总能兼容。
 - `b64_json` 响应体常在 2–4 MB，务必用 `--output` 写入文件后解码，不要直接把响应读进变量或终端管道。
-- `url` 形式的结果链接带签名和有效期，生成后及时下载保存，过期后需重新生成。
+- URL 可能有签名和有效期，应及时保存；下载失败先重新获取原结果或联系服务方，不能自动重新生成。
 
 ### 保存生成结果
 
@@ -54,20 +54,26 @@ curl --silent --show-error --fail-with-body \
 python - <<'PY'
 import base64
 import json
+from urllib.parse import urlsplit
 from pathlib import Path
 from urllib.request import urlopen
 
 result = json.loads(Path('image-response.json').read_text(encoding='utf-8'))
 item = result['data'][0]
 if item.get('b64_json'):
-    data = base64.b64decode(item['b64_json'])
+    data = base64.b64decode(item['b64_json'], validate=True)
 else:
+    if urlsplit(item['url']).scheme != 'https':
+        raise SystemExit('先核实媒体下载地址，不能把非 HTTPS 或本地路径当作图片 URL')
+    # 媒体 URL 下载不附带网关 Authorization。
     with urlopen(item['url'], timeout=60) as response:
         data = response.read()
 Path('image.png').write_bytes(data)
 print('已保存 image.png')
 PY
 ```
+
+这是 Bash heredoc 写法；PowerShell 请把 Python 内容保存为 UTF-8 .py 文件再运行。异步结果从 result.data 读取，且必须先检查 status=completed，不套用同步顶层 data。
 
 ### 编辑已有图片
 

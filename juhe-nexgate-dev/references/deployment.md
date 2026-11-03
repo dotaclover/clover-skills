@@ -1,95 +1,54 @@
-# 国内版开发、部署与回滚
+# 本地运行与发布
 
-## 1. 本地开发
+## 本地启动
 
-优先阅读 mcwlapi 的：
+先查端口、进程路径、目标数据库和项目脚本。主程序从工作目录加载 .env，godotenv.Load 不覆盖已有进程环境变量；不打印完整配置。进程环境覆盖适合临时测试，无需修改真实 .env。
 
-- `docs/2026-10-10-国内开发备忘.md`
-- `docs/2026-10-10-数据库变更.md`
-- `scripts/domestic-test.ps1`
+- `scripts/domestic-test.ps1` 使用国内测试库、前端 3101、后端 3201、调试端口 2301，但会清空 REDIS_CONN_STRING，不能原样测试异步图片。
+- `restart.ps1` 会停止 pid 文件和目标端口对应进程，参数 Port 不一定传入子进程。先读当前版本，确认进程归属，避免停止不相关进程。
+- 项目 .env 可能使用本机 MySQL；不要因为默认 SQLite 就假设启动不会连接已有数据。数据库按用户任务选择并记录。
+- Windows 后台进程使用隐藏窗口，或使用可停止的终端会话。不要在启动失败后留下多套服务抢端口。
 
-历史国内开发文档约定 `dev` 分支，前端 3101、后端 3201、Delve 2301，数据库 `mcwlapi_domestic_dev`。执行前核对当前分支、脚本默认值和端口；不要擅自切分支或启动/停止已有服务。
-
-在 `C:/code/mcwlapi` 中，按需且经授权执行：
+异步图片本地环境示例（端口先确认空闲）：
 
 ```powershell
-.\scripts\domestic-test.ps1 -Action Status
-.\scripts\domestic-test.ps1 -Action Start
-.\scripts\domestic-test.ps1 -Action Start -DebugBackend
-.\scripts\domestic-test.ps1 -Action Restart
-.\scripts\domestic-test.ps1 -Action Stop
+$env:PORT = '13000'
+$env:REDIS_CONN_STRING = 'redis://127.0.0.1:6380/0'
+$env:ASYNC_IMAGE_TASKS_ENABLED = 'true'
+$env:ASYNC_IMAGE_WORKERS = '1'
+$env:ASYNC_IMAGE_TIMEOUT_SECONDS = '600'
+$env:ASYNC_IMAGE_QUEUE_KEY = 'new-api:async-images:local-test'
+$env:GOOS = 'windows'
+$env:GOARCH = 'amd64'
+$env:CGO_ENABLED = '0'
+go build -o .cache/local-api.exe .
+if ($LASTEXITCODE -ne 0) { throw '本地构建失败，不运行旧二进制' }
+& .\.cache\local-api.exe
 ```
 
-Start/Restart/Stop 会改变本地进程状态；不要在纯排查请求中自动执行。确认数据库、Redis、Go/Bun 等实际依赖，不为本技能另造一套启动器。
+这只是当前进程配置，数据库仍来自已有环境/工作目录 .env。开发构建可复用现有前端 dist，交付包必须重建前端。
 
-## 2. 实例规划
+Redis 要求 5.0+ 且允许 ZPOPMIN。2026-11-03 Windows 127.0.0.1:6379 实测为 3.0.504，现有限流、批量 HSET 也不兼容；WSL Redis 7 的独立 6380 测试通过。运行时重新核实 PING/INFO/命令能力，不能只检查端口。localhost 的 IPv4/IPv6 可能指向不同服务，排错时明确 IP。保留用户已有 Redis，不用 FLUSHALL/FLUSHDB 清理共享服务。
 
-以下是历史部署文档约定，不代表当前机器已运行：
+## 国内 / 国际打包
 
-| 端口 | 服务 |
-|---|---|
-| 12300 | mcwlapi / new-api |
-| 12301 | CPA GPT |
-| 12302 | CPA Gemini / Claude |
-| 12303 | CPA Mixed |
+在各自工作树运行，核对当前 AGENTS 与脚本：
 
-新部署只需 GPT/Claude 时可精简为两个 CPA 实例，不必复制全部历史分组；端口、进程名、账号目录和服务 Key 必须一一对应。
-
-参考来源：
-
-- mcwlapi `docs/2026-09-12-国内部署指南.md`
-- mcwlapi `docs/2026-09-12-CPA路由与定价.md`
-- mcwlcpa `deploy/linux/QUICK_START.md`
-- 两个仓库的 `deploy.ps1`、`upload.ps1`
-
-文档可能内含历史示例凭据，不复制真实值。调用上传脚本前先读参数定义和目标清单，不使用文档中的域名作为默认生产目标。
-
-## 3. 生产配置
-
-mcwlapi 主要配置入口包括 `PORT`、`GIN_MODE`、`SQL_DSN`、`TENANT_ROOT_DOMAIN`、`PLATFORM_HOSTS`、`GENERATE_DEFAULT_TOKEN`、`SESSION_COOKIE_SECURE`。确认当前加载逻辑及 Cookie/TLS 配置，不能把历史开发 `SESSION_COOKIE_SECURE=false` 原样当作 HTTPS 生产基线。
-
-数据库 DSN、会话密钥和上游 Key 仅存私有部署配置。设置足够随机的会话密钥，关闭不必要的默认令牌生成。不要直接执行可能重置已有数据的初始化脚本。
-
-CPA 参考 account-pool 的版本差异。默认仅回环监听、管理 API 关闭或仅本机可访问。禁止在公网 Nginx 中无差别代理 CPA 管理接口。
-
-## 4. Nginx 流式反代
-
-下面是需要合并进现有站点的 location 片段，不是完整 TLS/安全配置：
-
-```nginx
-location / {
-    proxy_pass http://127.0.0.1:12300;
-    proxy_http_version 1.1;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header Connection "";
-    proxy_buffering off;
-    proxy_cache off;
-    proxy_request_buffering off;
-    proxy_read_timeout 3600s;
-    proxy_send_timeout 3600s;
-    send_timeout 3600s;
-    add_header X-Accel-Buffering no always;
-}
+```powershell
+.\package-linux.ps1 -Arch amd64 -BuildFrontend
 ```
 
-保留 Host 以正确识别租户。转发头只信任实际代理，CPA 的 `server.trusted-proxies` 按拓扑设置；不要对任意来源无条件信任。WebSocket 另设 upgrade 规则，不能沿用 `Connection ""` 就宣称支持。
+- Go 内嵌 web/default/dist。正式发布先构建匹配前端，不把国内 dist 拷给国际版。
+- 标准输出：releases/<yyyyMMdd>/new-api-linux-amd64.zip；根目录散落二进制不是标准交付包。
+- 包含二进制及运行模板，保留仓库维护的初始化 SQL；不得包含真实 .env、数据库文件、业务数据导出或凭据。
+- 解压后用 `go version -m <binary>` 确认 GOOS=linux、GOARCH=amd64、CGO_ENABLED=0。
+- deploy.ps1 使用打包流程且可能导出 SQL；仅打包优先 package-linux.ps1。upload.ps1 部署已构建包，mcwlcpa 的部署是另一项操作。
+- 检查归档内容、版本、大小与 SHA256；发布说明沿用目标 releases 风格，不编造验证平台。
 
-发布前测试 Nginx 配置，再重载；先确认影响范围。大文件上传限制按视频素材需求设置，不盲目取消大小限制。
+## 远端部署与反代
 
-## 5. 发布步骤
+仅在用户要求时上传、SSH、重启或 push。主机、进程管理器、端口、库和域名来自当前配置，不从旧文档猜测；不默认增加备份、TLS、另一进程管理器或高可用改造。
 
-1. 确认环境、目标机器/目录、域名、分支、数据库与可停机窗口。
-2. 记录当前提交、二进制、私有配置版本、进程管理方式；备份数据库和必要配置，备份不进入技能包。
-3. 本地构建并做限定测试；先阅读脚本，确认它不会携带 auths 或开发配置上传。
-4. 先部署 CPA 并本机验收，再配置/部署网关，最后验收公网 TLS/流式和租户路径。
-5. 同一服务只用一个进程管理器。历史部署用宝塔 Go 项目，systemd unit 仅备用；不要两者同时启动。
-6. 观察错误率、首 token 延迟、账号可用性和结算；通过后再扩大分组或流量。
+历史国内拓扑为网关 12300、CPA GPT 12301、Gemini/Claude 12302、Mixed 12303，仅作参考。公网客户默认地址与内部国内部署地址分开维护。
 
-## 6. 回滚
-
-恢复上一版二进制与配套配置，使用原进程管理器重启并验收。涉及数据库变更时优先选择向后兼容的迁移；恢复数据库是独立高风险操作，先确认备份时点与增量写入影响。不要简单恢复旧库而丢失新发生的余额、订单或任务记录。
-
-本技能只提供部署流程；创建时没有构建、上传、登录或修改两个业务项目。
+反代保留 Host，正确设置受信任代理；SSE 关闭响应缓冲，超时按需求设置；WebSocket 单独设置 Upgrade。CPA 管理 API 不通过通用公网 location 暴露。上线验证 status、鉴权、目标协议、任务和账务，记录版本；不通过恢复旧数据库覆盖新发生的消费/订单。

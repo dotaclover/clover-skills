@@ -20,6 +20,8 @@ WorkBuddy / Codex / Claude Code / 业务客户端
 
 保持 mcwlapi 为统一业务入口。CPA 的客户端 Key 只供网关内部使用；业务客户端不直连 CPA，以免绕过网关权限、额度与审计。
 
+国内 dev 与国际 internal 是同一网关历史的不同工作树，后者位于 C:/code/mcwlapi_internal；mcwlcpa 则是独立账号池项目。双版共享修复用有选择的 cherry-pick，保留各自币种、充值与部署差异。
+
 ## 分工
 
 | 层 | 负责 | 不负责 |

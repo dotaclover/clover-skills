@@ -22,8 +22,9 @@ MATERIAL_LIVENESS_PATH = "/beta/aigc/generations/liveness"
 
 
 class Failure(Exception):
-    def __init__(self, kind, message):
+    def __init__(self, kind, message, http_status=None):
         self.kind = kind
+        self.http_status = http_status
         super().__init__(message)
 
 
@@ -116,8 +117,9 @@ def clear_saved(directory=None):
     existed = path.exists()
     path.unlink(missing_ok=True)
     clear_cache(directory)
-    return {"cleared": existed, "configured": False, "source": "missing",
-            "saved_exists": False, "validated": False, "ask_user_for_key": True}
+    result = status(directory)
+    result["cleared"] = existed
+    return result
 
 
 def read_stream_key(stream):
@@ -196,23 +198,35 @@ class NoRedirect(request.HTTPRedirectHandler):
         return None
 
 
-def request_json(base, key, method, path, payload=None, query=None, timeout=60):
+def request_json(base, key, method, path, payload=None, query=None, timeout=60,
+                 raw_body=None, idempotency_key=None, max_response_bytes=65 << 20):
     url = base + path
     if query:
         url += "?" + parse.urlencode(query)
     headers = {"Authorization": "Bearer " + key, "Accept": "application/json"}
     data = None
+    if raw_body is not None and payload is not None:
+        raise Failure("config", "不能同时传入原始请求与 JSON 对象。")
+    if idempotency_key is not None:
+        if not 1 <= len(idempotency_key) <= 128 or any(not 33 <= ord(c) <= 126 for c in idempotency_key):
+            raise Failure("config", "Idempotency-Key 必须为 1–128 个不含空格的 ASCII 可打印字符。")
+        headers["Idempotency-Key"] = idempotency_key
     if payload is not None:
         headers["Content-Type"] = "application/json"
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+    if raw_body is not None:
+        headers["Content-Type"] = "application/json"
+        data = raw_body
     req = request.Request(url, data=data, headers=headers, method=method)
     try:
         with request.build_opener(NoRedirect()).open(req, timeout=timeout) as response:
-            raw = response.read()
+            raw = response.read(max_response_bytes + 1)
+            if len(raw) > max_response_bytes:
+                raise Failure("response", "响应超过客户端大小上限；保留任务 ID，勿重新生成。")
     except error.HTTPError as exc:
         if exc.code == 401:
-            raise Failure("unauthorized", "HTTP 401：当前凭据被拒绝；检查来源，环境变量优先。") from None
-        raise Failure("http", "HTTP %s：服务拒绝请求；不输出响应正文。" % exc.code) from None
+            raise Failure("unauthorized", "HTTP 401：当前凭据被拒绝；检查来源，环境变量优先。", 401) from None
+        raise Failure("http", "HTTP %s：服务拒绝请求；不输出响应正文。" % exc.code, exc.code) from None
     except (error.URLError, TimeoutError, OSError):
         raise Failure("network", "网络、TLS 或超时错误；不代表 Key 失效。") from None
     if not raw:
@@ -233,8 +247,8 @@ def fetch_models(base, key):
             payload = json.load(response)
     except error.HTTPError as exc:
         if exc.code == 401:
-            raise Failure("unauthorized", "HTTP 401：当前凭据被拒绝；检查来源，环境变量优先。") from None
-        raise Failure("http", "HTTP %s：服务拒绝请求；不输出响应正文。" % exc.code) from None
+            raise Failure("unauthorized", "HTTP 401：当前凭据被拒绝；检查来源，环境变量优先。", 401) from None
+        raise Failure("http", "HTTP %s：服务拒绝请求；不输出响应正文。" % exc.code, exc.code) from None
     except (error.URLError, TimeoutError, OSError):
         raise Failure("network", "网络、TLS 或超时错误；不代表 Key 失效。") from None
     except ValueError:
@@ -341,6 +355,90 @@ def resolve(ids, alias, task):
             "note": "仅一个已知候选时自动选择；多个候选须明确完整 ID，不按名称猜优劣或能力。"}
 
 
+def write_task_result(path, result):
+    """Write a private result file without changing an existing workspace's permissions."""
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    fd, temporary = tempfile.mkstemp(prefix=".juhe-result-", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            json.dump(result, stream, ensure_ascii=False)
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
+def image_task_command(args):
+    """One request per invocation; preserve the submission bytes and never replay automatically."""
+    base = base_url(args.base_url)
+    if not 1 <= args.timeout <= 300:
+        raise Failure("config", "请求超时必须为 1–300 秒；查询等待不等于服务端执行期限。")
+    key, _ = credential()
+    if not key:
+        raise Failure("missing_credential", "请配置 JUHE_API_KEY 或运行 auth set；不需要把 Key 发到聊天中。")
+    output = Path(args.output).expanduser().resolve()
+    skill = Path(__file__).resolve().parents[1]
+    if output == skill or skill in output.parents:
+        raise Failure("config", "任务结果请保存到技能目录外的工作目录。")
+    if args.action == "submit":
+        source = Path(args.request_file).expanduser().resolve()
+        if output == source:
+            raise Failure("config", "输出不能覆盖幂等恢复所需的原始请求文件。")
+        with source.open("rb") as stream:
+            raw = stream.read((1 << 20) + 1)
+        if len(raw) > 1 << 20:
+            raise Failure("config", "请求文件超过 1 MiB。")
+        try:
+            body = json.loads(raw.decode("utf-8"))
+        except (UnicodeError, ValueError):
+            raise Failure("config", "请求文件须为无 BOM 的 UTF-8 JSON 对象。") from None
+        if not isinstance(body, dict) or not isinstance(body.get("model"), str) or not body["model"].strip():
+            raise Failure("config", "请求必须提供 model。")
+        if not isinstance(body.get("prompt"), str) or not body["prompt"].strip():
+            raise Failure("config", "请求必须提供非空 prompt。")
+        if body.get("stream") is not None and body["stream"] is not False:
+            raise Failure("config", "异步请求 stream 只能省略或设为 false。")
+        if "n" in body and (type(body["n"]) is not int or not 1 <= body["n"] <= 128):
+            raise Failure("config", "n 必须为 1–128 的整数，上游可能另有限制。")
+        try:
+            result = request_json(base, key, "POST", "/v1/images/tasks", raw_body=raw,
+                                  idempotency_key=args.idempotency_key, timeout=args.timeout)
+        except Failure as exc:
+            if exc.kind == "network" or (exc.http_status is not None and exc.http_status >= 500):
+                raise Failure(exc.kind, str(exc) + " 保留原请求文件和幂等键；先核实服务状态，恢复时使用原 Token、相同 key 和原始请求，不转同步或换 key。", exc.http_status) from None
+            raise
+    else:
+        if not args.id or len(args.id) > 64 or any(c not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for c in args.id):
+            raise Failure("config", "任务 ID 格式无效。")
+        result = request_json(base, key, "GET", "/v1/images/tasks/" + args.id, timeout=args.timeout)
+    # Store even unexpected responses for diagnosis; never print large image payloads.
+    try:
+        write_task_result(output, result)
+    except (OSError, Failure):
+        # Preserve a usable server-issued ID even if local output permissions fail.
+        task_id = result.get("task_id", "")
+        if isinstance(task_id, str) and len(task_id) <= 64 and task_id and all(c in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-" for c in task_id):
+            raise Failure("storage", "结果保存失败；保留 task_id=" + task_id + "，修复输出路径后查询原任务，不重新生成。") from None
+        raise Failure("storage", "结果保存失败；保留原请求和幂等 key，不换 key 重提。") from None
+    if not isinstance(result.get("task_id"), str) or not result["task_id"] or not isinstance(result.get("status"), str):
+        raise Failure("response", "响应缺少 task_id/status，已保存；不要换 key 重提。")
+    if args.action == "get" and result["task_id"] != args.id:
+        raise Failure("response", "查询返回的任务 ID 不匹配，已保存响应。")
+    summary = {name: result[name] for name in ("task_id", "status", "request_id", "http_status") if name in result}
+    summary["output"] = str(output)
+    if isinstance(result.get("result"), dict) and isinstance(result["result"].get("data"), list):
+        summary["image_count"] = len(result["result"]["data"])
+    if result["status"] == "needs_review":
+        summary["next_action"] = "停止自动重提；按 request_id 联系服务方核查生成和账务。"
+    elif result["status"] == "failed":
+        summary["next_action"] = "停止轮询；在输出文件查看错误，不自动重新生成。"
+    elif result["status"] in ("pending", "processing"):
+        summary["next_action"] = "稍后使用原 Token 查询同一任务。"
+    elif result["status"] != "completed":
+        summary["next_action"] = "未知状态，保留响应并向服务方核实。"
+    return summary
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="安全凭据、实时型号、任务解析与素材管理")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -410,6 +508,18 @@ def main(argv=None):
     liveness_get.add_argument("--id", required=True)
     liveness_get.add_argument("--model")
 
+    images = sub.add_parser("images", help="异步图片任务；需服务端启用，不自动重试")
+    images.add_argument("--base-url", default=os.environ.get("JUHE_BASE_URL", DEFAULT_BASE))
+    image_actions = images.add_subparsers(dest="action", required=True)
+    image_submit = image_actions.add_parser("submit", help="从原始 JSON 文件提交，返回任务 ID")
+    image_submit.add_argument("--request-file", required=True)
+    image_submit.add_argument("--idempotency-key", required=True)
+    image_get = image_actions.add_parser("get", help="用原 Token 查询任务并保存完整结果")
+    image_get.add_argument("--id", required=True)
+    for command in (image_submit, image_get):
+        command.add_argument("--output", required=True, help="完整 JSON 保存路径，不可位于技能目录内")
+        command.add_argument("--timeout", type=int, default=30)
+
     args = parser.parse_args(argv)
     try:
         if args.command == "auth":
@@ -437,10 +547,12 @@ def main(argv=None):
         elif args.command == "cache-clear":
             clear_cache()
             result = {"cleared": True}
+        elif args.command == "images":
+            result = image_task_command(args)
         elif args.command == "material":
             key, _ = credential()
             if not key:
-                raise Failure("missing_credential", "环境变量与安全存储均未配置；向用户索取 Key 后用 auth set --stdin 保存，之后不再重复询问。")
+                raise Failure("missing_credential", "请配置 JUHE_API_KEY 或运行 auth set；不需要把 Key 发到聊天中。")
             base = base_url(args.base_url)
             method = "POST"
             path = MATERIAL_GROUP_PATH if args.resource == "groups" else MATERIAL_ASSET_PATH
@@ -502,7 +614,7 @@ def main(argv=None):
         else:
             key, source = credential()
             if not key:
-                raise Failure("missing_credential", "环境变量与安全存储均未配置；向用户索取 Key 后用 auth set --stdin 保存，之后不再重复询问。")
+                raise Failure("missing_credential", "请配置 JUHE_API_KEY 或运行 auth set；不需要把 Key 发到聊天中。")
             ids, origin = get_models(base_url(args.base_url), key, args.cached)
             result = ({"models": [describe(m) for m in ids]} if args.command == "models"
                       else resolve(ids, args.alias, args.task))
@@ -511,7 +623,10 @@ def main(argv=None):
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     except Failure as exc:
-        print(json.dumps({"error": exc.kind, "message": str(exc)}, ensure_ascii=False), file=sys.stderr)
+        result = {"error": exc.kind, "message": str(exc)}
+        if exc.http_status is not None:
+            result["http_status"] = exc.http_status
+        print(json.dumps(result, ensure_ascii=False), file=sys.stderr)
         return 2
     except (OSError, ValueError):
         print('{"error":"storage_or_config","message":"本地配置或存储操作失败；未输出原始异常。"}', file=sys.stderr)

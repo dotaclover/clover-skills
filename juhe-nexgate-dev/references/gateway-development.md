@@ -64,16 +64,15 @@ Ark 请求经 `middleware/volcengine_video_adapter.go` 转成内部任务，保�
 
 ## 开发和测试
 
-国内开发入口优先用 `scripts/domestic-test.ps1`，参见 deployment。前端已核实 scripts：`dev`、`build`、`build:check`、`typecheck`、`lint`；没有已核实的 `test` script。
+启动入口按目标依赖选择，参见 [deployment](deployment.md)；domestic-test.ps1 会关闭 Redis。前端使用 web/default、Bun、React 19/Rsbuild，按该目录 AGENTS 执行 typecheck/lint/build；不要假设存在 test script。
 
-Go 测试建议在对应仓库执行（本技能创建时未执行）：
+默认做 Go 构建和真实有限冒烟，自动化回归按当前任务及仓库要求选择。常用构建：
 
 ```powershell
-go test ./relay/channel/task/doubao ./relay/helper ./router
-go test ./setting/ratio_setting ./model
+go build ./...
 ```
 
-检查测试是否会连接本地数据库或外部服务后再运行；先限定包，再按需要扩大到 `go test ./...`。
+测试先确认数据库、缓存状态和外部依赖；不盲目全包测试或付费探测。HTTP 200 不代表图片已生成、账务已完成。
 
 ## 租户与计费回归
 
@@ -81,4 +80,18 @@ go test ./setting/ratio_setting ./model
 - 不用平台租户的成功结果代替商户租户验收。
 - 文本检查输入、输出、缓存 usage；视频检查预扣、成功结算、失败退款及重复轮询的幂等性。
 - 视频测试只创建一笔授权任务，后续复用同一 task_id；不要用反复提交代替轮询。
-- 修改数据库结构时遵循仓库迁移惯例；先列影响和备份/回滚，不直接覆盖生产表。
+- 修改数据库结构遵循迁移惯例并验证目标数据库；按任务范围操作，不自动备份或恢复旧库。
+
+## 代码约束速查
+
+详细要求读取仓库 AGENTS，尤其这些容易遗漏的边界：
+
+- JSON 编解码用 common.Marshal/Unmarshal/DecodeJson，不在业务代码直接调用 encoding/json。
+- 数据访问兼容 SQLite/MySQL/PostgreSQL；行锁用 model 的 lockForUpdate，不写 GORM v1 query_option。
+- 请求可选数值/布尔使用指针及 omitempty，保留显式 0/false。
+- n、时长、max_tokens 等计费乘数使用已有上限，检查 multipart/Extra/metadata 旁路；quota 转换使用 common 的 checked helper，溢出审计留在 admin_info，不能裸 int(float) 产生负扣费。
+- 表达式计费先读 pkg/billingexpr/expr.md；预扣、结算和退款全链路检查，不只看最终费用。
+- LLM 日志在写入和历史展示时隐藏对话/推理/工具正文并保留 usage；图片/视频必须保留媒体结果 URL，不能套用文本脱敏导致结果消失。
+- web/default 文案使用 i18n，维护六种语言；修改 UI 先读前端 AGENTS 及适用技能。不改未经要求的其他前端。
+
+图片异步入口 POST /v1/images/tasks、GET /v1/images/tasks/:task_id，详见 [async-images](async-images.md)。与视频共用记录，不共用轮询/退款。

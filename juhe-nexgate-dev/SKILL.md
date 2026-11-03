@@ -1,44 +1,40 @@
 ---
 name: juhe-nexgate-dev
-description: 用于 Juhe 国内版 mcwlapi 与 mcwlcpa 的自用开发、渠道集成、模型映射、计费、部署和故障排查。以 new-api 为 API 网关接入百度、阿里、火山，以 CLIProxyAPI/clientproxyapi 为授权 GPT/Codex、Claude 账号池扩展。涉及这两个代码目录或国内版架构维护时触发；不用于客户 juhe-nexgate 运行时调用。
-agent_created: true
+description: 开发与排查 Juhe/Nexgate 的 mcwlapi 网关及 mcwlcpa 账号池，覆盖国内/国际版本、渠道协议、图片视频任务、租户计费、本地验证和打包部署。适用于修改这两个项目源码或运行配置；客户调用已部署 API 使用 juhe-nexgate。
 metadata:
-  version: 1.0.0
+  version: 1.1.0
   scope: personal-development
 ---
 
-# Juhe 国内版开发
+# Juhe / Nexgate 开发
 
-## 固定边界
+## 工作区与责任层
 
-- 将 `C:/code/mcwlapi` 作为国内版主网关代码库；将 `C:/code/mcwlcpa` 作为 CLIProxyAPI 账号池代码库。允许用户指定替代路径，先核实再操作。
-- 采用 `客户端 → mcwlapi → 国内供应商 / mcwlcpa → 授权账号池`。把用户、租户、令牌、模型权限、定价、额度和消费日志留在网关，把账号授权、轮询、会话粘性和失效切换留在 CPA。
-- 区分四层凭据：用户网关令牌、网关到 CPA 的服务 Key、供应商 Key/OAuth 凭据、CPA 管理 Key；禁止互换。
-- 保留 `juhe-nexgate` 客户交付包不变；不要从中复制客户配置或把 `juhe.top` 当国内版默认部署地址。
-- 仅处理有合法授权的账号；遵守供应商服务条款、地域限制和额度限制。不要把账号池当作绕过限制的工具。
-- 不自动读取 `.env`、真实 `config.yaml`、`auths*/`、OAuth JSON、Cookie 或 SSH 私钥。确需定位配置时先确认文件范围，输出只保留脱敏字段。
-- 不擅自部署、执行登录、批量探测或生成计费请求；先说明目标、调用次数、可能费用和写入范围，再取得授权。
+- 国内版：`C:/code/mcwlapi`，分支 `dev`；国际版：`C:/code/mcwlapi_internal`，分支 `internal`；账号池：`C:/code/mcwlcpa`。用户提供其他路径时先核实。读取目标仓库 AGENTS、README 与相关实现，检查 git status、分支和已有改动。
+- 链路为 `客户端 → mcwlapi → 上游供应商或 mcwlcpa → 授权账号池`。网关负责租户、令牌、路由、额度和日志；CPA 负责授权账号及调度。不要把一层的配置或成功结果当作另一层已经可用。
+- 保留 new-api、QuantumNous 身份、许可证、模块路径和来源链接。应用品牌与上游归属并存。
+- 共享修改通常先在 dev 实现并提交；用户要求两版时在各自工作树测试、提交，cherry-pick 共享变更。保留币种、充值、导航和部署差异，不直接合并整个分支。
+- 区分用户网关令牌、网关到 CPA 的服务 Key、上游 Key/OAuth、CPA 管理 Key。配置只在必要范围内读取，输出脱敏；不将客户凭据、账号授权文件或私有配置复制进技能。
 
 ## 按任务加载
 
-| 任务 | 参考文件 |
-|---|---|
-| 总体架构、责任和凭据边界 | [architecture.md](references/architecture.md) |
-| mcwlapi 开发、路由、模型、计费、租户 | [gateway-development.md](references/gateway-development.md) |
-| 百度、阿里、火山适配差异 | [domestic-providers.md](references/domestic-providers.md) |
-| GPT/Claude 账号池、v8/旧版配置 | [account-pool.md](references/account-pool.md) |
-| 本地环境、Nginx、发布和回滚 | [deployment.md](references/deployment.md) |
-| 分层验收、排障与交付清单 | [verification.md](references/verification.md) |
+| 任务 | 参考 |
+| --- | --- |
+| 分层架构与责任边界 | [architecture.md](references/architecture.md) |
+| 路由、adaptor、租户、计费和前端规约 | [gateway-development.md](references/gateway-development.md) |
+| 图片异步、Redis、视频共用记录、恢复 | [async-images.md](references/async-images.md) |
+| 百度、阿里、火山协议差异 | [domestic-providers.md](references/domestic-providers.md) |
+| CPA 账号池与配置版本 | [account-pool.md](references/account-pool.md) |
+| 本地启动、Linux 打包和部署 | [deployment.md](references/deployment.md) |
+| 真实验收和故障定位 | [verification.md](references/verification.md) |
 
-## 最短工作流
+## 实施与交付
 
-1. 核实两个仓库的当前分支、工作树和涉及文件；不要默认切换分支，不覆盖用户已有修改。
-2. 按责任层定位问题：客户端协议、网关路由/计费、CPA 账号池、国内上游；读取对应参考文件和当前源码。
-3. 写出最小改动：对外模型名、上游模型名、渠道类型、Base URL、凭据来源、协议、计费单位、测试范围。
-4. 优先复用现有 adaptor、任务流、路由与配置解析；不要为了接渠道引入新的代理层或重写用户/计费系统。
-5. 先跑限定包的离线测试，再在授权后做单次真实验收；分清静态核实、测试通过与线上可用，不把三者混为一谈。
-6. 交付变更文件、验证结果、未验证项和回滚办法；技能维护完成后同步本地用户技能与 `clover-skills/juhe-nexgate-dev`，仅提交本次技能相关修改。
+1. 以当前源码、配置解析器和运行证据为准，参考资料是定位入口。找不到旧路径时搜索函数/路由，不新建重复实现。不把计划、模型列表或本地测试当作公网能力。
+2. 明确本次协议、模型映射、渠道、鉴权、计费单位及受影响版本；复用 Router → Controller → Service → Model 和现有 Relay。
+3. 在用户授权范围内推进；开发和本地测试请求通常授权必要的本地运行，不重复索要已有许可。真实生成按授权最小数量执行，计费结果不确定时停止重提；不自行扩大为批量压测、账号登录或远程部署。
+4. UTF-8 读写，默认真实系统和有限冒烟；按仓库要求补充构建及相关回归。缺依赖明确报告，不用 mock 成功代替真实链路。无要求不创建备份或兼容层。
+5. 发布从目标工作树构建；只有用户要求才 push/upload。提交不带 .env、数据库、二进制、图片结果、日志或无关改动。
+6. 报告提交、验证环境、实际任务数/费用和未验证边界。技能源是用户指定目录，不擅自同步到个人安装目录、打包或发布客户包。
 
-## 事实来源优先级
-
-以当前源码与配置解析器为准，其次为仓库示例，最后为历史部署文档。参考文件记录创建时核实的入口，不保证未来模型、价格、端点或运行版本不变。特别注意 CPA 主模板已经采用 v8，旧 standard/premium 示例仍可能是兼容布局；不要只修改 `config-version` 就认为完成迁移。
+公开包 `juhe-nexgate` 只记录客户端契约。用户要求同时维护两包时，同步参数、返回值和上线前提，不复制内部主机、数据库名、渠道凭据、测试账号或管理流程。
