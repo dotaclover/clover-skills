@@ -1,10 +1,10 @@
-\---  
+---
 name: video-post-production
 
 description: "适用于既有视频二次加工：口播采访、会议讲座、产品展示、生活素材、录屏和已有成片的剪辑重排、多源拼接、原音保留或配音混音、横竖屏适配、可选字幕与遮挡、质量编码及显式体积压缩。不用于生成新视频、自动ASR或操作网页。"
 
-agent_created: true  
-\---
+agent_created: true
+---
 
 # 视频二次加工
 

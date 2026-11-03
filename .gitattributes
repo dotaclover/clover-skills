@@ -1,0 +1,9 @@
+# 本机 core.autocrlf=true，检出时会把工作副本转成 CRLF。
+# SKILL.md 的 frontmatter 一旦变成 CRLF，按 \n 匹配的解析会整块失败，
+# 技能会静默不生效（曾出现 \--- 带行尾空格的坏 frontmatter）。
+# 索引里的 md 本来就是 LF，这条只约束检出行为，不产生内容改动。
+.gitattributes text eol=lf
+*.md text eol=lf
+
+# 与 clover-opc 保持一致：给 Linux 跑的脚本必须是 LF。
+*.sh text eol=lf
