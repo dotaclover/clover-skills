@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """WorkBuddy 空间台账：把各处占用按「可删性」分类打出来。
 
+平台：Windows 为正式支持平台。macOS / Linux 给基础台账（目录按 Electron 惯例推断），
+未实机验证，路径可能不准，结果仅作参考。
+
 用法:
     python scan_space.py            # 人读表格
     python scan_space.py --json     # 机器读，便于后续脚本消费
@@ -12,11 +15,25 @@ import sqlite3
 import struct
 import shutil
 
+IS_WIN = os.name == "nt"
+IS_MAC = sys.platform == "darwin"
+PLATFORM = "windows" if IS_WIN else ("macos" if IS_MAC else "linux")
+
 HOME = os.path.expanduser("~")
 WB = os.environ.get("WORKBUDDY_CONFIG_DIR") or os.path.join(HOME, ".workbuddy")
-ROAM = os.path.join(os.environ.get("APPDATA", ""), "WorkBuddy")
-INSTALL = os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "WorkBuddy")
+if IS_WIN:
+    ROAM = os.path.join(os.environ.get("APPDATA", ""), "WorkBuddy")
+    INSTALL = os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "WorkBuddy")
+elif IS_MAC:
+    ROAM = os.path.join(HOME, "Library", "Application Support", "WorkBuddy")
+    INSTALL = "/Applications/WorkBuddy.app"
+else:
+    ROAM = os.path.join(HOME, ".config", "WorkBuddy")
+    INSTALL = os.path.join(HOME, ".local", "share", "WorkBuddy")
 LEGACY = os.path.join(HOME, "WorkBuddy")
+TRASH = "C:\\$Recycle.Bin" if IS_WIN else (
+    os.path.join(HOME, ".Trash") if IS_MAC else os.path.join(HOME, ".local", "share", "Trash", "files")
+)
 
 # 顶层目录 -> (档位, 说明)
 GRADE = {
@@ -166,11 +183,29 @@ def scan_workspaces():
 
 
 def scan_recycle():
-    """Windows 回收站里与 WorkBuddy 相关的条目。"""
-    root = "C:\\$Recycle.Bin"
+    """回收站里与 WorkBuddy 相关的条目。
+
+    Windows 解析 $I* 元数据，能还原原始路径，准确性高；
+    macOS（~/.Trash）与 Linux（Trash/files）没有等价元数据，只能按文件名粗算，仅作参考。
+    """
     total = wb_bytes = wb_items = 0
-    if not os.path.isdir(root):
+    if not os.path.isdir(TRASH):
         return {"total": 0, "workbuddy": 0, "items": 0}
+
+    if not IS_WIN:
+        for name in os.listdir(TRASH):
+            p = os.path.join(TRASH, name)
+            try:
+                s = dir_size(p)[0] if os.path.isdir(p) else os.path.getsize(p)
+            except OSError:
+                continue
+            total += s
+            if "workbuddy" in name.lower():
+                wb_bytes += s
+                wb_items += 1
+        return {"total": total, "workbuddy": wb_bytes, "items": wb_items}
+
+    root = TRASH
     for sid_dir in os.listdir(root):
         b = os.path.join(root, sid_dir)
         try:
@@ -200,7 +235,7 @@ def scan_recycle():
 
 def main():
     want_json = "--json" in sys.argv
-    report = {"paths": {}, "top": [], "workspaces": [], "recycle": {}, "disk": {}}
+    report = {"platform": PLATFORM, "paths": {}, "top": [], "workspaces": [], "recycle": {}, "disk": {}}
 
     for label, p in ((".workbuddy", WB), ("Roaming", ROAM),
                      ("Install", INSTALL), ("LegacyUserDir", LEGACY)):
@@ -230,7 +265,8 @@ def main():
     report["workspaces"] = scan_workspaces()
     report["recycle"] = scan_recycle()
     try:
-        t, u, f = shutil.disk_usage(os.path.splitdrive(WB)[0] + "\\")
+        anchor = (os.path.splitdrive(os.path.abspath(WB))[0] + "\\") if IS_WIN else "/"
+        t, u, f = shutil.disk_usage(anchor)
         report["disk"] = {"total": t, "used": u, "free": f}
     except OSError:
         pass
@@ -238,6 +274,9 @@ def main():
     if want_json:
         print(json.dumps(report, ensure_ascii=False, indent=2))
         return
+
+    if not IS_WIN:
+        print(f"⚠️  当前平台 {PLATFORM}：非 Windows，基础功能，目录结构与回收站准确性未验证。\n")
 
     print("=== 各位置占用 ===")
     for label, info in report["paths"].items():

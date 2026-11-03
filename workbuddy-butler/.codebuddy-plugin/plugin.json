@@ -1,7 +1,7 @@
 {
   "name": "workbuddy-butler",
   "version": "1.0.0",
-  "description": "WorkBuddy local storage cleanup: audits disk usage, removes caches and session residue, prunes workspace records, and reclaims space safely.",
+  "description": "WorkBuddy local storage cleanup: audits disk usage, removes caches and session residue, prunes workspace records, and reclaims space safely. Windows is fully supported; macOS/Linux get basic, unverified functions.",
   "author": {
     "name": "clover",
     "email": "clove@cloverhub.local"

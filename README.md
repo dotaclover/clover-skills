@@ -66,9 +66,13 @@
 | `recycle_audit.py` | 解析 `$I*` 元数据还原被删路径，`--match` 精确筛，`--purge` 永久删 |
 | `session_clean.py` | 软删除会话残留清理、工作空间记录裁剪，改库前自动 sqlite 备份 |
 
+**平台**：Windows 为正式支持平台，四个脚本均在此实测。macOS / Linux 给基础功能——`purge.py` 改走 `shutil.rmtree`，回收站换成 `~/.Trash` / `Trash/files`，台账目录按 Electron 惯例推断——**未实机验证，输出只作参考**，脚本会自行打印平台警告。
+
 核心约束写在 Agent 正文里：**收益只认 `disk_usage` 前后差值**，必须分栏报"移动量 / 进回收站量 / 真正释放量"，不许拿移动量冒充释放量；改库前先 sqlite backup；`binaries`、`blobs`、`workbuddy.db` 一律不碰。
 
-`references/已知坑位.md` 沉淀了 10 个真踩过的坑，其中三条值得单独记：本机 python 的删除可能被 safe-delete 垫片重定向到回收站（`rmtree` 后目录"消失"但空间没少）、同盘移动不释放空间、`%USERPROFILE%\WorkBuddy` 是旧版安装残留而不是临时工作区。
+清工作空间记录时有个容易翻车的点：选择器的数据源有**三处**——`workspaces` 表、`workspace-display-names.json`、以及 `storage/user-<id>-personal/scoped/<hash>/workspace-picker.json`（`explicit-workspaces` / `removed-workspaces`）。只改前两处，选择器里的空间会复活；而只要还有会话的 `cwd` 指向该目录，它还会作为"活跃任务空间"重新出现。
+
+`references/已知坑位.md` 沉淀了 12 个真踩过的坑，其中三条值得单独记：本机 python 的删除可能被 safe-delete 垫片重定向到回收站（`rmtree` 后目录"消失"但空间没少）、同盘移动不释放空间、`%USERPROFILE%\WorkBuddy` 是旧版安装残留而不是临时工作区。
 
 同步口径同上：先改专家目录、重跑 `validate_expert.py` + `register_expert.py`，再整目录覆盖到本仓库。
 

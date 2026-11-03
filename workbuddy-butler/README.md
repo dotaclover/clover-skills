@@ -6,11 +6,24 @@
 
 Agent 型（单个 AI 专家）
 
+## 平台
+
+**Windows 是正式支持平台**，所有脚本在此实测过。macOS / Linux 提供基础功能，未实机验证、效果不保证：
+
+| 能力 | Windows | macOS / Linux |
+|---|---|---|
+| 空间台账 | 完整 | 目录按 Electron 惯例推断 |
+| 永久删除 | `SHFileOperationW` | `shutil.rmtree` |
+| 回收站取证 | 解析 `$I*`，可还原原路径 | 仅文件名 / `.trashinfo` |
+| 会话治理 | 完整 | `projects` 转义目录未验证 |
+
+非 Windows 上会打印平台警告，先 `--dry-run`。
+
 ## 功能
 
-- **空间台账**：把 `~/.workbuddy`、`%APPDATA%\WorkBuddy`、安装目录、旧版本残留、Windows 回收站一起盘清，按 A（可直删）/ B（需确认）/ C（慎动）/ D（禁动）四档打标。
+- **空间台账**：把 `~/.workbuddy`、`%APPDATA%\WorkBuddy`、安装目录、旧版本残留、回收站一起盘清，按 A（可直删）/ B（需确认）/ C（慎动）/ D（禁动）四档打标。
 - **会话数据治理**：直读 `workbuddy.db`，区分存活与软删除会话，按工作空间归组算出 `modify_backup`、`changes-detail`、`file-tree-manifests`、`projects/*.jsonl` 各占多少。
-- **工作空间管理**：按保留名单裁剪 `workspaces` 表与 `workspace-display-names.json`。
+- **工作空间管理**：按保留名单裁剪 `workspaces` 表、`workspace-display-names.json` 与选择器偏好 `workspace-picker.json`，三处一起改才不会复活。
 - **安全删除**：识别本机的 safe-delete 垫片，用 `SHFileOperationW` 做真删除，避免"删了但空间没少"。
 - **回收站取证**：解析 `$Recycle.Bin/$I*` 元数据还原原始路径，按特征精确永久删除。
 - **收益核算**：以 `disk_usage` 前后差值为唯一口径，分开报"移动量 / 进回收站量 / 真正释放量"。

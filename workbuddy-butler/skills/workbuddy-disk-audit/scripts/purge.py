@@ -5,6 +5,9 @@
 表现是目录"消失"但磁盘空间一字节没少。这里改用 shell32.SHFileOperationW
 且不带 FOF_ALLOWUNDO，做到真删除。
 
+平台：Windows 为正式支持平台。macOS / Linux 走 shutil.rmtree 基础实现
+（那边没有回收站垫片，直接删就是真删），但路径与权限差异未实机验证，效果不保证。
+
 用法:
     python purge.py <路径> [<路径> ...]        # 逐个永久删除
     python purge.py --list paths.txt           # 每行一个路径
@@ -13,29 +16,34 @@
 保护：系统盘根目录、workbuddy.db、binaries/、blobs/ 默认拒绝，确需删除加 --force。
 """
 import os
+import re
 import sys
-import ctypes
-from ctypes import wintypes
+import shutil
 
-FO_DELETE = 3
-FOF_SILENT = 0x0004
-FOF_NOCONFIRMATION = 0x0010
-FOF_NOERRORUI = 0x0400
-FOF_NOCONFIRMMKDIR = 0x0200
-# FOF_ALLOWUNDO (0x0040) 故意不加，加了就进回收站
+IS_WIN = os.name == "nt"
 
+if IS_WIN:
+    import ctypes
+    from ctypes import wintypes
 
-class SHFILEOPSTRUCTW(ctypes.Structure):
-    _fields_ = [
-        ("hwnd", wintypes.HWND),
-        ("wFunc", wintypes.UINT),
-        ("pFrom", wintypes.LPCWSTR),
-        ("pTo", wintypes.LPCWSTR),
-        ("fFlags", ctypes.c_uint16),
-        ("fAnyOperationsAborted", wintypes.BOOL),
-        ("hNameMappings", ctypes.c_void_p),
-        ("lpszProgressTitle", wintypes.LPCWSTR),
-    ]
+    FO_DELETE = 3
+    FOF_SILENT = 0x0004
+    FOF_NOCONFIRMATION = 0x0010
+    FOF_NOERRORUI = 0x0400
+    FOF_NOCONFIRMMKDIR = 0x0200
+    # FOF_ALLOWUNDO (0x0040) 故意不加，加了就进回收站
+
+    class SHFILEOPSTRUCTW(ctypes.Structure):
+        _fields_ = [
+            ("hwnd", wintypes.HWND),
+            ("wFunc", wintypes.UINT),
+            ("pFrom", wintypes.LPCWSTR),
+            ("pTo", wintypes.LPCWSTR),
+            ("fFlags", ctypes.c_uint16),
+            ("fAnyOperationsAborted", wintypes.BOOL),
+            ("hNameMappings", ctypes.c_void_p),
+            ("lpszProgressTitle", wintypes.LPCWSTR),
+        ]
 
 
 PROTECTED_NAMES = {"workbuddy.db", "binaries", "blobs", "security", "system32", "windows"}
@@ -70,7 +78,7 @@ def is_protected(path):
     drive, tail = os.path.splitdrive(ap)
     if tail in ("\\", "/", ""):
         return "系统盘根目录"
-    parts = [p.lower() for p in ap.replace("/", "\\").split("\\") if p]
+    parts = [p.lower() for p in re.split(r"[\\/]+", ap) if p]
     for p in parts:
         if p in PROTECTED_NAMES:
             return f"命中保护名 {p}"
@@ -86,6 +94,23 @@ def sh_delete(path):
     op.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_NOCONFIRMMKDIR
     res = ctypes.windll.shell32.SHFileOperationW(ctypes.byref(op))
     return res, bool(op.fAnyOperationsAborted)
+
+
+def posix_delete(path):
+    """非 Windows 基础实现：那边没有回收站垫片，直接删即真删。未实机验证。"""
+    try:
+        if os.path.isdir(path) and not os.path.islink(path):
+            shutil.rmtree(path)
+        else:
+            os.remove(path)
+        return 0, False
+    except OSError as e:
+        print(f"    ({type(e).__name__}: {e})")
+        return 1, True
+
+
+def delete(path):
+    return sh_delete(path) if IS_WIN else posix_delete(path)
 
 
 def main():
@@ -111,6 +136,9 @@ def main():
         print(__doc__)
         sys.exit(1)
 
+    if not IS_WIN:
+        print("⚠️  非 Windows 平台：走 shutil.rmtree 基础实现，未实机验证，请先 --dry-run。\n")
+
     freed = skipped = 0
     for t in targets:
         if not os.path.exists(t):
@@ -125,7 +153,7 @@ def main():
         if dry:
             print(f"  [dry] {fmt(s):>9}  {t}")
             continue
-        res, aborted = sh_delete(t)
+        res, aborted = delete(t)
         if os.path.exists(t):
             print(f"  失败 res={res} aborted={aborted}  {t}")
             skipped += 1

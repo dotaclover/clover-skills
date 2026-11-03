@@ -19,10 +19,20 @@ skills: [workbuddy-disk-audit]
 
 1. **空间审计**：把`~/.workbuddy`、`%APPDATA%\WorkBuddy`、安装目录、`C:\Users\<用户>\WorkBuddy`旧版本残留、Windows回收站一起盘清，按"缓存 / 会话数据 / 运行时 / 插件 / 附件 / 程序文件"分类，每项给出可回收量和风险等级。
 2. **会话数据治理**：直读`workbuddy.db`（sqlite），区分活着的和软删除的会话，按`cwd`归到工作空间，精确算出`workspace/sessions/<uuid>/modify_backup`、`changes-detail`、`file-tree-manifests`、`projects/<escaped>.jsonl`四类文件各占多少。
-3. **工作空间管理**：按用户给的保留名单，清理`sessions`表、`workspaces`表、`workspace-display-names.json`，让左侧空间列表只剩该留的。
+3. **工作空间管理**：按用户给的保留名单，清理`sessions`表、`workspaces`表、`workspace-display-names.json`，以及选择器偏好`storage/user-<id>-personal/scoped/<hash>/workspace-picker.json`，让左侧空间列表只剩该留的。**选择器有三处数据源，只改数据库会复活**，详见`SKILL.md`第5节。
 4. **安全删除**：所有删除走"移动到`~/.workbuddy/.cleanup-<时间戳>`→写manifest→逐项核对→永久删除"，并识别本机的删除垫片，避免"删了但空间没少"。
-5. **回收站取证**：解析`C:\$Recycle.Bin\<SID>\$I*`元数据还原原始路径，找出哪些删除项占着空间、属于谁，支持按路径特征精确永久删除。
+5. **回收站取证**：Windows上解析`C:\$Recycle.Bin\<SID>\$I*`元数据还原原始路径，找出哪些删除项占着空间、属于谁，支持按路径特征精确永久删除；macOS/Linux只做基础列举。
 6. **收益核算**：以`shutil.disk_usage`前后差值为唯一结论依据，不拿"移动量"冒充"已释放"。
+
+## 平台边界
+
+**Windows是正式支持平台**，全部脚本在此实测过。macOS与Linux给基础功能，**未实机验证，效果不保证**：
+
+- 先看脚本自动打印的平台警告，再解释给用户听，别默认它准。
+- 非Windows上一律先`--dry-run`，不直接批量删。
+- 目录位置按Electron惯例推断（`~/Library/Application Support/WorkBuddy`、`~/.config/WorkBuddy`），用户若反馈路径不对，以他给的实际路径为准。
+- 回收站在macOS上只能拿到文件名，别对用户承诺"能查到是谁删的"。
+
 
 ## 工作流程
 
@@ -66,5 +76,6 @@ skills: [workbuddy-disk-audit]
 - **`C:\Users\<用户>\WorkBuddy`不一定是临时目录**：可能是旧版本安装残留（含`WorkBuddy.exe`+`resources`），也可能混着用户的简历、方案、输出物。先比对`Get-Process`的实际Path和快捷方式指向，再分层处置，绝不整目录删。
 - **`modify_backup`是回滚备份不是聊天记录**：删它只影响"撤销修改"，聊天正文在`projects/<escaped>.jsonl`。这句话必须告诉用户，否则他会以为聊天没了。
 - **`projects`目录名转义**：`C:/xxx`要整体把`:/`换成单个`-`，否则算出双横线匹配不到（曾因此漏清99MB）。
+- **选择器里的"幽灵空间"**：数据库查不到、磁盘上没目录、选择器却有，去`workspace-picker.json`的`explicit-workspaces`找。删记录时三处（库、显示名、选择器）要一起改，否则会复活；用户当前对话就在那个目录时，改完必须重启应用。
 - **运行中清理有边界**：`plugins/cache`、当天日志、Chromium分区里的部分文件被进程占用，运行中清不干净，要请用户退出WorkBuddy后再做。
 - **不主动超范围**：用户说"清理空间"，不等于授权删他的文档。凡是含用户产出的目录，先列文件名再问。

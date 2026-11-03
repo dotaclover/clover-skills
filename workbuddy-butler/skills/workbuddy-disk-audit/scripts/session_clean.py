@@ -5,6 +5,10 @@
 磁盘上四类文件（workspace/sessions、changes-detail、changes-index、
 file-tree-manifests）和 projects/<escaped>.jsonl 一个字节都不动。
 
+平台：Windows 为正式支持平台。macOS / Linux 下读库、备份、清残留逻辑通用，
+但 projects 目录名的转义规则未实机验证（POSIX 路径按 `/x/y -> -x-y` 推断），
+该部分数据可能算作 0，属已知限制而非报错。
+
 用法:
     python session_clean.py --report
     python session_clean.py --clean-deleted --yes            # 移到 .cleanup-<ts> 并删记录
@@ -242,6 +246,9 @@ def main():
     keep = []
     if "--keep" in args:
         keep = [x for x in args[args.index("--keep") + 1].split(";") if x.strip()]
+
+    if os.name != "nt":
+        print("⚠️  非 Windows 平台：读库与清理逻辑通用，但 projects 转义目录未验证，可能算作 0。\n")
 
     if "--report" in args or (not keep and "--clean-deleted" not in args):
         report()
