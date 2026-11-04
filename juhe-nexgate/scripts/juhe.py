@@ -385,15 +385,24 @@ def image_task_command(args):
         if output == source:
             raise Failure("config", "输出不能覆盖幂等恢复所需的原始请求文件。")
         with source.open("rb") as stream:
-            raw = stream.read((1 << 20) + 1)
-        if len(raw) > 1 << 20:
-            raise Failure("config", "请求文件超过 1 MiB。")
+            raw = stream.read((64 << 20) + 1)
+        if len(raw) > 64 << 20:
+            raise Failure("config", "请求文件超过 64 MiB（含 Base64 编码）。")
         try:
             body = json.loads(raw.decode("utf-8"))
         except (UnicodeError, ValueError):
             raise Failure("config", "请求文件须为无 BOM 的 UTF-8 JSON 对象。") from None
         if not isinstance(body, dict) or not isinstance(body.get("model"), str) or not body["model"].strip():
             raise Failure("config", "请求必须提供 model。")
+        if "images" not in body and len(raw) > 1 << 20:
+            raise Failure("config", "无参考图的文生图请求文件超过 1 MiB。")
+        if "images" in body:
+            refs = body["images"]
+            if not isinstance(refs, list) or not 1 <= len(refs) <= 16:
+                raise Failure("config", "images 必须为 1–16 个 image_url 对象。")
+            for ref in refs + ([body["mask"]] if "mask" in body else []):
+                if not isinstance(ref, dict) or set(ref) != {"image_url"} or not isinstance(ref["image_url"], str) or not ref["image_url"].startswith(("data:image/png;base64,", "data:image/jpeg;base64,", "data:image/webp;base64,")):
+                    raise Failure("config", "参考图使用 images[].image_url 的 Base64 Data URL；mask 使用同样对象结构。")
         if not isinstance(body.get("prompt"), str) or not body["prompt"].strip():
             raise Failure("config", "请求必须提供非空 prompt。")
         if body.get("stream") is not None and body["stream"] is not False:

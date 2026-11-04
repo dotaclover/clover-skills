@@ -2,6 +2,8 @@
 
 核实基线：mcwlapi dev 的 `294492dec`、`f749e5139`（2026-11-03）。这是源码和本地验证，不表示 international 或公网已部署。先阅读仓库 `docs/2026-11-03-异步图片任务.md` 和下列实现。
 
+2026-11-04 后续源码扩展 multipart 编辑；不是此前发布包能力。详见仓库 `docs/2026-11-04-异步参考图编辑.md` 和 `relay/helper/async_image_multipart.go`。部署后 `async_image_tasks` 自动新增 content_type/is_edit 两列；旧 JSON 任务继续走 generations，禁止旧 worker 与新版混跑。
+
 | 责任 | 文件 |
 | --- | --- |
 | 提交/查询与入参 | `controller/async_image_task.go`、`router/relay-router.go` |
@@ -13,15 +15,21 @@
 
 ## API 与生命周期
 
-`POST /v1/images/tasks` 接收普通生成 JSON，必须提供 `Idempotency-Key`，持久化后返回 HTTP 202、`task_id`、`status`、`request_id` 及 Location。task_id 由服务端生成。`GET /v1/images/tasks/:task_id` 使用同一租户/用户/Token，只读数据库，返回状态和原始 result。
+后续补齐 JSON Base64 编辑：controller 调用 `helper.ValidateAsyncImageJSON`，存在合法 images 数组即 IsEdit=true，保留 application/json 与原始字节，worker 走 edits。结构为 `images:[{image_url:"data:image/png;base64,..."}]`，mask 为同结构对象；不使用输出字段 b64_json。1–16 图，单图解码 ≤20 MiB，总编码 JSON ≤64 MiB，无 images 的文生图仍 ≤1 MiB。验证严格 Base64、MIME 和 mask PNG，拒绝 URL/file_id/裸 Base64；DTO 正式 Images/Mask 字段透传，不转 multipart。CLI submit 同步扩容，JSON 幂等仍按原字节。上线状态仍需部署核验。
 
-幂等 key 为 1–128 个不含空格的 ASCII 可打印字符，在租户/用户/Token 内隔离。同 key 按原始请求字节及指定渠道计算摘要；改变 JSON 空白/字段顺序也可能 409。每用户 pending/processing 上限 10；请求 1 MiB、结果 64 MiB；n 复用 dto.MaxImageN。只支持生成 JSON，不支持 edits/multipart、stream=true 或取消。
+`POST /v1/images/tasks` 接收生成 JSON、Base64 参考图编辑 JSON 或 multipart 文件编辑，必须提供 `Idempotency-Key`，持久化后返回 HTTP 202、`task_id`、`status`、`request_id` 及 Location。task_id 由服务端生成。`GET /v1/images/tasks/:task_id` 使用同一租户/用户/Token，只读数据库，返回状态和原始 result。
+
+幂等 key 为 1–128 个不含空格的 ASCII 可打印字符，在租户/用户/Token 内隔离。JSON 按原始字节及指定渠道计算摘要，改变空白/字段顺序可能 409。multipart 先规范化：字段排序、图片维持上传顺序、文件名和 MIME 统一、内容摘要决定 boundary；再把 edits 类型、Content-Type、渠道和规范 body 纳入摘要，重试换 boundary 不产生新任务。每用户 pending/processing 上限 10；JSON 请求 1 MiB，multipart 64 MiB，结果 64 MiB；不支持 stream=true 或取消。
+
+multipart 允许 1–16 张 PNG/JPEG/WebP 参考图和可选一张 PNG mask，单文件 20 MiB；image/image[] 二选一，不接受 indexed 字段或重复 scalar。n 复用 dto.MaxImageN，size 复用普通 edits 校验/计费。网关接收上限不等于上游承诺。文件字节存扩展表 Payload，不存 Redis、不持久依赖本机临时路径；worker 恢复 edits 和完整 Content-Type，上游使用 multipart 文件。终态清空 Payload；公共查询和幂等查询不加载上传大字段。请求清理中间件负责 RemoveAll，覆盖进程内 worker；同请求复用 parsed form。
+
+两跳格式要分开：网关 → CPA 接收层为 multipart 文件；CPA `internal/runtime/executor/codex_openai_images.go` 的 `codexRewriteOpenAIImageEditMultipartToJSON` 会把参考图转成 `images[].image_url` 的 Base64 Data URL、mask 转成 `mask.image_url`，用于 image-2/image-2.5 的专用上游；普通 `openai_compat_executor.go` 则继续 multipart。客户端不必跟随内部协议转换；本次不修改 CPA，实际生产 executor 需核查路由后才能断言。
 
 图片状态 pending → processing → completed/failed/needs_review 对应公共 Task 的 QUEUED/IN_PROGRESS/SUCCESS/FAILURE/UNKNOWN。两表事务更新；Task 只含轻量元数据、result_endpoint 和实际 quota/channel/group，完整图片在扩展表。
 
 ## 视频隔离和计费
 
-- `Platform=local_image`、`Action=image_generation`。共用用户/管理员/商户任务列表，本次不含前端图片预览或专用类型文案。
+- `Platform=local_image`、`Action=image_generation` 或 `image_edit`。共用用户/管理员/商户任务列表，本次不含前端图片预览或专用类型文案。
 - 未完成扫描、超时扫描、待计费扫描均排除 local_image。不能只在 adaptor 分发处跳过，因为此前可能已退款。
 - 视频查询、内容代理、remix/续作原任务解析在访问渠道前拒绝图片 ID。
 - worker 重新读取 Token/用户，进程内 handler 执行完整图片鉴权、限流、渠道和计费。内部 context 标识不能来自 HTTP Header；复用提交 RequestID、可信客户端 IP 和租户 Host。

@@ -4,7 +4,7 @@
 
 ## 提交与恢复
 
-`POST /v1/images/tasks`，Bearer 鉴权、Content-Type: application/json、必填 Idempotency-Key。请求体采用普通图片生成 JSON，只支持生成，不支持 edits/multipart 或 stream=true。
+`POST /v1/images/tasks`，Bearer 鉴权、必填 Idempotency-Key。JSON 无 images 为文生图，带 images 为 Base64 参考图编辑（推荐）；也保留 multipart 文件编辑。都不支持 stream=true。**参考图编辑是 2026-11-04 后续源码新增能力，须部署该版本后使用；此前线上文生图实测不能证明编辑已上线。**
 
 ```bash
 curl --silent --show-error --fail-with-body --connect-timeout 10 --max-time 30 \
@@ -24,10 +24,54 @@ curl --silent --show-error --fail-with-body --connect-timeout 10 --max-time 30 \
 响应 Location 为 `/v1/images/tasks/img_...`。task_id 是服务端返回值，客户端不填写；Idempotency-Key 是调用方为一次业务生成确定的稳定标识。
 
 - key 长度 1–128，ASCII 可打印且无空格；同租户/用户/Token 内生效。
-- 同 key、同原始请求字节返回原任务；换 body/指定渠道返回 409，JSON 空白/顺序变化也算变化。CLI 原样发送 UTF-8 请求文件，不重新序列化。
+- JSON：同 key、同原始请求字节返回原任务；换 body/指定渠道返回 409，JSON 空白/顺序变化也算变化。CLI 原样发送 UTF-8 请求文件，不重新序列化。multipart 的幂等规则见下文。
 - 网络中断未拿到 ID 时，保存原请求与 key，用原 Token 原样重发；不可换 key 或转同步重试。
-- 请求上限 1 MiB；n 为整数 1–128，上游可能进一步限制，默认示例 n=1。每用户最多 10 个排队/处理中任务。
+- JSON 文生图请求上限 1 MiB；JSON 参考图和 multipart 总请求上限 64 MiB。n 为整数 1–128，上游可能进一步限制，默认示例 n=1。每用户最多 10 个排队/处理中任务。
 - 202 表示任务持久化，不是预留费用或完成出图。执行时按有效权限、余额与配置处理，后续可能失败。
+
+## JSON Base64 多参考图（推荐，需新版部署）
+
+```json
+{
+  "model": "gpt-image-2",
+  "prompt": "保留第一张人物，使用第二张的服装与场景",
+  "size": "2048x2048",
+  "n": 1,
+  "images": [
+    {"image_url": "data:image/png;base64,<第一张图片的完整Base64>"},
+    {"image_url": "data:image/jpeg;base64,<第二张图片的完整Base64>"}
+  ]
+}
+```
+
+输入使用 `images[].image_url`，单张也放数组；不是 `b64_json`（它是结果字段）。可选 `mask: {"image_url":"data:image/png;base64,..."}`。只接受内联 PNG/JPEG/WebP Data URL，不接受远程 URL、file_id、裸 Base64 或字符串数组。最多 16 张参考图，每张及 mask 解码后 ≤20 MiB，JSON 总体 ≤64 MiB（包含约 4/3 膨胀的编码体积）。mask 必须 PNG。网关做 Base64/MIME 检查，最终图像有效性和上游数量限制仍由渠道决定。
+
+把完整 JSON 以 UTF-8 保存到请求文件，使用上文 curl `--data-binary` 或 `images submit --request-file` 即可，CLI 已允许带 images 的 64 MiB 请求。同步时同一 JSON body 可发送 `/v1/images/edits`；异步改为 `/v1/images/tasks` 并提供幂等 key，查询保持不变。worker 保留 JSON 协议和图片顺序，不转成 multipart。JSON 重试仍须保持原始字节，包括空白/字段顺序。
+
+## multipart 多参考图编辑（兼容文件上传，需新版部署）
+
+也可和同步 `/v1/images/edits` 一样直接上传文件：
+
+```bash
+curl --silent --show-error --fail-with-body --connect-timeout 10 --max-time 120 \
+  "$JUHE_BASE_URL/v1/images/tasks" \
+  -H "Authorization: Bearer $JUHE_API_KEY" \
+  -H 'Idempotency-Key: reference-order-001' \
+  -F 'model=gpt-image-2' \
+  -F 'prompt=保留第一张人物的外貌，采用第二张的服装与场景' \
+  -F 'size=2048x2048' -F 'n=1' \
+  -F 'image[]=@person.png' -F 'image[]=@scene.png' \
+  --output image-task.json
+```
+
+让 curl 自动设置带 boundary 的 Content-Type，不手写该头。保存凭据的用户沿用技能的 credential() 或已有客户端注入鉴权，不将 Key 明文写入命令。现有 `images submit --request-file` CLI 仍只接受 JSON；multipart 使用上述 HTTP 协议，GET 可继续使用 `images get`。
+
+- 支持重复 `image` 或重复 `image[]`，只能选一种；多图按上传顺序定义参考关系。不接受 `image[0]` 等索引字段、混用字段、图片 URL 或 base64 文本。
+- 1–16 张参考图，PNG/JPEG/WebP，单文件 ≤20 MiB；可选一张 PNG `mask`，同样 ≤20 MiB。所有表单字段和文件合计 ≤64 MiB。上游可有更严格限制，16 是网关接收上限而非所有上游承诺。
+- 普通字段使用小写，每字段一次；拒绝重复 model/size/n/stream 等，stream 只能省略或 false。size 沿用固定价短边 1K/2K/4K 的 1/2/4 倍规则。
+- multipart 重试使用原 Token、同一 key、相同字段值、相同图片字节与顺序及 mask。boundary、文件名、普通字段排列变化不改变任务；参考图顺序或内容变化返回 409。拿到 task_id 后只 GET。
+- 服务器持久保存规范化 multipart 二进制，worker 调用原 edits 链路，上游仍接收 multipart 文件。Redis 只放任务 ID。终态清除上传 payload。
+- 202 在上传完成并持久化后返回，不包含上游生成等待时间，但上传大图耗时不能省略。
 
 ## 查询与结果
 

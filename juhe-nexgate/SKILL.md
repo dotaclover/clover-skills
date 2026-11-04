@@ -56,6 +56,8 @@ python scripts/juhe.py auth clear
 
 ## 异步图片快速接入
 
+异步文生图使用下面的 JSON 示例。多参考图推荐 [async-images.md](references/async-images.md) 的 JSON `images[].image_url` Base64 Data URL 协议（CLI submit 可用），也兼容 multipart 文件上传；参考图需部署新增支持版本。不要把 `b64_json` 结果字段当作输入，也不要把旧异步文生图成功当作参考图能力已上线。
+
 在技能目录外的工作目录创建 UTF-8 `image-request.json`（不含 Key）。下面用脚本绝对路径调用；将 `/path/to` 换成实际安装位置：
 
 ```json
@@ -71,7 +73,7 @@ submit 返回服务端生成的 task_id；Idempotency-Key 是客户端防重复�
 
 ## 调用与交付边界
 
-- 同步图片超时/5xx 不证明未生成；不要自动换型号、重提或转异步。异步提交网络中断时，只能原 Token、同一幂等 key、完全相同请求字节恢复；已有 task_id 只 GET。needs_review 停止自动处理并核账。
+- 同步图片超时/5xx 不证明未生成；不要自动换型号、重提或转异步。异步提交网络中断时，使用原 Token、同一幂等 key；JSON 保持原始字节，multipart 保持字段值和文件字节/顺序（可重建 boundary），详见异步参考。已有 task_id 只 GET。needs_review 停止自动处理并核账。
 - 视频两种创建格式任选一种，只提交一次；按该协议响应里的 ID 和状态查询，不把图片 task_id 与视频 id/查询路径混用。
 - 图片结果可能是 b64_json 或临时 URL，保存完整响应并解码/下载；媒体下载不附带网关 Bearer。失败先取原结果，不能自动重新生成。完整 base64 不打印到终端。
 - 素材先到 Active，再用 result.URL 或经文档确认的 asset:// 引用；真人认证必须由本人完成 H5，普通 AIGC 不代表真人授权，详见 material。

@@ -352,6 +352,22 @@ class Tests(unittest.TestCase):
         self.assertEqual(json.loads(output.read_text(encoding="utf-8"))["task_id"], "img_fixture")
         self.assertEqual(source.read_bytes(), raw)
 
+    def test_image_submit_large_reference_json_preserves_bytes(self):
+        source = self.directory / "references.json"
+        raw = json.dumps({"model": "gpt-image-2", "prompt": "combine references", "images": [
+            {"image_url": "data:image/png;base64," + "AAAA" * (270 * 1024)}
+        ]}).encode("utf-8")
+        self.assertGreater(len(raw), 1 << 20)
+        source.write_bytes(raw)
+        with patch.dict(os.environ, {"JUHE_API_KEY": "test-only"}), \
+                patch.object(juhe, "request_json", return_value={"task_id": "img_reference", "status": "pending"}) as call, \
+                contextlib.redirect_stdout(io.StringIO()):
+            code = juhe.main(["images", "submit", "--request-file", str(source),
+                             "--idempotency-key", "reference-1", "--output", str(self.directory / "reference-task.json")])
+            self.assertEqual(code, 0)
+            call.assert_called_once()
+            self.assertEqual(call.call_args.kwargs["raw_body"], raw)
+
     def test_image_get_skips_models_and_does_not_print_base64(self):
         output = self.directory / "result.json"
         response = {"task_id": "img_fixture", "status": "completed", "result": {"data": [{"b64_json": "PRIVATE_IMAGE_BYTES"}]}}
