@@ -28,7 +28,7 @@ DOT_Y = 1342
 
 DEFAULTS = {
     "brand": "AI 从零开始",
-    "episode": "EP01",
+    "episode": "Part01",
     "fonts": {"bold": r"C:\Windows\Fonts\msyhbd.ttc", "regular": r"C:\Windows\Fonts\msyh.ttc"},
     "theme": {
         "bg_top": "#090D12", "bg_bottom": "#111821", "accent": "#12E39B",
@@ -204,7 +204,6 @@ def card_intro(ctx, cfg):
     n = len(cfg["lines"])
     d.line([(76, y + n * 124 + 44), (500, y + n * 124 + 44)], fill=ctx.C_ACCENT, width=6)
     d.text((76, y + n * 124 + 84), cfg.get("sub", ""), font=f_sub, fill=ctx.C_DIM)
-    d.text((72, H - 160), "TRAE · 全程录屏", font=ctx.font(False, 30), fill=(90, 105, 120))
     return im
 
 
