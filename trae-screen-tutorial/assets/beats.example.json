@@ -1,0 +1,67 @@
+{
+  "out_name": "demo",
+  "brand": "AI 从零开始",
+  "episode": "EP01",
+  "min_dur": 4.3,
+  "max_speed": 2.6,
+  "fonts": {
+    "bold": "C:/Windows/Fonts/msyhbd.ttc",
+    "regular": "C:/Windows/Fonts/msyh.ttc"
+  },
+  "theme": {
+    "bg_top": "#090D12",
+    "bg_bottom": "#111821",
+    "accent": "#12E39B",
+    "text": "#F2F6FA",
+    "dim": "#8B9AAB",
+    "line": "#1E2836",
+    "border": "#2E3C4E"
+  },
+  "voice": {
+    "enabled": true,
+    "name": "zh-CN-XiaoxiaoNeural",
+    "rate": "+8%"
+  },
+  "intro": {
+    "kicker": "EP01 · 示例项目",
+    "lines": ["一个人，一句话", "一个晚上", "做出一个能点的 App"],
+    "sub": "从需求文档到可点原型的全过程",
+    "voice": "片头：一个人，一句话，一个晚上，做出一个能点的 App。",
+    "min_dur": 3.6
+  },
+  "outro": {
+    "title": ["一个晚上", "三个文件"],
+    "cards": [
+      ["PRO.md", "需求分析 · 功能清单 · 数据模型"],
+      ["MVP.md", "最小闭环 · 文件清单 · 验收脚本"],
+      ["MOCKUP.html", "可点的手机原型 · 复盘 / 统计"]
+    ],
+    "footer": "全部本地 · 不联网 · 无后端",
+    "voice": "片尾：从需求到原型，三个文件，全部本地离线跑通。",
+    "min_dur": 3.6
+  },
+  "beats": [
+    {
+      "name": "b01",
+      "src": "C:/Users/xxx/Videos/录制/01.mp4",
+      "t_in": 0.8,
+      "t_out": 4.9,
+      "crop": [1290, 620, 800, 380],
+      "step": "01",
+      "title": "提需求",
+      "cap": ["先当甲方：说清要什么", "原生小程序 · 不联网 · 只存本地"],
+      "voice": "先把它当甲方：建个目录，做一个决策记录器，只存本地。"
+    },
+    {
+      "name": "b02",
+      "src": "C:/Users/xxx/Videos/录制/01.mp4",
+      "t_in": 98.0,
+      "t_out": 110.0,
+      "crop": [1271, 653, 843, 178],
+      "step": "02",
+      "title": "拆任务",
+      "cap": ["它没急着写代码", "先读文件、建目录、把任务拆开"],
+      "voice": "它没急着写代码，先读文件、建目录、把任务拆开。"
+    }
+  ]
+}
