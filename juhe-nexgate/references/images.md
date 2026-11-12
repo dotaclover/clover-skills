@@ -79,7 +79,7 @@ PY
 
 使用 `POST /v1/images/edits`，以 multipart 上传图片文件。让 curl 自动设置 multipart 的 `Content-Type`。
 
-OpenAI 兼容适配器向上游转发真实二进制文件；多参考图用重复 `image[]` 字段并按顺序上传。图片响应中的 `b64_json` 是返回格式，不能据此把参考图上传改成 JSON base64。需要异步参考图时见 [async-images.md](async-images.md)，并先确认 multipart 扩展已部署。
+multipart 路径由 OpenAI 兼容适配器转发二进制文件；多参考图用重复 `image[]` 并按顺序上传。JSON 路径则使用下文的 `images[].image_url` Data URL，不使用输出字段 `b64_json`。异步参考图见 [async-images.md](async-images.md)，须确认参考图扩展版本已部署。
 
 客户端也可直接发送 JSON：`images:[{"image_url":"data:image/png;base64,..."}]`，可选 `mask:{"image_url":"data:image/png;base64,..."}`，其他 model/prompt/size/n 字段不变。这与 CPA 的 image-2/image-2.5 专用执行器所用结构一致。新版异步接口同样支持该结构，限制与部署边界见 async-images.md；输入不使用 b64_json。multipart 客户端继续上传文件，CPA 按执行器需要内部转换。
 

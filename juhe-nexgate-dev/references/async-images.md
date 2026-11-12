@@ -19,11 +19,11 @@
 
 `POST /v1/images/tasks` 接收生成 JSON、Base64 参考图编辑 JSON 或 multipart 文件编辑，必须提供 `Idempotency-Key`，持久化后返回 HTTP 202、`task_id`、`status`、`request_id` 及 Location。task_id 由服务端生成。`GET /v1/images/tasks/:task_id` 使用同一租户/用户/Token，只读数据库，返回状态和原始 result。
 
-幂等 key 为 1–128 个不含空格的 ASCII 可打印字符，在租户/用户/Token 内隔离。JSON 按原始字节及指定渠道计算摘要，改变空白/字段顺序可能 409。multipart 先规范化：字段排序、图片维持上传顺序、文件名和 MIME 统一、内容摘要决定 boundary；再把 edits 类型、Content-Type、渠道和规范 body 纳入摘要，重试换 boundary 不产生新任务。每用户 pending/processing 上限 10；JSON 请求 1 MiB，multipart 64 MiB，结果 64 MiB；不支持 stream=true 或取消。
+幂等 key 为 1–128 个不含空格的 ASCII 可打印字符，在租户/用户/Token 内隔离。JSON 按原始字节及指定渠道计算摘要，改变空白/字段顺序可能 409。multipart 先规范化：字段排序、图片维持上传顺序、文件名和 MIME 统一、内容摘要决定 boundary；再把 edits 类型、Content-Type、渠道和规范 body 纳入摘要，重试换 boundary 不产生新任务。每用户 pending/processing 上限 10；JSON 文生图 1 MiB，JSON Base64 编辑及 multipart 64 MiB，结果 64 MiB；不支持 stream=true 或取消。
 
 multipart 允许 1–16 张 PNG/JPEG/WebP 参考图和可选一张 PNG mask，单文件 20 MiB；image/image[] 二选一，不接受 indexed 字段或重复 scalar。n 复用 dto.MaxImageN，size 复用普通 edits 校验/计费。网关接收上限不等于上游承诺。文件字节存扩展表 Payload，不存 Redis、不持久依赖本机临时路径；worker 恢复 edits 和完整 Content-Type，上游使用 multipart 文件。终态清空 Payload；公共查询和幂等查询不加载上传大字段。请求清理中间件负责 RemoveAll，覆盖进程内 worker；同请求复用 parsed form。
 
-两跳格式要分开：网关 → CPA 接收层为 multipart 文件；CPA `internal/runtime/executor/codex_openai_images.go` 的 `codexRewriteOpenAIImageEditMultipartToJSON` 会把参考图转成 `images[].image_url` 的 Base64 Data URL、mask 转成 `mask.image_url`，用于 image-2/image-2.5 的专用上游；普通 `openai_compat_executor.go` 则继续 multipart。客户端不必跟随内部协议转换；本次不修改 CPA，实际生产 executor 需核查路由后才能断言。
+两跳格式要分开：multipart 客户端的网关 → CPA 接收层为 multipart 文件；JSON 客户端保留 JSON；CPA `internal/runtime/executor/codex_openai_images.go` 的 `codexRewriteOpenAIImageEditMultipartToJSON` 会把参考图转成 `images[].image_url` 的 Base64 Data URL、mask 转成 `mask.image_url`，用于 image-2/image-2.5 的专用上游；普通 `openai_compat_executor.go` 则继续 multipart。客户端不必跟随内部协议转换；本次不修改 CPA，实际生产 executor 需核查路由后才能断言。
 
 图片状态 pending → processing → completed/failed/needs_review 对应公共 Task 的 QUEUED/IN_PROGRESS/SUCCESS/FAILURE/UNKNOWN。两表事务更新；Task 只含轻量元数据、result_endpoint 和实际 quota/channel/group，完整图片在扩展表。
 

@@ -28,6 +28,9 @@
 
 ## 参数与客户端
 
+- Seedance 报 `unsupported_channel` 时请服务方检查渠道配置；不要通过改成供应商内部模型名、Fire 路径或换协议来绕过。保留公开任务 ID、原 request_id、请求时间及错误，管理员可据此查询上游任务 ID 和诊断。客户不需要上游 Key。
+- Seedance HTTP 200 和创建返回 `id` 仅表示提交成功。超时退款不证明供应商已取消；管理员诊断需要区分排队、轮询 HTTP 错误和平台超时。历史未保存的轮询记录无法补回。
+
 - 根地址不带 /v1，逐路径拼接；OpenAI SDK 一般使用 base_url=<根地址>/v1。
 - Responses 的 POST 存在不代表 background/get/cancel 已接好，未确认不发送 background=true。
 - 图片编辑 multipart 让客户端生成 boundary，不手写 Content-Type: multipart/form-data。

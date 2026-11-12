@@ -1,5 +1,7 @@
 ---
 name: juhe-nexgate
+metadata:
+  version: 1.3.0
 description: 接入已部署的 Juhe Nexgate 聚合 API，管理客户端凭据、查询和选择模型，调用文本、同步/异步图片、视频及 Seedance 素材接口。用于用户应用集成、生成和任务查询；修改网关/账号池源码或部署使用 juhe-nexgate-dev。
 ---
 
@@ -45,7 +47,7 @@ python scripts/juhe.py auth clear
 | Chat、Responses、Claude Messages、Gemini | [text.md](references/text.md) |
 | 同步图片生成/编辑、结果解码 | [images.md](references/images.md) |
 | 图片提交后立即拿 task_id，稍后查询 | [async-images.md](references/async-images.md)；CLI images submit/get |
-| Seedance 两种视频协议 | [seedance.md](references/seedance.md) |
+| Seedance 方舟兼容／OpenAI 视频客户端协议 | [seedance.md](references/seedance.md) |
 | 其他视频 | [other-video.md](references/other-video.md) |
 | 素材、分组、真人认证 | [material.md](references/material.md)；CLI material |
 | 型号与已知能力 | [models.md](references/models.md) |
@@ -53,6 +55,8 @@ python scripts/juhe.py auth clear
 | 历史验证范围 | [verification.md](references/verification.md) |
 
 文本通常使用 POST /v1/chat/completions，读取 choices[0].message.content；SSE 按事件读取，检查结束原因及 usage。POST /v1/responses 并不代表支持 background=true 和 GET Responses 查询，未确认部署能力前不承诺。
+
+Seedance 客户继续向本服务的 `/api/v3/contents/generations/tasks` 提交 `model/content`，使用公开的 `doubao-seedance-...` ID。服务端按匹配渠道适配上游；客户端无需选择供应商，也不要把内部模型名改成 `S2.0-Mini` 或直调供应商路径。创建响应的 `id` 是本服务公开任务 ID，查询仍用本服务原路径。2026-11-12 上游路由与诊断更新不改变这些客户端约定；部署状态需另行确认。
 
 ## 异步图片快速接入
 

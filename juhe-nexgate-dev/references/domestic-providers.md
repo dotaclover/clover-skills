@@ -10,7 +10,7 @@
 | 百度千帆 V2 | 46 / BaiduV2 | `https://qianfan.baidubce.com` | `relay/channel/baidu_v2/` |
 | 阿里 DashScope | 17 / Ali | `https://dashscope.aliyuncs.com` | `relay/channel/ali/` |
 | 火山 Ark | 45 / VolcEngine | `https://ark.cn-beijing.volces.com` | `relay/channel/volcengine/` |
-| 豆包视频 | 54 / DoubaoVideo | `https://ark.cn-beijing.volces.com` | `relay/channel/task/doubao/` |
+| 豆包视频（历史） | 54 / DoubaoVideo | `https://ark.cn-beijing.volces.com` | 注册仍存在；当前 Seedance 提交及查询上游不接受该类型 |
 
 ## 百度
 
@@ -38,13 +38,15 @@
 - 视频 task adaptor 位于 `relay/channel/task/ali/`：创建 `/api/v1/services/aigc/video-generation/video-synthesis`，查询 `/api/v1/tasks/{task_id}`，异步头为 `X-DashScope-Async: enable`。
 - 阿里请求采用 `model + input + parameters` 等结构，不能简单改 URL 后发送 Ark 原生视频 body。
 
-## 火山 45 / 54
+## 火山 45 与历史类型 54
 
 - 45 的文本路径包括 `/api/v3/chat/completions`、`/api/v3/embeddings`、`/api/v3/responses`；部分 bot 模式使用 `/api/v3/bots/chat/completions`。
 - 文本/视频通常使用 Bearer Key；特殊语音协议另行核实，不套用到本指南的文本视频链路。
-- 视频 45 和 54 均通过 `task/doubao`，创建 `/api/v3/contents/generations/tasks`，查询追加 task_id。
+- 当前 Seedance 只允许 45（火山方舟）与 46（百度 V2）。45 通过 `task/doubao` 创建 `/api/v3/contents/generations/tasks`，查询追加 task_id；54 虽仍有适配器注册，但上游 URL 构建／查询已拒绝，不作为可用配置推荐。
 - 上游模型可能要求具体模型 ID 或已开通的推理接入点；从当前账号/配置确认后设置映射，不硬编码猜测。
 - 百度 Fire 与 Ark 即便复用同一 Go adaptor，也仍属于不同协议、凭据、模型和计费来源。
+
+客户方舟兼容请求不决定上游供应商。详细映射优先级、后台位置及验证边界见 [Seedance 路由](seedance-routing.md)。VOD/BG 是另一条历史兼容转发方案，记录保留在 [VOD 历史](vod-history.md)，不能与 Fire V2 或旧 DoubaoVideo 类型混为一谈。
 
 ## 接入顺序
 

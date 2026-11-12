@@ -2,11 +2,13 @@
 name: juhe-nexgate-dev
 description: 开发与排查 Juhe/Nexgate 的 mcwlapi 网关及 mcwlcpa 账号池，覆盖国内/国际版本、渠道协议、图片视频任务、租户计费、本地验证和打包部署。适用于修改这两个项目源码或运行配置；客户调用已部署 API 使用 juhe-nexgate。
 metadata:
-  version: 1.1.0
+  version: 1.3.0
   scope: personal-development
 ---
 
 # Juhe / Nexgate 开发
+
+本版覆盖异步 JSON Base64 参考图与 multipart 编辑。开发入口见 [async-images.md](references/async-images.md)：复用 edits、尺寸计费与任务记录，新增 content_type/is_edit 自动迁移；禁止新旧 worker 混跑。构建交付与生产部署分别核实。
 
 ## 工作区与责任层
 
@@ -24,6 +26,8 @@ metadata:
 | 路由、adaptor、租户、计费和前端规约 | [gateway-development.md](references/gateway-development.md) |
 | 图片异步、Redis、视频共用记录、恢复 | [async-images.md](references/async-images.md) |
 | 百度、阿里、火山协议差异 | [domestic-providers.md](references/domestic-providers.md) |
+| Seedance 客户协议、上游模型映射、任务诊断 | [seedance-routing.md](references/seedance-routing.md) |
+| VOD/BG 历史方案与以后重新启用 | [vod-history.md](references/vod-history.md)，仅历史资料，不作为当前能力 |
 | CPA 账号池与配置版本 | [account-pool.md](references/account-pool.md) |
 | 本地启动、Linux 打包和部署 | [deployment.md](references/deployment.md) |
 | 真实验收和故障定位 | [verification.md](references/verification.md) |
@@ -38,3 +42,5 @@ metadata:
 6. 报告提交、验证环境、实际任务数/费用和未验证边界。技能源是用户指定目录，不擅自同步到个人安装目录、打包或发布客户包。
 
 公开包 `juhe-nexgate` 只记录客户端契约。用户要求同时维护两包时，同步参数、返回值和上线前提，不复制内部主机、数据库名、渠道凭据、测试账号或管理流程。
+
+Seedance 的“方舟兼容”是客户协议，与实际匹配渠道分开判断。当前新任务仅选择百度 V2 → Fire V2 或火山方舟 → Ark；客户公开路径、模型 ID 和公开任务 ID 约定保持不变。渠道自定义模型映射优先；百度没有生效的自定义映射时使用内置 Fire 模型表。不要让客户改用内部 `S2.*` ID，也不要删除 VOD 历史资料或把历史方案自动重新启用。

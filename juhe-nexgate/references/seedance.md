@@ -1,5 +1,17 @@
 # Seedance 参数与 curl 示例
 
+## 客户协议与模型 ID
+
+客户调用的是 Juhe 的方舟兼容接口，不代表实际一定由火山渠道执行：服务端根据模型、分组与可用渠道选择上游，客户端请求方式保持一致。
+
+- 创建：`POST /api/v3/contents/generations/tasks`，继续发送公开模型 ID 和顶层 `content`。
+- 查询：`GET /api/v3/contents/generations/tasks/{id}`；创建成功返回 `{"id":"task_..."}`，这里是平台公开任务 ID，不是供应商私有任务 ID。
+- 例如客户始终使用 `doubao-seedance-2-0-mini-260615`。内部日志的实际模型可能为 `S2.0-Mini`，这是服务端映射，客户不需要修改模型名。查询响应中的 `model` 仍是客户原模型 ID。
+- 本参考中的模型 ID 要以当前 Token 可用列表为准，不承诺任意自定义别名或供应商接入点 ID 可直接使用。
+- 2026-11-12 更新保持公开路径、成功响应格式及模型 ID 约定，但增加了上游渠道、帧数和执行期限检查。不要把“协议不变”解释成所有旧输入都保证成功；不要把本地代码更新当作公网已部署。
+
+`frames`、`priority`、`callback_url` 等扩展参数是否适用于当前模型，以服务端与实际上游支持为准。指定 `execution_expires_after` 不能超过服务端执行期限；未确认时省略该字段。客户端等待超时不等于供应商取消，提交结果不明时不要自动重建任务。
+
 以下示例先执行 SKILL.md 中的环境变量设置。示例默认生成 5 秒、720p 视频；参考图片和视频地址需替换为实际可访问的 HTTPS URL。Seedance 素材库返回的 `result.URL` 也可直接作为远程媒体地址使用，完整流程见 [素材库](material.md)。
 
 | 型号                | `model`                           |
@@ -147,7 +159,7 @@ curl --silent --show-error --fail-with-body \
 
 ## 6. 查询与下载
 
-把创建响应中的真实 `id` 填入 `TASK_ID`，不要使用示例占位值。
+把创建响应中的平台公开 `id` 填入 `TASK_ID`，不要使用示例占位值或供应商私有任务 ID。
 
 ```bash
 export TASK_ID='task_your_id'
