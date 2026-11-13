@@ -21,7 +21,7 @@
 
 按这条规则，2026-11-13 把 21 个带团队前缀的网站与运维技能改回功能名（`opc-*` → `seo`/`geo`/`site-*`/`ops-*`/`wp-*` 等），逻辑一字未改。
 
-## 团队技能镜像（40 项）
+## 团队技能镜像（41 项）
 
 下面这批技能以 `C:\code\cloverhub\clover-opc\expert/skills` 为**唯一维护源**，单向同步到本仓库：
 
@@ -40,7 +40,7 @@ python scripts/sync_skills.py --apply    # 真正复制
 | WordPress | `wp-dev`、`wp-admin` |
 | 服务器 | `ops-linux`、`ops-deploy`、`ops-btpanel`、`ops-tencentcloud` |
 | 接口与渠道 | `api-engineering`、`xingqiao-media`、`juhe-nexgate`、`huarui-zhisuan`、`huarui-video`、`seedance-dev` |
-| 短剧与出片 | `short-drama`、`doubao-web-video`、`video-post-production`、`douyin-pip-shorts` |
+| 短剧与出片 | `short-drama`、`doubao-web-video`、`doubao-web-image`、`video-post-production`、`douyin-pip-shorts` |
 | 自媒体 | `douyin-script-studio`、`kuaishou-script-studio`、`wxchannels-script-studio`、`xhs-note-studio`、`wechat-mp-studio`、`toutiao-article-studio`、`versus-script-studio` |
 | 教程 | `tutorial-series-plan`、`svg-lecture-deck`、`tutorial-video-assemble` |
 
@@ -60,6 +60,7 @@ python scripts/sync_skills.py --apply    # 真正复制
 
 - `workbuddy-image`：独立图片生成技能，按要求保留，不并入 `media-creator`。
 - `doubao-web-video`：豆包网页版视频生成，依赖浏览器自动化，不使用 API Key，按要求保留独立入口。
+- `doubao-web-image`：豆包网页版图片生成，与视频技能共用官方创作入口但分开切 tab、分开认领结果；保留官方URL与可核验的控件线索，图像模式特有参数待已登录窗口实测补齐。
 
 `seedance-dev`、`baidu-api-dev`、`huarui-dev`、`huarui-zhisuan` 与 `huarui-video` 仍按开发、客户交付和内部使用边界独立维护；它们不是普通媒体技能的重复副本。客户包的 hardcode Key 与账号素材不得迁入开发入口；各通道的凭据、端点、素材归属与验收结论不可互换。
 
