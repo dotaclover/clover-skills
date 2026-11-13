@@ -1,5 +1,6 @@
 ---
 name: juhe-nexgate
+agent_created: true
 metadata:
   version: 1.3.0
 description: 接入已部署的 Juhe Nexgate 聚合 API，管理客户端凭据、查询和选择模型，调用文本、同步/异步图片、视频及 Seedance 素材接口。用于用户应用集成、生成和任务查询；修改网关/账号池源码或部署使用 juhe-nexgate-dev。
@@ -20,14 +21,14 @@ description: 接入已部署的 Juhe Nexgate 聚合 API，管理客户端凭据�
 
 ## 凭据与 CLI
 
-使用 Python 3.9+ 标准库工具 `scripts/juhe.py`，以下命令在技能目录运行，其他目录用绝对脚本路径：
+使用 Python 3.9+ 标准库工具 `scripts/juhe.py`。先将 `SKILL_ROOT` 设置为本技能实际安装目录，使用绝对脚本路径；不假定项目具有 expert/skills 布局。以下 Bash 命令可从当前任务工作目录执行：
 
 ```bash
-python scripts/juhe.py auth status
-python scripts/juhe.py models
-python scripts/juhe.py resolve 千问 --task 绘图
-python scripts/juhe.py auth set
-python scripts/juhe.py auth clear
+python "$SKILL_ROOT/scripts/juhe.py" auth status
+python "$SKILL_ROOT/scripts/juhe.py" models
+python "$SKILL_ROOT/scripts/juhe.py" resolve 千问 --task 绘图
+python "$SKILL_ROOT/scripts/juhe.py" auth set
+python "$SKILL_ROOT/scripts/juhe.py" auth clear
 ```
 
 实际调用前执行 auth status：configured=true 直接复用；缺失时再请用户配置 JUHE_API_KEY，或在可交互终端 auth set 隐藏输入。若用户希望持久保存，可用 auth set；自动化可通过 stdin 调用 auth set --stdin，不把真实 Key 写进 shell 命令字面量、参数、代码或工具输出。不要求用户把 Key 发进聊天；用户已提供时不复述或反复索取。
@@ -62,15 +63,15 @@ Seedance 客户继续向本服务的 `/api/v3/contents/generations/tasks` 提交
 
 异步文生图使用下面的 JSON 示例。多参考图推荐 [async-images.md](references/async-images.md) 的 JSON `images[].image_url` Base64 Data URL 协议（CLI submit 可用），也兼容 multipart 文件上传；参考图需部署新增支持版本。不要把 `b64_json` 结果字段当作输入，也不要把旧异步文生图成功当作参考图能力已上线。
 
-在技能目录外的工作目录创建 UTF-8 `image-request.json`（不含 Key）。下面用脚本绝对路径调用；将 `/path/to` 换成实际安装位置：
+在技能目录外的任务工作目录创建 UTF-8 `image-request.json`（不含 Key）。以下沿用已设置的 `SKILL_ROOT`：
 
 ```json
 {"model":"gpt-image-2","prompt":"一只在窗边的猫","n":1,"size":"1024x1024"}
 ```
 
 ```bash
-python /path/to/juhe-nexgate/scripts/juhe.py images submit --request-file image-request.json --idempotency-key order-001 --output image-task.json
-python /path/to/juhe-nexgate/scripts/juhe.py images get --id img_RETURNED_ID --output image-result.json
+python "$SKILL_ROOT/scripts/juhe.py" images submit --request-file image-request.json --idempotency-key order-001 --output image-task.json
+python "$SKILL_ROOT/scripts/juhe.py" images get --id img_RETURNED_ID --output image-result.json
 ```
 
 submit 返回服务端生成的 task_id；Idempotency-Key 是客户端防重复标识，两者不同。保存原请求文件、幂等 key、服务地址及原 Token 的配置来源，勿记录 Token 明文。CLI 每次只发一个请求，不自动轮询或重发；GET 输出文件包含完整 result，终端仅显示摘要。按状态每 2–5 秒查询，设置总等待期限，期限到达保留任务 ID，不能当作服务端取消。

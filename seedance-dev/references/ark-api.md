@@ -23,7 +23,7 @@ API Key 在方舟 API Key 管理页取得；AK/SK 在火山引擎 IAM API 访问
 脚本使用 Python 标准库。以下命令从技能目录执行；`--env-file` 为可选全局参数，放在子命令之前。PowerShell 使用 `python` 或已安装 Python 的绝对路径；cURL 示例使用 Bash 语法，PowerShell 应调用 `curl.exe` 并正确传入 JSON，不能原样照搬 Bash 换行。
 
 ```bash
-python scripts/seedance.py --env-file /path/to/.env asset-action ListAssetGroups \
+python expert/skills/seedance-dev/scripts/seedance.py --env-file /path/to/.env asset-action ListAssetGroups \
   --body '{"ProjectName":"default"}'
 ```
 
@@ -65,13 +65,13 @@ curl --request POST \
 脚本创建并查询：
 
 ```bash
-python scripts/seedance.py --env-file /path/to/.env video-create \
+python expert/skills/seedance-dev/scripts/seedance.py --env-file /path/to/.env video-create \
   --allow-charge \
   --model doubao-seedance-2-0-mini-260615 \
   --prompt '微风吹过绿色山坡，镜头缓缓向前，手绘动画质感' \
   --duration 5 --resolution 480p
 
-python scripts/seedance.py --env-file /path/to/.env video-get '<返回的任务ID>'
+python expert/skills/seedance-dev/scripts/seedance.py --env-file /path/to/.env video-get '<返回的任务ID>'
 ```
 
 ```bash
@@ -110,7 +110,7 @@ curl --request GET \
 ### 已知授权组查询
 
 ```bash
-python scripts/seedance.py --env-file /path/to/.env \
+python expert/skills/seedance-dev/scripts/seedance.py --env-file /path/to/.env \
   asset-action ListAuthorizedFirstAssetByGroups \
   --body '{
     "GroupIds":["<已知授权组ID-1>","<已知授权组ID-2>"],
@@ -124,7 +124,7 @@ python scripts/seedance.py --env-file /path/to/.env \
 普通管理查询仍可用于适用的库存：
 
 ```bash
-python scripts/seedance.py --env-file /path/to/.env asset-action ListAssets \
+python expert/skills/seedance-dev/scripts/seedance.py --env-file /path/to/.env asset-action ListAssets \
   --body '{"Filter":{"GroupType":"LivenessFace"},"ProjectName":"default"}'
 ```
 
@@ -135,7 +135,7 @@ python scripts/seedance.py --env-file /path/to/.env asset-action ListAssets \
 用户同意创建测试会话后：
 
 ```bash
-python scripts/seedance.py --env-file /path/to/.env \
+python expert/skills/seedance-dev/scripts/seedance.py --env-file /path/to/.env \
   asset-action CreateVisualValidateSession --allow-write \
   --body '{
     "CallbackURL":"https://your-domain.example/face/callback",
@@ -155,7 +155,7 @@ python scripts/seedance.py --env-file /path/to/.env \
 确需把 H5 发给真人时，只把这一次响应写到新的本机私有文件。文件含可直接使用的短期凭据，不能加入 Git 或共享日志：
 
 ```powershell
-python scripts/seedance.py --env-file C:/private/.env `
+python expert/skills/seedance-dev/scripts/seedance.py --env-file C:/private/.env `
   --private-output C:/private/new-ark-h5-session.json `
   asset-action CreateVisualValidateSession --allow-write `
   --body '{"CallbackURL":"https://your-domain.example/face/callback","ProjectName":"default"}'
@@ -164,7 +164,7 @@ python scripts/seedance.py --env-file C:/private/.env `
 文件已存在时脚本拒绝覆盖。读取后将 `BytedToken` 放入当前进程环境 `ARK_BYTED_TOKEN`，再做服务端结果核验：
 
 ```powershell
-python scripts/seedance.py --env-file C:/private/.env `
+python expert/skills/seedance-dev/scripts/seedance.py --env-file C:/private/.env `
   asset-action GetVisualValidateResult --body '{"ProjectName":"default"}'
 ```
 

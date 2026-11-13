@@ -39,7 +39,7 @@ Authorization: Bearer <华锐 API Key>
 - 用该 `GroupId` 查询到 `GroupType=LivenessFace`；
 - 组内至少一个素材最终为 `Active`。
 
-成功后将 Group ID、素材 ID、名称、状态、项目和检查时间写入 `references/huarui-account-assets.md`。不要用通知、浏览器成功码、自填 Group ID 或 H5 页面可打开代替主动 API 核验。
+成功后将Group ID、素材ID、名称、状态、项目和检查时间写入仓库外本机私有任务记录，不回写共享reference。不要用通知、浏览器成功码、自填Group ID或H5页面可打开代替主动API核验。创建H5前确认外部写操作与费用/额度授权。
 
 ## 失败处理
 

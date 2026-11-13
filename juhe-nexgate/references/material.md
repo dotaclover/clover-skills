@@ -4,22 +4,22 @@
 
 ## 接口清单
 
-所有命令从技能目录运行，使用已保存的凭据；如需切换可信服务根地址，在 `material` 后传 `--base-url`。
+先将 `SKILL_ROOT` 指向本技能实际安装目录，再从当前任务工作目录运行，使用当前账号授权凭据；如需切换可信服务根地址，在 `material` 后传 `--base-url`。创建、更新、删除及真人会话即使不计费也须分别取得外部写授权，不能以探活为由执行。
 
 | 操作 | 命令 |
 | --- | --- |
-| 创建分组 | `python scripts/juhe.py material groups create --name <名称> --description <描述> --model <Seedance型号>` |
-| 分组列表 | `python scripts/juhe.py material groups list --group-type AIGC` |
-| 查询分组 | `python scripts/juhe.py material groups get --id <分组ID>` |
-| 修改分组 | `python scripts/juhe.py material groups update --id <分组ID> --name <名称>` |
-| 删除分组 | `python scripts/juhe.py material groups delete --id <分组ID>` |
-| 创建素材 | `python scripts/juhe.py material assets create --group-id <分组ID> --url <公网URL> --name <名称> --asset-type Image` |
-| 素材列表 | `python scripts/juhe.py material assets list --group-id <分组ID> --status Active` |
-| 查询素材 | `python scripts/juhe.py material assets get --id <素材ID>` |
-| 修改素材名称 | `python scripts/juhe.py material assets update --id <素材ID> --name <名称>` |
-| 删除素材 | `python scripts/juhe.py material assets delete --id <素材ID>` |
-| 创建真人认证会话 | `python scripts/juhe.py material liveness create --name <名称> --model <Seedance型号>` |
-| 查询真人认证结果 | `python scripts/juhe.py material liveness get --id <认证组ID>` |
+| 创建分组 | `python "$SKILL_ROOT/scripts/juhe.py" material groups create --name <名称> --description <描述> --model <Seedance型号>` |
+| 分组列表 | `python "$SKILL_ROOT/scripts/juhe.py" material groups list --group-type AIGC` |
+| 查询分组 | `python "$SKILL_ROOT/scripts/juhe.py" material groups get --id <分组ID>` |
+| 修改分组 | `python "$SKILL_ROOT/scripts/juhe.py" material groups update --id <分组ID> --name <名称>` |
+| 删除分组 | `python "$SKILL_ROOT/scripts/juhe.py" material groups delete --id <分组ID>` |
+| 创建素材 | `python "$SKILL_ROOT/scripts/juhe.py" material assets create --group-id <分组ID> --url <公网URL> --name <名称> --asset-type Image` |
+| 素材列表 | `python "$SKILL_ROOT/scripts/juhe.py" material assets list --group-id <分组ID> --status Active` |
+| 查询素材 | `python "$SKILL_ROOT/scripts/juhe.py" material assets get --id <素材ID>` |
+| 修改素材名称 | `python "$SKILL_ROOT/scripts/juhe.py" material assets update --id <素材ID> --name <名称>` |
+| 删除素材 | `python "$SKILL_ROOT/scripts/juhe.py" material assets delete --id <素材ID>` |
+| 创建真人认证会话 | `python "$SKILL_ROOT/scripts/juhe.py" material liveness create --name <名称> --model <Seedance型号>` |
+| 查询真人认证结果 | `python "$SKILL_ROOT/scripts/juhe.py" material liveness get --id <认证组ID>` |
 
 CLI 原样输出服务返回的 JSON；成功响应保留 `code`、`message`、`request_id`、`result`。`code: 0` 只表示接口调用成功，素材仍需等待异步处理并通过审核。
 
@@ -33,11 +33,11 @@ CLI 原样输出服务返回的 JSON；成功响应保留 `code`、`message`、`
 ## 创建与查询
 
 ```bash
-python scripts/juhe.py material groups create   --name '角色素材'   --description '视频参考素材'   --model 'doubao-seedance-2-0'
+python "$SKILL_ROOT/scripts/juhe.py" material groups create   --name '角色素材'   --description '视频参考素材'   --model 'doubao-seedance-2-0'
 
-python scripts/juhe.py material assets create   --group-id '<创建分组返回的 result.id>'   --url 'https://example.com/reference.jpg'   --name '角色正面'   --asset-type Image
+python "$SKILL_ROOT/scripts/juhe.py" material assets create   --group-id '<创建分组返回的 result.id>'   --url 'https://example.com/reference.jpg'   --name '角色正面'   --asset-type Image
 
-python scripts/juhe.py material assets get --id '<创建素材返回的 result.id>'
+python "$SKILL_ROOT/scripts/juhe.py" material assets get --id '<创建素材返回的 result.id>'
 ```
 
 `AssetType` 为 `Image`、`Video` 或 `Audio`。查询响应中的 `result.Status`：
@@ -118,7 +118,7 @@ python scripts/juhe.py material assets get --id '<创建素材返回的 result.i
 ### 创建认证会话
 
 ```bash
-python scripts/juhe.py material liveness create   --name '真人模特授权'   --description '本人完成活体认证'   --model 'doubao-seedance-2-0'
+python "$SKILL_ROOT/scripts/juhe.py" material liveness create   --name '真人模特授权'   --description '本人完成活体认证'   --model 'doubao-seedance-2-0'
 ```
 
 成功响应返回：
@@ -131,7 +131,7 @@ python scripts/juhe.py material liveness create   --name '真人模特授权'   
 ### 查询认证结果
 
 ```bash
-python scripts/juhe.py material liveness get --id '<result.GroupId>'
+python "$SKILL_ROOT/scripts/juhe.py" material liveness get --id '<result.GroupId>'
 ```
 
 | `result.Status` | 操作 |
@@ -147,7 +147,7 @@ python scripts/juhe.py material liveness get --id '<result.GroupId>'
 认证完成后，使用认证组 ID 创建素材：
 
 ```bash
-python scripts/juhe.py material assets create   --group-id '<result.GroupId>'   --url 'https://example.com/portrait.jpg'   --asset-type Image
+python "$SKILL_ROOT/scripts/juhe.py" material assets create   --group-id '<result.GroupId>'   --url 'https://example.com/portrait.jpg'   --asset-type Image
 ```
 
 认证组在列表中显示为 `LivenessFace`。普通 `AIGC` 分组不能改成真人认证组；需要真人模特时应从 `material liveness create` 开始。不得把普通素材查询成功当作真人授权成功。
@@ -158,16 +158,16 @@ python scripts/juhe.py material assets create   --group-id '<result.GroupId>'   
 
 ```bash
 # 普通分组列表
-python scripts/juhe.py material groups list   --group-type AIGC --page-number 1 --page-size 20
+python "$SKILL_ROOT/scripts/juhe.py" material groups list   --group-type AIGC --page-number 1 --page-size 20
 
 # 素材列表，可按分组和 Active 状态过滤
-python scripts/juhe.py material assets list   --group-id '<分组ID>' --status Active   --page-number 1 --page-size 20
+python "$SKILL_ROOT/scripts/juhe.py" material assets list   --group-id '<分组ID>' --status Active   --page-number 1 --page-size 20
 
 # 修改素材名称
-python scripts/juhe.py material assets update   --id '<素材ID>' --name '角色正面新版名称'
+python "$SKILL_ROOT/scripts/juhe.py" material assets update   --id '<素材ID>' --name '角色正面新版名称'
 
 # 删除素材
-python scripts/juhe.py material assets delete --id '<素材ID>'
+python "$SKILL_ROOT/scripts/juhe.py" material assets delete --id '<素材ID>'
 ```
 
 列表必填 `PageNumber`（从 1 开始）和 `PageSize`（1–100）。分组列表必须传 `Filter.GroupType`，普通分组通常为 `AIGC`；素材列表不接受 `Filter.GroupType`，传了会返回 `invalid_parameter`。素材列表可传 `Filter.GroupIds`（`--group-id`）和 `Filter.Statuses`（`--status`）。先删除组内全部素材，再删除分组。

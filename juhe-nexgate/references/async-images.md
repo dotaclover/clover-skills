@@ -76,12 +76,12 @@ curl --silent --show-error --fail-with-body --connect-timeout 10 --max-time 120 
 ## 查询与结果
 
 ```bash
-python /path/to/juhe-nexgate/scripts/juhe.py images get --id img_... --output image-result.json
+python "$SKILL_ROOT/scripts/juhe.py" images get --id img_... --output image-result.json
 ```
 
-在技能外的工作目录执行，将 /path/to 替换为脚本安装路径。对应 `GET /v1/images/tasks/{task_id}`，原服务地址和提交时同一 Token。不同 Token/用户/租户查询为 404。耗尽/过期 Token 可查询已有结果，主动禁用或删除的 Token 不可用；不在查询前调用 models。
+在技能外的任务工作目录执行，`SKILL_ROOT` 指向本技能实际安装目录。对应 `GET /v1/images/tasks/{task_id}`，原服务地址和提交时同一 Token。不同 Token/用户/租户查询为 404。耗尽/过期 Token 可查询已有结果，主动禁用或删除的 Token 不可用；不在查询前调用 models。
 
-自定义服务地址放在子命令前：`python /path/to/juhe-nexgate/scripts/juhe.py images --base-url https://your-trusted-host.example get --id img_... --output image-result.json`。只使用用户授权的可信 HTTPS 服务。
+自定义服务地址放在子命令前：`python "$SKILL_ROOT/scripts/juhe.py" images --base-url https://your-trusted-host.example get --id img_... --output image-result.json`。只使用用户授权的可信 HTTPS 服务。
 
 ```json
 {

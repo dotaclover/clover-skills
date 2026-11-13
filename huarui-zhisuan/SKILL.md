@@ -63,7 +63,7 @@ curl --silent --show-error --fail-with-body \
 {"id":"task_xxx"}
 ```
 
-随后每 10 秒查询一次任务，`status` 变为 `succeeded` 后从 `content.video_url` 下载：
+随后按当前限流设置查询间隔（例如 10 秒）、总等待时限和最大次数，超限保存任务 ID 并报告待查询，不重提；`status` 变为 `succeeded` 后从 `content.video_url` 下载：
 
 ```bash
 curl --silent --show-error --fail-with-body \
@@ -126,7 +126,7 @@ curl --silent --show-error --fail-with-body \
 镜头从侧面缓慢横移并轻轻推近，5 秒完整镜头，无字幕、无水印
 ```
 
-审核失败同样消耗一次提交，出现该错误应先改写提示词，不要原样重试。
+审核失败可能产生费用。先核验素材权利并使用原创内容，不保证改写后通过；不原样自动重试，再次提交须重新授权。
 
 ## 7. 状态与错误
 
@@ -149,14 +149,14 @@ curl --silent --show-error --fail-with-body \
 | `429` | 降低频率；素材接口每账号每分钟最多 120 次，多 Key 共用 |
 | `200` 但返回 `text/html` | 请求未进入接口层，检查协议与路径 |
 | `failed` 且提示 copyright restrictions | 提示词包含版权指向，按第 6 节改写 |
-| `failed` 其他原因 | 读取 `error` 与 `upstream_id`，修正后重新提交 |
+| `failed` 其他原因 | 读取 `error` 与 `upstream_id`，先核任务与费用；修正后重新提交须再次确认 |
 
 ## 8. 使用要求
 
-- 创建任务与真人授权会话均可能计费或占用额度，仅为实际业务需求调用，不得为验证接口反复创建付费任务；确认接口连通性应使用素材组的创建与删除，不产生计费。
+- 创建任务与真人授权会话可能计费或占用额度，必须确认需求与预算后执行；连通性只做授权的模型或素材查询，不以“免费”为由创建/删除测试组。任何外部写入与删除须另行授权。
 - 素材须属于当前账号且状态为 `Active`，通过素材 ID 而非组 ID 拼接 `asset://` 引用。
 - 普通素材入库不代替真人授权。授权须由本人完成，打开链接或创建会话不表示授权成功。
-- 真人授权的 `CallbackURL` 可省略；省略时服务端在创建后 3 分钟内每 15 秒自动查询，授权人须尽快完成 H5；超时后用保存的 `BytedToken` 主动调 `GetVisualValidateResult`。需要接收通知时指定自有 HTTPS 地址。开通状态以服务方确认为准。
+- 真人授权的 `CallbackURL` 与自动补查由当前服务部署决定。资料存在约 3 分钟补查、30 分钟本地会话与另一版本 24 小时的冲突，当前版本待核验，不保证任一通用期限；按同账号原 Token 查询。自定义回调用受控 HTTPS，重新创建另需授权。
 - 授权成功后服务端自动绑定真人组，无需再上传；用 `ListAssets` 传 `Filter.GroupIds` 与 `Filter.GroupType="LivenessFace"` 获取素材，状态 `Active` 后再用素材 ID 拼接 `asset://`。
 - 不要输出或分享真实 API Key、授权 token 与带签名的媒体链接。
 - 更多参数、素材引用与错误细节见 [接口、参数与示例](references/seedance-api.md)。

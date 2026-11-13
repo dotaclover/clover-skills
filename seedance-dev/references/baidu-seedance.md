@@ -4,12 +4,12 @@
 
 ## 必须加载的资料
 
-- [Seedance API](../../baidu-api-dev/references/seedance-api.md)：AI 网关原生请求、素材 Action、真人 H5、new-api 路由与 QF 转换。
-- [Seedance 实测](../../baidu-api-dev/references/seedance-verification.md)：逐请求 HTTP、RequestId、历史和未验收边界。
-- [百度统一入口](../../baidu-api-dev/SKILL.md)：其他百度模块按该入口路由，不把 QF、VOD 与 AI 网关混用。
-- CLI 路径：`../../baidu-api-dev/scripts/seedance.py`。先从对应技能目录查看帮助；本技能的 `scripts/seedance.py` 仅官方 Ark，不能接百度配置。
+- 外部依赖 `baidu-api-dev/references/seedance-api.md`：AI网关原生请求、素材Action、真人H5、new-api路由与QF转换。
+- 外部依赖 `baidu-api-dev/references/seedance-verification.md`：逐请求HTTP、RequestId、历史和未验收边界。
+- 外部依赖 `baidu-api-dev/SKILL.md`：其他百度模块按该入口路由，不把QF、VOD与AI网关混用。
+- 外部CLI：`baidu-api-dev/scripts/seedance.py`，本包未提供。取得依赖后先从对应技能目录查看帮助；本包 `scripts/seedance.py` 仅官方Ark，不能接百度配置。
 
-以上是仓库相对路径。单独安装 `seedance-dev.zip` 时需同时取得同级 `baidu-api-dev`；资料缺失则停止百度执行，不凭本索引补造参数。
+上述依赖未包含在本专家包，属于明确阻塞项而非可点击的包内路径。需用户另行提供并授权审查 `baidu-api-dev` 后才能执行百度接入；资料缺失则停止，不凭本索引补造参数。
 
 ## 相对官方与华锐的差异
 

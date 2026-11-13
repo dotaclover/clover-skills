@@ -1,25 +1,19 @@
-# 连通性与资产同步流程
+# 连通性与资产核验
 
-## 官方 Ark 检查
+只在当前任务授权内检查选定provider，不自动跨账号或跨服务同步。
 
-1. 只检查变量是否存在和非空，不输出值；缺任意一项就标记 `official_configured=false`。
-2. 用 `ARK_KEY` 调用官方视频 `GET /api/v3/models`。HTTP 200 且 JSON 说明视频接口可用；401/403/网络错误必须停止官方生成路径。
-3. 使用 REF 中已知组 ID，或使用用户刚提供的网页资产组结果，调用 `ListAuthorizedFirstAssetByGroups`，Version 固定 `2024-01-01`，只接受 `Active` 资源。
-4. 网页侧的 `ListActiveAuthorizationAssetGroup`（`Version=2024-10-01`）在本次原始 HMAC 直连中返回 `InvalidActionOrVersion`，因此只能作为网页发现结果来源，不能直接当作公开 Ark Action 调用。
-5. 同步 `references/ark-account-assets.md` 和主 SKILL 索引。删除已明确失效的旧资产记录；遇到查询失败不要清空旧记录，标记为待复核。
+## 华锐
 
-官方同步不是收费视频生成，不得为了连通性创建测试组或提交视频。
+1. 检查HUARUI_API_KEY存在性，不输出值。按provider-config.md可信HTTPS地址只读GET /v1/models。
+2. HTTP200且JSON仅证明模型目录可达，不证明视频生成成功或所有能力支持。
+3. 需要素材时才查询指定账号项目的LivenessFace组及选定素材，核Group ID与Asset ID不同、状态Active、当前授权关系与有效期。
+4. 私有记录保存在仓库外，按provider/账号/项目隔离；仅更新真实查询结果。失败保留旧值并标待复核，不自动删除，不写共享SKILL或Git。
+5. 报告检查时间、HTTP、RequestId、选定资源脱敏状态与未验证项。不输出Key、Token、H5链接、签名媒体URL或完整私人库存。
 
-## 华锐检查
+## 官方差异
 
-1. 使用固定 HTTPS Base URL 和内置 Key 调用 `GET /v1/models`。HTTP 200 且 JSON 说明视频 API 可达。
-2. 调用素材 `ListAssetGroups`，筛选 `LivenessFace`；对每个返回组调用 `ListAssets`，必要时按单个 `GroupId` 查询。
-3. 对所有登记的 Asset ID 调用 `GetAsset` 或等价只读查询，检查 `Status=Active`、`ProjectName` 和当前账号归属。
-4. 只有模型接口、素材组列表、素材列表和逐个 Asset 检查都成功，且所有选定资产为 `Active`，才报告“华锐素材接口全部可用”。
-5. 将本次检查时间、HTTP、RequestId、组/资产脱敏摘要和状态写入 `references/huarui-account-assets.md`；不写 URL、签名 URL、Key 或 Token。
+官方任务交迟空使用seedance-dev与官方参考。视频Bearer与素材HMAC分离；网页ListActiveAuthorizationAssetGroup并不保证公开HMAC支持，不能用InvalidActionOrVersion判断全部素材能力不可用。仅依据用户提供且有权访问的组查询ListAuthorizedFirstAssetByGroups。
 
 ## 停止条件
 
-- 认证失败、返回 HTML、域名/协议错误、JSON 结构不符合预期：停止该 provider，不自动切换。
-- `ListAssetGroups` 空不等于没有真人授权；必须结合已知组或 H5 核验结果判断。
-- `Processing` 不等于可用；`Authorized` 组也不等于组内已经有 `Active` Asset。
+认证失败、HTML响应、域名协议错误或结构不符合预期：停止该provider，不切换或收费探活。空列表不证明没有授权；Processing不是Active，Authorized组不代表素材可用于生成。不能为连通性创建删除测试组、H5会话或视频，写入与费用需另行确认。

@@ -6,7 +6,7 @@
 
 ## 实时列表与任务解析
 
-运行 `python scripts/juhe.py models` 实时获取当前凭据的可见型号。运行 `python scripts/juhe.py resolve <别名或完整ID> --task <任务>` 与已知映射相交；显式 `--cached` 可复用15分钟缓存。输出中的 `capability_source: bundled-references` 指本文及其他随附参考，不代表刚查询到能力；`unknown` 表示未登记能力。新型号必须核实服务文档后才更新 `scripts/juhe.py` 的精确 ID 映射，不用前缀猜能力。
+运行 `python expert/skills/juhe-nexgate/scripts/juhe.py models` 实时获取当前凭据的可见型号。运行 `python expert/skills/juhe-nexgate/scripts/juhe.py resolve <别名或完整ID> --task <任务>` 与已知映射相交；显式 `--cached` 可复用15分钟缓存。输出中的 `capability_source: bundled-references` 指本文及其他随附参考，不代表刚查询到能力；`unknown` 表示未登记能力。新型号必须核实服务文档后才更新 `scripts/juhe.py` 的精确 ID 映射，不用前缀猜能力。
 
 | 中文/英文别名 | 任务区分 |
 |---|---|

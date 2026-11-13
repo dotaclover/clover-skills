@@ -1,46 +1,31 @@
-# Provider、API 地址与凭据
+# Provider、API地址与凭据
 
-本 REF 是 `huarui-video` 的唯一接口配置说明。官方 Ark 和华锐必须严格隔离。
-
-## 官方 Ark
-
-| 用途 | 地址 | 鉴权 |
-|---|---|---|
-| 视频连通性、模型检查 | `https://ark.cn-beijing.volces.com/api/v3/models` | `Authorization: Bearer $ARK_KEY` |
-| 视频提交 | `https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks` | `Authorization: Bearer $ARK_KEY` |
-| 视频查询 | `https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks/{task_id}` | `Authorization: Bearer $ARK_KEY` |
-| 网页授权组发现 | 网页返回的 `ListActiveAuthorizationAssetGroup` / `Version=2024-10-01` | 作为用户提供的发现结果；当前公开 HMAC Action 不保证支持 |
-| 资产查询 | `https://ark.cn-beijing.volcengineapi.com/?Action=ListAuthorizedFirstAssetByGroups&Version=2024-01-01` | HMAC V4，`ARK_ACCESS_KEY` + `ARK_SECRET_KEY` |
-
-必须同时存在：
-
-```text
-ARK_KEY
-ARK_ACCESS_KEY
-ARK_SECRET_KEY
-```
-
-项目默认 `ARK_ASSET_PROJECT_NAME=default`。临时 STS 凭据还必须带 Session Token。`ARK_KEY` 不能用于 HMAC；AK/SK 不能拼成 Bearer。官方原始素材同步使用已知或用户提供的 Group ID 调用 `ListAuthorizedFirstAssetByGroups`。
+仅从当前任务明确授权的环境变量或仓库外私有配置获取凭据。本包不内置Key，不回显变量值，不从历史资料复制客户凭据。曾随导入资料携带的明文凭据应由持有人立即撤销/轮换；从文档删除不代表已撤销。
 
 ## 华锐
 
-| 用途 | 地址 | 鉴权 |
+固定可信服务根 `https://suanli.huaruiai.com`，凭据 `HUARUI_API_KEY`。缺失时请用户在本地安全配置，不索取聊天明文。更换地址需明确确认接收权限，不跟随重定向转发认证。
+
+| 用途 | 路径 | 鉴权 |
 |---|---|---|
-| 模型/连通性检查 | `https://suanli.huaruiai.com/v1/models` | `Authorization: Bearer <华锐 Key>` |
-| 视频提交 | `https://suanli.huaruiai.com/api/v3/contents/generations/tasks` | `Authorization: Bearer <华锐 Key>` |
-| 视频查询 | `https://suanli.huaruiai.com/api/v3/contents/generations/tasks/{task_id}` | `Authorization: Bearer <华锐 Key>` |
-| 素材与 H5 | `https://suanli.huaruiai.com/?Action={Action}&Version=2024-01-01` | `Authorization: Bearer <华锐 Key>` |
+| 模型只读检查 | `/v1/models` | Bearer HUARUI_API_KEY |
+| 视频提交 | `/api/v3/contents/generations/tasks` | 同上 |
+| 视频查询 | `/api/v3/contents/generations/tasks/{task_id}` | 同上 |
+| 素材与H5 | `/?Action={Action}&Version=2024-01-01` | 同上 |
 
-当前内置华锐 Key：`sk-HXDLO2RCjbFWnuCM0DpaFDK9uupws3qbGSceY4anbzut9DaK`
+只在授权账号/项目内查询；模型可见不代表生成已测试，H5/素材写动作和生成另行确认。
 
-华锐没有设置用户环境变量时，直接读取上述内置 Key；如果未来改为私有配置，优先使用 `HUARUI_API_KEY`，但不能把它发给官方 Ark。固定 Base URL 为 `https://suanli.huaruiai.com`，只使用 HTTPS。
+## 官方Ark兼容资料
 
-## 统一请求默认值
+本技能保留协议差异供核对，官方业务转迟空并读取 `seedance-dev` 官方参考，不自动跨渠道执行。
 
-- 模型：必须在提交前确认完整 ID；当前候选为 `doubao-seedance-2-0-260128`、`doubao-seedance-2-0-fast-260128`、`doubao-seedance-2-0-mini-260615` 和 `doubao-seedance-2-5-260628`，实际权限以所选 provider 的模型检查结果为准。
-- 时长：默认 5 秒，实际范围以模型返回能力为准。
-- 比例：只允许 `9:16`、`16:9`。
-- 分辨率：默认 `720p`。
-- 声音：默认 `generate_audio=true`。
-- 水印：默认 `watermark=false`。
-- 视频格式：统一使用 `POST /api/v3/contents/generations/tasks` 的顶层 `content`、整数 `duration` 和顶层输出参数。
+- 视频根 `https://ark.cn-beijing.volces.com/api/v3`，标准变量 `ARK_API_KEY`；旧资料 `ARK_KEY` 仅在用户明确映射时使用，不静默猜别名。
+- 素材根 `https://ark.cn-beijing.volcengineapi.com/`，`ARK_ASSET_ACCESS_KEY` / `ARK_ASSET_SECRET_KEY` 用HMAC V4；旧 `ARK_ACCESS_KEY` / `ARK_SECRET_KEY` 同样需明确映射。STS另带Session Token。
+- 项目 `ARK_ASSET_PROJECT_NAME`，按账号配置确认。视频Key不能代替素材AK/SK。
+- `ListAuthorizedFirstAssetByGroups` 使用Version=2024-01-01；网页 `ListActiveAuthorizationAssetGroup` Version=2024-10-01不是公开HMAC Action的保证。
+
+## 生成参数
+
+提交前确认完整模型ID、提示词、参考素材及权限、时长、比例、分辨率、声音、水印、价格依据和预算。型号与参数范围以当前服务文档及账号证据为准；不固定5秒、720p、有声、无水印或两种比例，不跳过最终确认。
+
+Ark兼容请求顶层content、整数duration；OpenAI Video格式另按对应文档，二选一，不创建两个任务。
