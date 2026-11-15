@@ -145,9 +145,9 @@ python scripts/sync_skills.py --apply    # 真正复制
 
 它不评价「哪家更好吃」，只回答「哪家值得专门跑一趟」：主观评价留给用户，客观项必须查实。与内容创作类能力正交——探店文案走 `workbuddy-selfmedia`，这里只管行前核查。
 
-`scripts/radar.py` 是唯一的脚本（零依赖，标准库）：管理候选池、跑四项硬判定、按早/午/晚/宵夜出表。数据落在工作目录的 `.food-radar/`，跟着项目走，跨会话不丢。
+`scripts/radar.py` 是唯一的脚本（零依赖，标准库）：管理候选池、跑硬核验判定、**全天视角出表**。`--hours` 支持「全天」；v1.2 起未被 L0 否决的店都进表，营业已确认(`open`)排前、未验活(`unknown`)标「未验活」排后，不再把整张决策表清空。数据落在工作目录的 `.food-radar/`，跟着项目走，跨会话不丢。
 
-三个 references 各自承包一块：`browser-capabilities.md` 讲清浏览器这一层能做到什么、做不到什么（**不能执行 JS、不能抓网络层、不能并发**），`sample.md` 是一次完整的江南西炒牛河核验记录，`manual.md` 是不依赖任何工具的手动挡。
+四个 references 各自承包一块：`browser-capabilities.md` 讲清浏览器这一层能做到什么、做不到什么（**不能执行 JS、不能抓网络层、不能并发**），`environment-routing.md` 是本地/云端分流与降级规则，`sample.md` 是一次完整的江南西炒牛河核验记录，`manual.md` 是不依赖任何工具的手动挡。
 
 > 前置：WorkBuddy 已连接浏览器扩展（`type: "extension"`），点评类站点已登录。缺任何一项仍可走 `manual.md`，流程不残。
 

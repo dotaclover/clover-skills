@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-workbuddy-food 本地数据管理：候选池 -> 四项硬核验判定 -> 分时段决策表
+workbuddy-food 本地数据管理：候选池 -> 硬核验判定 -> 全天决策表
+v1.2：营业已确认(open)排前；未验活(unknown)不再出局，进表标注后排后。
 
 设计边界：
   本脚本【不操作浏览器】，只负责把已采集到的数据落库、判定、排序、出表。
@@ -48,6 +49,8 @@ FIELDS = [
     "name", "branch", "address", "landmark", "avg_price", "hours",
     "rating", "review_count", "signature", "signature_note",
     "source", "data_date", "area_confirmed", "note",
+    "status",           # 经营状态：open / closed / unknown，第 0 项硬核验
+    "last_seen",        # 最近一次被证实营业的时点，如 2026-10
 ]
 
 
@@ -115,11 +118,15 @@ def parse_hours(hours):
     """把营业时间字符串解析成若干 [start, end) 分钟区间，跨零点展开成 >1440。
 
     支持：07:00-22:30 / 17:00-02:00 / 11:00-14:00,17:00-21:00 / 17:00-次日02:00
+    v1.2：支持「全天 / 24小时 / 通宵 / 00:00-24:00」，返回 [(0, 1440)]。
     解析失败返回 None。
     """
     if not hours:
         return None
-    raw = str(hours)
+    raw = str(hours).strip()
+    if raw in ("00:00-24:00", "0:00-24:00") or any(
+            m in raw for m in ("全天", "24小时", "24h", "24H", "通宵")):
+        return [(0, 24 * 60)]
     for junk in ["次日", "翌日", "次日凌晨", "凌晨", "—", "~", "至", " ", "\u3000"]:
         raw = raw.replace(junk, "-" if junk in ("—", "~", "至") else "")
     segs = []
@@ -151,19 +158,37 @@ def open_at(segs, minute):
 
 
 def slot_hint(hours):
-    """该店能被哪些时段覆盖，返回可读字符串。"""
+    """该店能被哪些时段覆盖。v1.2：四段全覆盖叫「全天」，缺时间叫「未确认」。
+
+    这是全天视角的覆盖表，不是「提问当下是否开门」——用户问的未必是现在。
+    """
     segs = parse_hours(hours)
     if not segs:
         return "未确认"
     names = [label for label, t in SLOTS if open_at(segs, t)]
+    if len(names) == len(SLOTS):
+        return "全天"
     return "、".join(names) if names else "时段外"
 
 
 # ---------------------------------------------------------------- 判定逻辑
 
 def judge(c, query):
-    """对单个候选跑四项硬核验，返回 (verdict dict)。不修改原数据。"""
+    """对单个候选跑第 0 项（经营状态）+ 四项硬核验，返回 (verdict dict)。不修改原数据。"""
     v = {}
+
+    # 0) 经营状态：v1.2 起不再是闸门，只是排序主键。
+    #    「页面/POI 还在」依然不等于「店还开着」，但 unknown 不再把店踢出表；
+    #    只有确证 closed / elsewhere 才一票否决。未验活店进表、标注、排后。
+    st = str(c.get("status") or "unknown").strip().lower()
+    if st in ("closed", "已闭店", "停业", "歇业", "搬迁", "0", "false"):
+        v["operating"] = "closed"
+    elif st in ("open", "营业中", "在营", "1", "true", "yes"):
+        v["operating"] = "open"
+    elif st in ("异地", "elsewhere", "same_name_elsewhere"):
+        v["operating"] = "elsewhere"
+    else:
+        v["operating"] = "unknown"
 
     addr = (c.get("address") or "").strip()
     landmark = (c.get("landmark") or "").strip()
@@ -216,17 +241,24 @@ def judge(c, query):
     v["confirmed"] = sum(1 for x in core if x == "ok")
     v["total"] = 4
 
-    # 出局判定
-    reasons = []
+    # L0 出局判定：一票否决，布尔量，绝不参与打分
+    gates = []
+    if v["operating"] == "closed":
+        gates.append(("已闭店/停业", "第 0 项经营状态：确证闭店、停业或搬迁"))
+    if v["operating"] == "elsewhere":
+        gates.append(("同名异地", "确证不在目标商圈"))
     if v["signature"] == "mismatch":
-        reasons.append("招牌菜不是这道")
+        gates.append(("招牌错配", "目标菜不是该店招牌"))
     if v["confirmed"] == 0:
-        reasons.append("四项全无确认")
-    v["excluded"] = bool(reasons)
-    v["exclude_reason"] = "；".join(reasons)
+        gates.append(("四项全无确认", "地址/招牌/人均/营业时间无一项可核"))
+    v["gates"] = gates
+    v["excluded"] = bool(gates)
+    v["exclude_reason"] = "；".join(g[0] for g in gates)
 
     # 风险提示
     warns = []
+    if v["operating"] == "unknown":
+        warns.append("经营状态未确认：页面/POI 存在不等于店还开着，需电话或登录态地图复核")
     if v["area"] == "unclear" and addr:
         warns.append("地址未含商圈名，需人工确认所属商圈（可能是异地同名店）")
     if v["area"] == "city_only":
@@ -238,35 +270,69 @@ def judge(c, query):
     if v["price"] == "missing":
         warns.append("人均未确认")
     dd = str(c.get("data_date") or "")
-    yr = None
-    for tok in dd.replace("年", "-").replace("月", "-").replace("/", "-").split("-"):
-        if tok.strip().isdigit() and len(tok.strip()) == 4:
-            yr = int(tok.strip())
-            break
+    toks = [t.strip() for t in dd.replace("年", "-").replace("月", "-")
+            .replace("/", "-").split("-") if t.strip().isdigit()]
+    yr, ym = None, None
+    if toks and len(toks[0]) == 4:
+        yr = int(toks[0])
+        ym = (yr, int(toks[1]) if len(toks) > 1 else 1)
     if yr and yr <= datetime.now().year - 2:
         warns.append("数据年份 %d，价格/时间可能已失效" % yr)
+
+    # 时间衰减：口碑数据超过 12 个月，评分/评论数不再计入排序。
+    # 老店评论数是历史累积，越多反而越可能是「关店前的存档」。
+    now = datetime.now()
+    stale = False
+    if ym:
+        months_old = (now.year - ym[0]) * 12 + (now.month - ym[1])
+        if months_old >= 12:
+            stale = True
+            warns.append("口碑数据已超 12 个月未更新，评分/评论数不计入排序（防历史存档冒充现状）")
+    if c.get("last_seen"):
+        warns.append("最近一次证实营业：%s" % c["last_seen"])
     v["warnings"] = warns
 
-    # 排序分：可落地度优先，口碑其次
-    score = v["confirmed"] * 10.0
-    try:
-        rating = float(c.get("rating"))
-        score += (rating - 7.0) * 3.0
-    except (TypeError, ValueError):
-        pass
-    try:
-        rc = int(c.get("review_count"))
-        score += min(math.log10(rc + 1), 4.0)
-    except (TypeError, ValueError):
-        pass
+    # L1 排序分：可落地度优先，口碑其次（且仅在数据新鲜时生效）。
+    # 逐项留痕，供 explain 打印「到底是一票否决还是加权落后」。
+    l1 = []
+    score = 0.0
+    base = v["confirmed"] * 10.0
+    l1.append(("确认项数 %d/4 ×10" % v["confirmed"], round(base, 2)))
+    score += base
+    if v["operating"] == "open":
+        l1.append(("营业已确认 +40（排序主键）", 40.0))
+        score += 40.0
+    if not stale:
+        try:
+            val = (float(c.get("rating")) - 7.0) * 3.0
+            l1.append(("评分加权", round(val, 2)))
+            score += val
+        except (TypeError, ValueError):
+            pass
+        try:
+            val = min(math.log10(int(c.get("review_count")) + 1), 4.0)
+            l1.append(("评论数加权", round(val, 2)))
+            score += val
+        except (TypeError, ValueError):
+            pass
+    else:
+        l1.append(("口碑超 12 个月，不计分", 0.0))
     if v["signature"] == "ok":
+        l1.append(("招牌明确 +3", 3.0))
         score += 3.0
     if v["area"] == "unclear":
+        l1.append(("商圈归属不明 -4", -4.0))
         score -= 4.0
-    for _ in warns:
-        score -= 0.5
+    if warns:
+        l1.append(("风险提示 %d 条 ×-0.5" % len(warns), round(-0.5 * len(warns), 2)))
+        score -= 0.5 * len(warns)
+    v["l1"] = l1
     v["score"] = round(score, 2)
 
+    # v1.2 决策表准入：只要没被 L0 否决就进表，不再要求 status=open / 4-4 / 招牌明确。
+    # 营业已确认的排在前面；未验活的标注「未验活」并排后，由用户出门前复核。
+    v["decision_ready"] = not v["excluded"]
+    v["needs_verify"] = v["operating"] == "unknown"
     return v
 
 
@@ -412,62 +478,66 @@ def cmd_report(a):
         die("候选池为空，先 add")
 
     judged = [(c, judge(c, q)) for c in cands]
-    usable = [(c, v) for c, v in judged if not v["excluded"]]
+    # v1.2 两分类：L0 一票否决出局 / 其余一律进表。
+    # 排序主键 = 营业已确认(open) 优先；次键 = L1 可落地度得分。
     dropped = [(c, v) for c, v in judged if v["excluded"]]
-    usable.sort(key=lambda x: -x[1]["score"])
+    usable = [(c, v) for c, v in judged if not v["excluded"]]
+    usable.sort(key=lambda x: (0 if x[1]["operating"] == "open" else 1,
+                               -x[1]["score"]))
+    verified = [(c, v) for c, v in usable if v["operating"] == "open"]
+    unverified = [(c, v) for c, v in usable if v["operating"] != "open"]
 
     out = []
     head = "%s%s 找「%s」" % (q.get("city") or "", q.get("area") or "", q.get("dish") or "")
     out.append("## " + head)
     out.append("")
+    out.append("> 全天视角：不按提问当下时刻筛，「可去时段」是覆盖表。营业已确认排前，未验活排后。")
+    out.append("")
 
-    if usable:
-        best = usable[0][0]
-        bv = usable[0][1]
-        hrs = best.get("hours") or "时间未确认"
-        out.append("**首选**：%s（%s），推荐时段 %s，人均 %s。整轮核验 %d/%d 项硬指标已确认。" % (
-            display_name(best), hrs, bv["slots"],
+    if verified:
+        best, bv = verified[0]
+        out.append("**首选**：%s（%s），可去时段 %s，人均 %s；经营状态已确认（最近证实 %s）。" % (
+            display_name(best), best.get("hours") or "时间未确认", bv["slots"],
             ("￥%s" % best["avg_price"]) if best.get("avg_price") else "未确认",
-            bv["confirmed"], bv["total"]))
+            best.get("last_seen") or "未填"))
+    elif usable:
+        out.append("**首选**：无已验活店。表内 %d 家均为「未验活」，按可落地度排序只作线索，出门前电话或登录态地图确认。" % len(usable))
     else:
-        out.append("**首选**：无。所有候选都没通过最低核验，建议换品类或放宽商圈。")
+        out.append("**首选**：无。%d 家候选全部被 L0 一票否决。" % len(dropped))
     out.append("")
 
-    out.append("## 决策表")
+    out.append("## 决策表（营业已确认在前）")
     out.append("")
-    out.append("| 时段 | 店 | 地址 | 人均 | 招牌归属 | 注意 |")
-    out.append("|---|---|---|---|---|---|")
-    slot_rows = []
-    for slot, minute in SLOTS:
+    out.append("| 状态 | 可去时段 | 店 | 地址 | 人均 | 招牌归属 | 注意 |")
+    out.append("|---|---|---|---|---|---|---|")
+    if usable:
         for c, v in usable:
-            segs = parse_hours(c.get("hours"))
-            if open_at(segs, minute):
-                slot_rows.append((slot, c, v))
-    if slot_rows:
-        for slot, c, v in slot_rows:
+            st = "营业中" if v["operating"] == "open" else "未验活"
             sig = {"ok": "是", "unknown": "未确认", "mismatch": "否"}.get(v["signature"], "?")
             addr = c.get("address") or "未确认"
             if c.get("landmark"):
                 addr += "（%s）" % c["landmark"]
             note = "；".join(v["warnings"][:2]) or "—"
-            out.append("| %s | %s | %s | %s | %s | %s |" % (
-                slot, display_name(c), addr,
+            out.append("| %s | %s | %s | %s | %s | %s | %s |" % (
+                st, v["slots"], display_name(c), addr,
                 ("￥%s" % c["avg_price"]) if c.get("avg_price") else "—",
                 sig, note))
     else:
-        out.append("| — | 无可按时段落地的候选 | — | — | — | — |")
+        out.append("| — | — | 无可进表候选 | — | — | — | — |")
     out.append("")
 
     out.append("## 核验明细")
     out.append("")
-    out.append("| 候选 | 来源 | 地址 | 招牌 | 人均 | 营业 | 确认 | 评分/评论 |")
-    out.append("|---|---|---|---|---|---|---|---|")
+    out.append("| 候选 | 来源 | 状态 | 地址 | 招牌 | 人均 | 营业 | 确认 | 评分/评论 |")
+    out.append("|---|---|---|---|---|---|---|---|---|")
+    stmap = {"open": "营业中", "closed": "已闭店", "elsewhere": "异地", "unknown": "未确认"}
     for c, v in usable:
         # 用 GBK 也能编码的符号（对勾/叉号在 GBK 环境下会抛 UnicodeEncodeError）
         sym = {"ok": "√", "partial": "~", "missing": "×"}
         sig = {"ok": "√", "unknown": "?", "mismatch": "×"}
-        out.append("| %s | %s | %s | %s | %s | %s | %d/4 | %s |" % (
+        out.append("| %s | %s | %s | %s | %s | %s | %s | %d/4 | %s |" % (
             display_name(c), c.get("source") or "—",
+            stmap.get(v["operating"], "?"),
             sym.get(v["address"], "?"), sig.get(v["signature"], "?"),
             sym.get(v["price"], "?"), sym.get(v["hours"], "?"),
             v["confirmed"],
@@ -476,18 +546,29 @@ def cmd_report(a):
     out.append("")
 
     if dropped:
-        out.append("## 没排上的 & 为什么")
+        out.append("## 没排上的 & 为什么（L0 一票否决）")
         out.append("")
+        out.append("| 候选 | 闸门类型 | 依据 |")
+        out.append("|---|---|---|")
         for c, v in dropped:
-            out.append("- **%s** — %s" % (display_name(c), v["exclude_reason"]))
+            types = "、".join(g[0] for g in v["gates"]) or "—"
+            detail = "；".join(g[1] for g in v["gates"]) or v["exclude_reason"]
+            out.append("| %s | %s | %s |" % (display_name(c), types, detail))
         out.append("")
 
-    warn_only = [(c, v) for c, v in usable if v["warnings"]]
-    if warn_only:
-        out.append("## 待人工确认")
+    # 「最近一次证实营业」是中性证据，不是待办；别把已验活店塞进待人工确认区。
+    def real_warns(v):
+        return [w for w in v["warnings"] if not w.startswith("最近一次证实营业")]
+
+    warn_only = [(c, v) for c, v in verified if real_warns(v)]
+    if unverified or warn_only:
+        out.append("## 待人工确认（已进表，排后）")
         out.append("")
+        for c, v in unverified:
+            out.append("- **%s**：经营状态未确认，出门前电话或登录态地图验活；%s" % (
+                display_name(c), "；".join(real_warns(v)) or "其余项已核"))
         for c, v in warn_only:
-            out.append("- **%s**：%s" % (display_name(c), "；".join(v["warnings"])))
+            out.append("- **%s**：%s" % (display_name(c), "；".join(real_warns(v))))
         out.append("")
 
     text = "\n".join(out)
@@ -498,11 +579,61 @@ def cmd_report(a):
     print(text)
 
 
+def cmd_explain(a):
+    """打印单店的 L0 闸门 / L1 加权分解，验证「一票否决」没被口碑分赎回。"""
+    db = resolve_db(a.db)
+    data = load(db)
+    if not a.name:
+        die("需要 --name 定位候选")
+    hits = find(data, a.name)
+    if not hits:
+        die("找不到候选：%s" % a.name)
+    if len(hits) > 1:
+        die("匹配到多家（%s），请写全名" % "、".join(c["name"] for _, c in hits))
+    c = hits[0][1]
+    v = judge(c, data["query"])
+    stmap = {"open": "营业中", "closed": "已闭店", "elsewhere": "异地", "unknown": "未确认"}
+
+    print("候选：%s" % display_name(c))
+    print("第 0 项经营状态：%s（status=%s）" % (
+        stmap.get(v["operating"], "?"), c.get("status") or "未填"))
+    print("四项硬核验：地址=%s 招牌=%s 人均=%s 营业=%s → %d/4" % (
+        v["address"], v["signature"], v["price"], v["hours"], v["confirmed"]))
+    print()
+    if v["gates"]:
+        print("[L0 一票否决] 命中 %d 条闸门，直接出局：" % len(v["gates"]))
+        for t, d in v["gates"]:
+            print("  × %s — %s" % (t, d))
+    else:
+        print("[L0 一票否决] 未命中，放行到 L1")
+    print()
+    if v["excluded"]:
+        print("[L1 加权排序] 不计算 —— 闸门不可被评分/评论数赎回")
+    else:
+        print("[L1 加权排序]")
+        for label, val in v["l1"]:
+            print("  %s %+7.2f" % (pad(label, 32), val))
+        print("  %s %7.2f" % (pad("= score", 32), v["score"]))
+    print()
+    print("决策表准入：L0 未命中 %s ｜ 经营状态 %s（只影响排序，不做闸门）" % (
+        "√" if not v["excluded"] else "×",
+        "已确认" if v["operating"] == "open" else "未验活"))
+    if v["excluded"]:
+        verdict = "出局，进「没排上的」（L0 一票否决）"
+    elif v["operating"] == "open":
+        verdict = "进决策表，排在「营业已确认」组"
+    else:
+        verdict = "进决策表，排在「未验活」组（需电话或地图复核）"
+    print("→ " + verdict)
+    for w in v["warnings"]:
+        print("  ! " + w)
+
+
 # ---------------------------------------------------------------- CLI
 
 def build_parser():
     p = argparse.ArgumentParser(
-        description="workbuddy-food 候选池管理：硬核验判定 + 分时段决策表")
+        description="workbuddy-food 候选池管理：硬核验判定 + 全天决策表（v1.2 营业已确认优先）")
     p.add_argument("--db", help="数据文件路径（默认 .food-radar/<城市_商圈_品类>.json）")
     sub = p.add_subparsers(dest="cmd")
 
@@ -514,7 +645,7 @@ def build_parser():
         sp.add_argument("--address", help="精确到门牌")
         sp.add_argument("--landmark", help="参照物，如'紫丹阁对面'")
         sp.add_argument("--avg-price", dest="avg_price")
-        sp.add_argument("--hours", help="如 07:00-22:30 或 17:00-02:00")
+        sp.add_argument("--hours", help="如 07:00-22:30 / 17:00-02:00 / 全天")
         sp.add_argument("--rating")
         sp.add_argument("--review-count", dest="review_count")
         sp.add_argument("--signature", choices=["yes", "no", "unknown"],
@@ -525,6 +656,9 @@ def build_parser():
         sp.add_argument("--area-confirmed", dest="area_confirmed", default=None,
                         action="store_const", const=True,
                         help="人工已确认该店在本商圈，消除异地嫌疑提示")
+        sp.add_argument("--status", choices=["open", "closed", "unknown", "elsewhere"],
+                        help="经营状态：open 排最前；unknown 仍进表但标未验活并排后；closed/elsewhere 一票否决")
+        sp.add_argument("--last-seen", dest="last_seen", help="最近一次证实营业的时点")
         sp.add_argument("--note")
 
     sp = sub.add_parser("init", help="建立候选池")
@@ -547,6 +681,11 @@ def build_parser():
     sp = sub.add_parser("list", help="候选池概览")
     sp.add_argument("--db", default=argparse.SUPPRESS)
     sp.set_defaults(func=cmd_list)
+
+    sp = sub.add_parser("explain", help="打印单店的 L0 一票否决 / L1 加权分解")
+    sp.add_argument("--db", default=argparse.SUPPRESS)
+    sp.add_argument("--name", required=True)
+    sp.set_defaults(func=cmd_explain)
 
     sp = sub.add_parser("report", help="出决策表")
     sp.add_argument("--db", default=argparse.SUPPRESS)

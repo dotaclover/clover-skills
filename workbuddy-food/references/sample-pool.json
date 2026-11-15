@@ -16,6 +16,8 @@
       "rating": 7.6,
       "review_count": 729,
       "signature": "yes",
+      "status": "open",
+      "last_seen": "2026-10",
       "source": "豆包",
       "data_date": "2026-10",
       "area_confirmed": true
@@ -29,6 +31,8 @@
       "rating": 8.1,
       "review_count": 1200,
       "signature": "yes",
+      "status": "open",
+      "last_seen": "2026-10",
       "source": "元宝",
       "data_date": "2026-10"
     },
@@ -42,6 +46,7 @@
       "review_count": 1720,
       "signature": "no",
       "signature_note": "招牌是奶茶西多士，不以炒牛河见长",
+      "status": "open",
       "source": "DeepSeek禁搜",
       "data_date": "2026-10"
     },
@@ -49,7 +54,9 @@
       "name": "锦记饮食世家",
       "address": "青柳大街48-52号",
       "avg_price": 75,
+      "hours": "全天",
       "signature": "unknown",
+      "status": "unknown",
       "source": "DeepSeek联网",
       "data_date": "2022-10"
     }
