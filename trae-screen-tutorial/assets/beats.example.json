@@ -1,67 +1,44 @@
 {
-  "out_name": "demo",
-  "brand": "AI 从零开始",
-  "episode": "Part01",
-  "min_dur": 4.3,
-  "max_speed": 2.6,
-  "fonts": {
-    "bold": "C:/Windows/Fonts/msyhbd.ttc",
-    "regular": "C:/Windows/Fonts/msyh.ttc"
-  },
-  "theme": {
-    "bg_top": "#090D12",
-    "bg_bottom": "#111821",
-    "accent": "#12E39B",
-    "text": "#F2F6FA",
-    "dim": "#8B9AAB",
-    "line": "#1E2836",
-    "border": "#2E3C4E"
-  },
-  "voice": {
-    "enabled": true,
-    "name": "zh-CN-XiaoxiaoNeural",
-    "rate": "+8%"
-  },
-  "intro": {
-    "kicker": "Part01 · 示例项目",
-    "lines": ["一个人，一句话", "一个晚上", "做出一个能点的 App"],
-    "sub": "从需求文档到可点原型的全过程",
-    "voice": "一个人，一句话，一个晚上，做出一个能点的 App。",
-    "min_dur": 3.6
-  },
-  "outro": {
-    "title": ["一个晚上", "三个文件"],
-    "cards": [
-      ["PRO.md", "需求分析 · 功能清单 · 数据模型"],
-      ["MVP.md", "最小闭环 · 文件清单 · 验收脚本"],
-      ["MOCKUP.html", "可点的手机原型 · 复盘 / 统计"]
-    ],
-    "footer": "全部本地 · 不联网 · 无后端",
-    "voice": "从需求到原型，三个文件，全部本地离线跑通。",
-    "min_dur": 3.6
+  "tag": "小程序开发·EP02",
+  "ep": "02",
+  "hold": {
+    "b02": 1.6,
+    "b04": 2.6
   },
   "beats": [
     {
+      "name": "b00",
+      "kind": "video",
+      "src": "assets/realdevice.mp4",
+      "t_in": 0.0,
+      "t_out": 11.0,
+      "vcrop": [120, 60, 360, 450],
+      "step": "00",
+      "chapter": "开场",
+      "title": "它已经能装进手机",
+      "cap": ["已经能装进手机", "输入 · 记录 · 回看"],
+      "voice": "上一集我们只做到网页原型，今天它已经能装进手机里。"
+    },
+    {
       "name": "b01",
-      "src": "C:/Users/xxx/Videos/录制/01.mp4",
-      "t_in": 0.8,
-      "t_out": 4.9,
-      "crop": [1290, 620, 800, 380],
+      "kind": "img",
+      "crop": ["assets/chat.png", 0, 1700, 1119, 1050],
       "step": "01",
-      "title": "提需求",
-      "cap": ["先当甲方：说清要什么", "原生小程序 · 不联网 · 只存本地"],
-      "voice": "先把它当甲方：建个目录，做一个决策记录器，只存本地。"
+      "chapter": "改界面",
+      "title": "第一改：砍字段",
+      "cap": ["八个字段砍到四个", "情绪、把握度收进折叠区"],
+      "voice": "第一改砍字段。计划项原来八个字段，砍到四个。",
+      "hold": 1.6
     },
     {
       "name": "b02",
-      "src": "C:/Users/xxx/Videos/录制/01.mp4",
-      "t_in": 98.0,
-      "t_out": 110.0,
-      "crop": [1271, 653, 843, 178],
+      "kind": "text",
+      "panel": ["界面改了三遍", "代码只写一遍", "我是顺哥，我们下个视频见"],
       "step": "02",
-      "title": "拆任务",
-      "cap": ["它没急着写代码", "先读文件、建目录、把任务拆开"],
-      "voice": "它没急着写代码，先读文件、建目录、把任务拆开。"
+      "chapter": "收尾",
+      "title": "优化留到以后",
+      "cap": ["这一版可以发了", "我是顺哥，我们下个视频见"],
+      "voice": "优化留到以后。这一版可以发了。我是顺哥，我们下个视频见。"
     }
   ]
 }
