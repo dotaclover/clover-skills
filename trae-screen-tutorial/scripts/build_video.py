@@ -18,7 +18,7 @@ from pathlib import Path
 import edge_tts
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path.cwd()   # 产物落在调用时的项目目录，不污染技能本体
 OUT = ROOT / "build"
 ASSETS = OUT / "assets"
 AUD = OUT / "audio"

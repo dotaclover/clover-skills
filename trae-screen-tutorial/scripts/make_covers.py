@@ -4,7 +4,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-OUT = Path(__file__).resolve().parent.parent / "output" / "covers"
+OUT = Path.cwd() / "output" / "covers"
 OUT.mkdir(parents=True, exist_ok=True)
 
 W, H = 1080, 1440
