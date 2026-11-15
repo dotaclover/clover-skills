@@ -10,17 +10,20 @@ urllib（403 / error 1010），而且必须绕开系统代理，大响应要直�
   auth --url U --key K      把用户提供的凭据写入缓存
   auth --show               查看当前状态（Key打码）
   generate --prompt "..."    文生图，产物落在调用目录
+  generate --image face.jpg  带参考图走 /images/edits 图生图
 """
 
 import argparse
 import base64
 import json
+import mimetypes
 import os
 import re
 import struct
 import subprocess
 import sys
 import time
+import uuid
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -251,6 +254,29 @@ def image_size(path):
     return None
 
 
+def encode_multipart(fields, image_path):
+    """把字段和参考图编成multipart/form-data，返回(bytes, content_type)。
+
+    自己编码而不是用curl -F：中文prompt走UTF-8，Windows路径也不会被curl误解析。
+    """
+    boundary = "----gptimg" + uuid.uuid4().hex
+    buf = bytearray()
+    for k, v in fields.items():
+        buf += ("--%s\r\n" % boundary).encode("utf-8")
+        buf += ('Content-Disposition: form-data; name="%s"\r\n\r\n' % k).encode("utf-8")
+        buf += (str(v) + "\r\n").encode("utf-8")
+    p = Path(image_path)
+    if not p.is_file():
+        die("找不到参考图：" + str(p))
+    ctype = mimetypes.guess_type(p.name)[0] or "application/octet-stream"
+    buf += ("--%s\r\n" % boundary).encode("utf-8")
+    buf += ('Content-Disposition: form-data; name="image"; filename="%s"\r\n' % p.name).encode("utf-8")
+    buf += ("Content-Type: %s\r\n\r\n" % ctype).encode("utf-8")
+    buf += p.read_bytes() + b"\r\n"
+    buf += ("--%s--\r\n" % boundary).encode("utf-8")
+    return bytes(buf), "multipart/form-data; boundary=%s" % boundary
+
+
 # ---------------------------------------------------------------- 出图
 
 def cmd_generate(a):
@@ -263,18 +289,35 @@ def cmd_generate(a):
     resp = outdir / "response.json"
     req.write_text(json.dumps(body, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    code = run_curl([
-        "-X", "POST", url + "/images/generations",
-        "-H", "Authorization: Bearer " + key,
-        "-H", "Content-Type: application/json",
-        "--data-binary", "@" + str(req),
-    ], resp)
+    if a.image:
+        # 参考图走/images/edits，multipart上传（gpt系实测正常，尺寸精确）
+        raw_body, ctype = encode_multipart(body, a.image)
+        reqbin = outdir / "request.bin"
+        reqbin.write_bytes(raw_body)
+        code = run_curl([
+            "-X", "POST", url + "/images/edits",
+            "-H", "Authorization: Bearer " + key,
+            "-H", "Content-Type: " + ctype,
+            "--data-binary", "@" + str(reqbin),
+        ], resp)
+        mode, multipart_file, reference_image = "edit", str(reqbin), str(Path(a.image).resolve())
+    else:
+        code = run_curl([
+            "-X", "POST", url + "/images/generations",
+            "-H", "Authorization: Bearer " + key,
+            "-H", "Content-Type: application/json",
+            "--data-binary", "@" + str(req),
+        ], resp)
+        mode, multipart_file, reference_image = "generate", "", ""
 
     report = {
-        "http": code, "model": MODEL, "size_requested": a.size, "n": a.n,
+        "http": code, "model": MODEL, "mode": mode, "size_requested": a.size, "n": a.n,
         "url_source": usrc, "key_source": ksrc,
         "request_file": str(req), "response_file": str(resp),
     }
+    if reference_image:
+        report["reference_image"] = reference_image
+        report["multipart_file"] = multipart_file
     raw = resp.read_bytes() if resp.exists() else b""
 
     if code != 200:
@@ -372,6 +415,7 @@ def main():
     p.add_argument("--size", default=DEFAULT_SIZE, help="宽x高，如1024x1536；auto交给服务端")
     p.add_argument("--n", type=int, default=1, help="张数，默认1")
     p.add_argument("--out-dir", default="gpt-image-2-out", help="产物目录，默认落在调用目录")
+    p.add_argument("--image", help="参考图本地路径；给了就走/images/edits图生图")
     p.add_argument("--url", help="仅本次覆盖接口地址")
     p.add_argument("--key", help="仅本次覆盖Key")
     p.set_defaults(func=cmd_generate)

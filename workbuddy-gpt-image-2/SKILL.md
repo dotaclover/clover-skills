@@ -39,9 +39,19 @@ python scripts/gpt_img.py generate --prompt "一只橘猫坐在窗台上" --size
 | `--size` | `1024x1024` | 字母x，如`1536x1024`、`3840x2160`；`auto`交给服务端 |
 | `--n` | `1` | 张数，多图成倍计费 |
 | `--out-dir` | `./gpt-image-2-out` | 产物落在调用目录 |
+| `--image` | — | 参考图本地路径；给了就走`/images/edits`图生图 |
 | `--url` / `--key` | — | 临时覆盖，仅本次生效 |
 
-产物：`request.json`、`response.json`、`image-01.png`。报告含HTTP状态、真实宽高、尺寸是否对得上。
+产物：`request.json`、`response.json`、`image-01.png`。带参考图时多一个`request.bin`（multipart原文）。报告含HTTP状态、`mode`、真实宽高、尺寸是否对得上。
+
+## 参考图
+
+```bash
+python scripts/gpt_img.py generate --prompt "参考所附人物的五官和发型，做一组头像" \
+  --image "C:/path/face.jpg" --size 2048x2048
+```
+
+参考图走`/images/edits` multipart，字段是`image`+`model`/`prompt`/`size`/`n`，中文prompt按UTF-8编码。实测主体能进去（脸型、眼镜、发型保留），尺寸精确。**交付前必须看图确认参考主体真的进去了，不能只看HTTP 200**——兼容层有静默丢图的前科。
 
 ## 硬规则
 
@@ -50,6 +60,7 @@ python scripts/gpt_img.py generate --prompt "一只橘猫坐在窗台上" --size
 3. 一次成功就停。失败先贴原始错误，未经用户明确要求不重发——会重复计费。
 4. 超时480秒。别用120秒前台超时掐断，服务端可能已经出图并计费。
 5. 中文大字别让模型写，出图后用PIL叠字。
+6. 图生图必须看图确认参考主体进去了，HTTP 200不算成功。
 
 ## 已知坑
 
