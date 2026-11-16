@@ -1,0 +1,7 @@
+{
+  "source": "./source.mp4",
+  "audio_mode": "original",
+  "subtitle_mode": "burn",
+  "font": "Microsoft YaHei",
+  "segments": [{"start": 0, "end": 4, "subtitles": [{"start": 0, "end": 2, "text": "采访开场"}, {"start": 2, "end": 4, "text": "分享实际经验"}]}]
+}

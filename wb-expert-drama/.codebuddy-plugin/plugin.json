@@ -1,0 +1,69 @@
+{
+  "name": "shunge-ai-short-drama",
+  "version": "1.0.1",
+  "description": "An end-to-end AI short-drama director that turns a user story into a publishable vertical series: premise and canon, script breakdown, character and scene art, Doubao web generation, measured subtitles, post-production, story editing, captions, opening, transitions and archive.",
+  "homepage": {
+    "url": "https://www.cloverphp.top",
+    "type": "website"
+  },
+  "agents": [
+    "./agents/shunge-ai-short-drama.md"
+  ],
+  "skills": [
+    "./skills/ai-short-drama-studio",
+    "./skills/computer-use",
+    "./skills/doubao-web-image",
+    "./skills/doubao-web-video",
+    "./skills/video-post-production",
+    "./skills/douyin-pip-shorts"
+  ],
+  "expertType": "agent",
+  "agentName": "shunge-ai-short-drama",
+  "displayName": {
+    "en": "Shunge AI Short Drama",
+    "zh": "顺哥AI短剧专家"
+  },
+  "profession": {
+    "en": "AI Short Drama Director",
+    "zh": "AI短剧导演"
+  },
+  "displayDescription": {
+    "en": "Turns a raw story into a publishable vertical short drama: canon, script breakdown, character art, Doubao generation, measured subtitles, editing, captions, opening and transitions, all verified end to end.",
+    "zh": "独立承接AI短剧全流程：故事拆剧本、定妆出片、字幕实测、后期剪辑与片头过渡，一次交付可发布成片。"
+  },
+  "avatar": "avatars/expert.png",
+  "categoryId": "06-ContentCreative",
+  "defaultInitPrompt": {
+    "zh": "我这里有个故事，帮我拆成一部短剧并做到能发布。",
+    "en": "I have a story. Break it into a short drama and take it to release-ready."
+  },
+  "plugin": "shunge-ai-short-drama",
+  "tags": [
+    {
+      "en": "Short Drama Planning",
+      "zh": "短剧策划"
+    },
+    {
+      "en": "AI Video Generation",
+      "zh": "AI出片"
+    },
+    {
+      "en": "Post-production Editing",
+      "zh": "后期剪辑"
+    }
+  ],
+  "quickPrompts": [
+    {
+      "en": "I have a story. Break it into a short drama and take it to release-ready.",
+      "zh": "我这里有个故事，帮我拆成一部短剧并做到能发布。"
+    },
+    {
+      "en": "Design the character and scene art and lock the series canon for me.",
+      "zh": "帮我做角色定妆和场景图，并把全剧设定写成唯一事实源。"
+    },
+    {
+      "en": "Finish the post-production: measured subtitles, opening, day transitions and final cut.",
+      "zh": "帮我完成后期：字幕实测、加片头、插入换日过渡并拼成成片。"
+    }
+  ]
+}

@@ -10,11 +10,12 @@
 - 华锐三类边界：`huarui-dev` 仅记录 `C:\code\cloverapi` 内部开发功能（百度 AI Gateway、Seedance、工作台与 OAuth 路线），不作为对外接口包且不含客户配置；`huarui-zhisuan` 是客户交付包，内容保持独立且不改；`huarui-video` 是华锐内部官方真人视频生成包，承接内部 hardcode Key 和真人素材，仅限内部使用，不是通用入口。
 - `juhe-nexgate` 是客户开发交付包，面向已部署聚合 API 的运行时调用；客户包 hardcode 配置只能按明确交付约定保留在原包内，不得复制、迁移或放入开发包。
 - `juhe-nexgate-dev` 是 Juhe 国内版自用开发入口：`C:/code/mcwlapi`（new-api 网关，接百度/阿里/火山）+ `C:/code/mcwlcpa`（CLIProxyAPI 授权 GPT/Claude 账号池），覆盖渠道、模型映射、计费、CPA v8/旧版配置、部署与验收；不改客户交付包。
-- `workbuddy-tutorial` 是视频录制与制作的 WorkBuddy 专家包，保留原目录结构及内置技能，不参与华锐重组。
+- `wb-expert-tutorial` 是视频录制与制作的 WorkBuddy 专家包，保留原目录结构及内置技能，不参与华锐重组。
 
 ## 命名规则
 
-- **只有依赖 WorkBuddy 宿主能力才跑得起来的技能，才用 `workbuddy-` 前缀**：内置浏览器、ImageGen/VideoGen、云服务与发布、Office 编辑器、专家包机制。它们是 WorkBuddy 专属入口，换到别的 Agent 跑不了。
+- **顶层目录按三类前缀归档（2026-11-16 起）**：单技能 `wb-skill-<功能名>`、单专家 `wb-expert-<名>`、专家团 `wb-expert-group-<名>`。前缀只表示仓库里的归档类型，每个目录仍是独立可干活的单元；专家包内部 name/plugin/agentName 与目录名一致。例外：宿主注册名固定的包，内部标识保留原名、只换目录名——短剧专家 `wb-expert-drama` 保留 `shunge-ai-short-drama`，顺哥OPC团队 `wb-expert-group-shunge` 保留 `guangzhou-shunge`。
+- **历史规则（2026-11-13 及以前）**：只有依赖 WorkBuddy 宿主能力才跑得起来的技能用 `workbuddy-` 前缀：内置浏览器、ImageGen/VideoGen、云服务与发布、Office 编辑器、专家包机制。这批目录已在 11-16 归入上面的三类新前缀。
 - **公共技能只按功能命名**，不带内部编号、团队代号或岗位名：`seo`、`geo`、`short-drama`、`wp-dev`、`site-launch`、`task-delivery`。同一个技能换个 Agent 或换成 CLI 也能跑，名字就不该绑平台。
 - 自用接口开发仍用 `-dev` 后缀与客户交付包分开（`baidu-api-dev`、`huarui-dev`、`juhe-nexgate-dev`）。
 - 目录名与 frontmatter 的 `name` 必须一致；改名必须同步更新引用它的角色、插件清单与交叉链接，不能只改目录。
@@ -51,14 +52,14 @@ python scripts/sync_skills.py --apply    # 真正复制
 
 内容创作和图片视频创作已分别收敛为两个 WorkBuddy 专家包，避免同一能力同时暴露为大量独立触发入口：
 
-- `workbuddy-selfmedia`：自媒体创作专家。按抖音、快手、视频号、小红书、公众号、头条和双对象横评等平台/文体路由，内置原内容创作技能与参考资料。
+- `wb-expert-selfmedia`：自媒体创作专家。按抖音、快手、视频号、小红书、公众号、头条和双对象横评等平台/文体路由，内置原内容创作技能与参考资料。
 - `media-creator`：图片视频创作专家。按 Seedance 生成、华锐开发、视频后处理、数字人、宫格切图和零成本视频规划路由，内置对应技能与参考资料。
 
-专家包已注册到 WorkBuddy 专家目录，并同步保存在本仓库的 `workbuddy-selfmedia/` 与 `media-creator/`；仓库不再保留上述能力的独立副本。需要分享或迁移时，使用 `outputs/workbuddy-selfmedia.zip` 和 `outputs/media-creator.zip`。同步时以专家目录为源，先更新专家包，再复制到本仓库。
+专家包已注册到 WorkBuddy 专家目录，并同步保存在本仓库的 `wb-expert-selfmedia/` 与 `media-creator/`；仓库不再保留上述能力的独立副本。需要分享或迁移时，使用 `outputs/wb-expert-selfmedia.zip` 和 `outputs/media-creator.zip`。同步时以专家目录为源，先更新专家包，再复制到本仓库。
 
 仍保持独立的媒体能力：
 
-- `workbuddy-image`：独立图片生成技能，按要求保留，不并入 `media-creator`。
+- `wb-skill-image`：独立图片生成技能，按要求保留，不并入 `media-creator`。
 - `doubao-web-video`：豆包网页版视频生成，依赖浏览器自动化，不使用 API Key，按要求保留独立入口。
 - `doubao-web-image`：豆包网页版图片生成，与视频技能共用官方创作入口但分开切 tab、分开认领结果；保留官方URL与可核验的控件线索，图像模式特有参数待已登录窗口实测补齐。
 
@@ -66,7 +67,7 @@ python scripts/sync_skills.py --apply    # 真正复制
 
 ### 专家包（Expert Package）
 
-- `workbuddy-tutorial`（教程片厂）：**Agent 型专家包，不是单个 Skill**。目录里是完整的专家包结构——`.codebuddy-plugin/plugin.json` + `agents/` + `skills/` + `avatars/`，可整包导入 WorkBuddy 专家中心。
+- `wb-expert-tutorial`（教程片厂）：**Agent 型专家包，不是单个 Skill**。目录里是完整的专家包结构——`.codebuddy-plugin/plugin.json` + `agents/` + `skills/` + `avatars/`，可整包导入 WorkBuddy 专家中心。
 
 里面是三个单一职责技能，按「能不能单独交付」切，不按步骤切：
 
@@ -87,9 +88,9 @@ python scripts/sync_skills.py --apply    # 真正复制
 
 画布不锁 1920×1080：`u = min(宽,高)/1080`，令牌全乘 `u`，16:9 / 9:16 / 1:1 / 4:5 / 3:4 / 4K 同一套流程。16:9 时 `u=1`，与旧版逐像素一致。
 
-同步口径：改完先更新 `~/.workbuddy/plugins/marketplaces/my-experts/plugins/workbuddy-tutorial` 并重跑 `validate_expert.py` + `register_expert.py`，再整目录覆盖到这里，两边保持逐字节一致。
+同步口径：改完先更新 `~/.workbuddy/plugins/marketplaces/my-experts/plugins/wb-expert-tutorial` 并重跑 `validate_expert.py` + `register_expert.py`，再整目录覆盖到这里，两边保持逐字节一致。
 
-- `workbuddy-butler`（WB空间清理大师）：**Agent 型专家包**，人设是"老陈"，只管一件事——WorkBuddy 自己的磁盘占用。目录同样是 `.codebuddy-plugin/plugin.json` + `agents/` + `skills/` + `avatars/` 的完整专家包结构。
+- `wb-expert-butler`（WB空间清理大师）：**Agent 型专家包**，人设是"老陈"，只管一件事——WorkBuddy 自己的磁盘占用。目录同样是 `.codebuddy-plugin/plugin.json` + `agents/` + `skills/` + `avatars/` 的完整专家包结构。
 
 它内置单一技能 `workbuddy-disk-audit`，四个脚本各管一段，互不依赖：
 
@@ -110,6 +111,8 @@ python scripts/sync_skills.py --apply    # 真正复制
 
 同步口径同上：先改专家目录、重跑 `validate_expert.py` + `register_expert.py`，再整目录覆盖到本仓库。
 
+- `wb-expert-group-shunge`（顺哥OPC团队）：**Team 型专家团，11人42技能**，覆盖订单财务、网站开发、基础运维、搜索优化、四渠道接入（星桥/聚合/华锐/火山）、短剧、自媒体与教程。这是「顺哥OPC团队」在宿主的注册包归档，**唯一维护源在开发仓库的 `expert/`**（用 `sync_expert.py` 镜像到安装副本），本目录是 1.6.8 的快照存档。与其他包不同：内部标识 name/plugin 保留 `guangzhou-shunge`、team-lead 为 `shunge`（宿主注册名固定，改了分身就断），只换顶层目录名。改内容走 `expert/` 源，别直接改这里。
+
 ### 百度渠道（开发）
 
 - `baidu-api-dev`：统一旧 VOD、新 VOD、千帆 QF、AI 网关 Seedance 的接口开发、最小测试及 new-api 渠道集成。
@@ -125,7 +128,7 @@ python scripts/sync_skills.py --apply    # 真正复制
 
 ### 创业与经营
 
-- `workbuddy-business`（商业全流程）：从「我适不适合创业」到「一份能交的创业计划书」，覆盖项目寻找、开办、运营、履约、财务与风险控制。
+- `wb-expert-group-business`（商业全流程）：从「我适不适合创业」到「一份能交的创业计划书」，覆盖项目寻找、开办、运营、履约、财务与风险控制。
 
 主文件只做阶段路由与全局硬规则，内容按需加载到 8 个 references：理论层（判断尺子）、阶段细则（1–6 找项目）、市场分析（7）、开办与运营（8–10）、创业计划书（11）、模块地图、输出模板、AI 赋能。
 
@@ -137,13 +140,13 @@ python scripts/sync_skills.py --apply    # 真正复制
 
 `references/AI赋能.md` 是**唯一一个可以跨技能复用**的部分：五级降级取数阶梯（L1–L5）、"足不出户"的替代取证表、**统计数据的认源与认口径（S1–S4 / 口径六问 / 年份三坑）**、0–10 分可信度打分卡、多模型交叉验证三层法、98 证据台账。任何需要"查不到数据时怎么办"或"这个行业规模数字能不能用"的技能都可以引用它，不必重写。核心结论只有一句：**AI 输出的证据等级上限是 B，A 级必须靠真实交易与实地走访。**
 
-> 技术标识采用短英文 slug `workbuddy-business`，展示名使用 `WorkBuddy商业专家组`，便于在 WorkBuddy 专家中心识别和调用。
+> 技术标识采用短英文 slug `wb-expert-group-business`，展示名使用 `WorkBuddy商业专家组`，便于在 WorkBuddy 专家中心识别和调用。
 
 ### 生活决策
 
-- `workbuddy-food`（美食雷达）：把「XX 最好吃的是哪家」拆成可核验的事实——门牌地址、招牌菜归属、人均、分时段营业时间，剔除同名异地与过期数据，输出一张能直接照着走的决策表。
+- `wb-skill-food`（美食雷达）：把「XX 最好吃的是哪家」拆成可核验的事实——门牌地址、招牌菜归属、人均、分时段营业时间，剔除同名异地与过期数据，输出一张能直接照着走的决策表。
 
-它不评价「哪家更好吃」，只回答「哪家值得专门跑一趟」：主观评价留给用户，客观项必须查实。与内容创作类能力正交——探店文案走 `workbuddy-selfmedia`，这里只管行前核查。
+它不评价「哪家更好吃」，只回答「哪家值得专门跑一趟」：主观评价留给用户，客观项必须查实。与内容创作类能力正交——探店文案走 `wb-expert-selfmedia`，这里只管行前核查。
 
 `scripts/radar.py` 是唯一的脚本（零依赖，标准库）：管理候选池、跑硬核验判定、**全天视角出表**。`--hours` 支持「全天」；v1.2 起未被 L0 否决的店都进表，营业已确认(`open`)排前、未验活(`unknown`)标「未验活」排后，不再把整张决策表清空。数据落在工作目录的 `.food-radar/`，跟着项目走，跨会话不丢。
 
@@ -163,7 +166,7 @@ python scripts/sync_skills.py --apply    # 真正复制
 - **需要上架 WorkBuddy 技能市场的 Skill，还要额外补齐 5 个字段**，否则上传 zip 会直接解析失败：`display_name`（中文展示名）、`display_name_en`（英文展示名）、`description_zh`（简短中文介绍）、`description_en`（简短英文介绍）、`version`（如 `1.0.0`）；`author` 为必填。这些字段必须是**顶层键**，写在 `metadata:` 下面不生效。`agent_created: true` 可以与之共存，平台会忽略它。
 - **市场详情页的「试试这样问我」由 `examples_zh` / `examples_en` 两个数组字段填充**，不写就显示 `-`。写法照已上架技能的实际惯例：各 3 条、中文单条约 10–19 字、动词开头的具体场景句（不要写成功能描述）。这两个字段在管理后台的表单里没有输入框，只能通过 frontmatter 传入，改完必须重新提交包。
 - **上架的 Skill 只允许 4 个顶层条目**：`SKILL.md`、`references/`、`scripts/`、`templates/`。`assets/`、`examples/`、`agents/` 等目录不在这份白名单里，打包时会被平台判为异常或直接忽略，示例数据请放进 `references/`。
-- 打包后再自查一遍：zip 内路径必须是正斜杠（`workbuddy-food/SKILL.md`），根目录必须就是 `{skill-name}/`。
+- 打包后再自查一遍：zip 内路径必须是正斜杠（`wb-skill-food/SKILL.md`），根目录必须就是 `{skill-name}/`。
 - 自用开发与公开通用 Skill 不写入真实 API Key、Cookie 或未经确认的生产地址；客户专用交付包可按明确交付约定内置指定 Key，但不得跨客户/开发包复用、在报告中回显或未经授权扩大分发。
 - 真实请求、费用和外部写操作必须保留用户授权边界；测试脚本只输出脱敏结果。
 

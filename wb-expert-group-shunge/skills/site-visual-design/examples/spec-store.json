@@ -1,0 +1,363 @@
+{
+  "name": "江南咖啡馆",
+  "kicker": "江南西 · 手冲咖啡",
+  "lead": "开在江南西巷子里的一间小店，只做手冲和当天烤的面包。8点开门，18个座位，豆单每周换一次。",
+  "description": "广州海珠江南西巷子里的手冲咖啡馆，只做手冲和当天烤的面包，18个座位，可在线订位。",
+  "nav": [
+    {
+      "label": "首页",
+      "href": "index.html"
+    },
+    {
+      "label": "菜单",
+      "href": "menu.html"
+    },
+    {
+      "label": "订位",
+      "href": "booking.html"
+    },
+    {
+      "label": "关于",
+      "href": "about.html"
+    },
+    {
+      "label": "联系",
+      "href": "contact.html"
+    }
+  ],
+  "navCta": {
+    "label": "在线订位",
+    "href": "booking.html"
+  },
+  "palette": {
+    "paper": "#fbf7f1",
+    "paper2": "#f3ece0",
+    "ink": "#7c4724",
+    "body": "#6f5f50",
+    "soft": "#7a6a5b",
+    "line": "#e8ddcd",
+    "brand": "#a56537",
+    "onbrand": "#fffdfa"
+  },
+  "footer": [
+    {
+      "title": "站点",
+      "items": [
+        {
+          "label": "首页",
+          "href": "index.html"
+        },
+        {
+          "label": "菜单",
+          "href": "menu.html"
+        }
+      ]
+    },
+    {
+      "title": "到店",
+      "items": [
+        {
+          "label": "订位",
+          "href": "booking.html"
+        },
+        {
+          "label": "联系",
+          "href": "contact.html"
+        }
+      ]
+    }
+  ],
+  "footNote": "本站为虚构演示站，名称、地址、电话、价格与经营信息均非客户事实",
+  "copyright": "© 江南咖啡馆",
+  "pages": [
+    {
+      "slug": "index",
+      "title": "首页",
+      "blocks": [
+        {
+          "type": "hero",
+          "kicker": "江南西 · 手冲咖啡",
+          "title": "街角的豆子，慢慢冲",
+          "lede": "开在江南西巷子里的一间小店，只做手冲和当天烤的面包。8点开门，18个座位，豆单每周换一次，卖完就收。",
+          "facts": [
+            "手冲豆单每周换一次",
+            "面包每天烤两炉",
+            "有插座和 Wi-Fi"
+          ],
+          "actions": [
+            {
+              "label": "看看菜单",
+              "href": "menu.html",
+              "primary": true
+            },
+            {
+              "label": "在线订位",
+              "href": "booking.html"
+            }
+          ],
+          "image": "img/store-gate.jpg",
+          "badge": "营业中"
+        },
+        {
+          "type": "tiles",
+          "title": "招牌与主营",
+          "lead": "点进去就知道我们做什么",
+          "items": [
+            {
+              "img": "img/tile-pour.jpg",
+              "title": "手冲咖啡",
+              "text": "每周换豆单，浅中深各一款",
+              "href": "menu.html"
+            },
+            {
+              "img": "img/tile-latte.jpg",
+              "title": "意式",
+              "text": "拿铁、澳白、冰美式",
+              "href": "menu.html"
+            },
+            {
+              "img": "img/tile-dessert.jpg",
+              "title": "烘焙甜点",
+              "text": "巴斯克、可颂，当天出炉",
+              "href": "menu.html"
+            },
+            {
+              "img": "img/tile-event.jpg",
+              "title": "空间",
+              "text": "18个座位，可久坐可带电脑",
+              "href": "about.html"
+            }
+          ]
+        },
+        {
+          "type": "info",
+          "title": "到店信息",
+          "items": [
+            {
+              "label": "地址",
+              "value": "示例市示例路 88 号（虚构，不可用于导航）"
+            },
+            {
+              "label": "营业时间",
+              "value": "每天 08:00—20:00"
+            },
+            {
+              "label": "联系方式",
+              "value": "138-0000-0000"
+            }
+          ]
+        },
+        {
+          "type": "faq",
+          "title": "常见问题",
+          "moreHref": "booking.html",
+          "moreText": "在线订位",
+          "items": [
+            {
+              "q": "需要提前订位吗",
+              "a": "周末人多，建议提前一天订。工作日直接来基本有位。"
+            },
+            {
+              "q": "可以带电脑办公吗",
+              "a": "可以，店里有插座和 Wi-Fi，但 12 点后不建议占座。"
+            },
+            {
+              "q": "豆单为什么一直换",
+              "a": "我们只买当季的生豆，每次到货就换，豆单跟着季节走。"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "menu",
+      "title": "菜单",
+      "blocks": [
+        {
+          "type": "menu",
+          "title": "菜单与产品",
+          "lead": "价格为门店当日价，供应情况以店里为准",
+          "categories": [
+            "全部",
+            "手冲",
+            "意式",
+            "甜点"
+          ],
+          "items": [
+            {
+              "img": "img/menu-yirgacheffe.jpg",
+              "name": "耶加雪菲",
+              "desc": "浅烘，柑橘与花香",
+              "price": "38",
+              "cat": "手冲"
+            },
+            {
+              "img": "img/menu-huilan.jpg",
+              "name": "慧兰",
+              "desc": "中烘，焦糖与坚果",
+              "price": "36",
+              "cat": "手冲"
+            },
+            {
+              "img": "img/menu-coldbrew.jpg",
+              "name": "冷萃",
+              "desc": "十二小时冰滴",
+              "price": "32",
+              "cat": "手冲"
+            },
+            {
+              "img": "img/menu-latte.jpg",
+              "name": "拿铁",
+              "desc": "双份浓缩，奶泡偏薄",
+              "price": "26",
+              "cat": "意式"
+            },
+            {
+              "img": "img/menu-flatwhite.jpg",
+              "name": "澳白",
+              "desc": "双份浓缩，微奶泡",
+              "price": "28",
+              "cat": "意式"
+            },
+            {
+              "img": "img/menu-americano.jpg",
+              "name": "冰美式",
+              "desc": "大杯，可选浓度",
+              "price": "24",
+              "cat": "意式"
+            },
+            {
+              "img": "img/menu-basque.jpg",
+              "name": "巴斯克",
+              "desc": "外焦内软，微流心",
+              "price": "32",
+              "cat": "甜点"
+            },
+            {
+              "img": "img/menu-croissant.jpg",
+              "name": "可颂",
+              "desc": "每天两炉，七点出炉",
+              "price": "15",
+              "cat": "甜点"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "booking",
+      "title": "订位",
+      "blocks": [
+        {
+          "type": "form",
+          "title": "在线订位",
+          "lead": "选好时间与人数，我们按预约顺序留位置",
+          "note": "提交后不是即时确认，店员会联系您确认。",
+          "consent": "同意店家通过电话或微信与我联系",
+          "submit": "提交预约",
+          "fields": [
+            {
+              "name": "customer_name",
+              "label": "怎么称呼您",
+              "type": "text",
+              "required": true
+            },
+            {
+              "name": "phone",
+              "label": "联系电话",
+              "type": "tel",
+              "required": true
+            },
+            {
+              "name": "when",
+              "label": "期望时间",
+              "type": "text",
+              "required": true
+            },
+            {
+              "name": "service",
+              "label": "预约类型",
+              "type": "select",
+              "options": [
+                "订位 2 人",
+                "订位 4 人",
+                "包场咨询"
+              ]
+            },
+            {
+              "name": "note",
+              "label": "备注（选填）",
+              "type": "textarea"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "about",
+      "title": "关于",
+      "blocks": [
+        {
+          "type": "prose",
+          "title": "关于我们",
+          "paragraphs": [
+            "2021 年开在江南西，一间只有 40 平米的店。",
+            "豆子自己挑，生豆按季买，豆单跟着季节走。面包当天烤，卖完就收。",
+            "我们想做成邻居下班能坐一会儿的地方，不催单、不拍照打卡。"
+          ]
+        },
+        {
+          "type": "figures",
+          "items": [
+            {
+              "num": "18",
+              "label": "个座位"
+            },
+            {
+              "num": "5",
+              "label": "年营业"
+            },
+            {
+              "num": "2",
+              "label": "炉面包每天"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "contact",
+      "title": "联系",
+      "blocks": [
+        {
+          "type": "info",
+          "title": "联系与到店",
+          "items": [
+            {
+              "label": "地址",
+              "value": "示例市示例路 88 号（虚构，不可用于导航）"
+            },
+            {
+              "label": "营业时间",
+              "value": "每天 08:00—20:00"
+            },
+            {
+              "label": "电话",
+              "value": "138-0000-0000"
+            }
+          ]
+        },
+        {
+          "type": "cta",
+          "title": "周末人多，先订个位",
+          "text": "订位不收订金，到店报名字就行。",
+          "button": {
+            "label": "在线订位",
+            "href": "booking.html"
+          }
+        }
+      ]
+    }
+  ],
+  "_说明": "门店站原型规格示例。照这个结构写自己的站点：改 name/nav/palette/pages 即可。字段说明见 references/mockup-spec.md"
+}

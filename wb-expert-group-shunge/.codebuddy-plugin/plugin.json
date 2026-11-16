@@ -1,0 +1,63 @@
+{
+  "name": "guangzhou-shunge",
+  "version": "1.6.8",
+  "description": "Eleven-person OPC team coordinating business administration, website development, infrastructure, website QA and SEO/GEO, four API channels, short drama, self-media and tutorial production with verifiable delivery.",
+  "homepage": {"url": "https://www.cloverphp.top", "type": "website"},
+  "agents": [
+    "./agents/shunge.md", "./agents/opc-business-manager.md", "./agents/opc-short-drama-director.md",
+    "./agents/opc-web-developer.md", "./agents/opc-ops-specialist.md", "./agents/opc-website-optimizer.md",
+    "./agents/opc-xingqiao-engineer.md", "./agents/opc-juhe-engineer.md", "./agents/opc-huarui-engineer.md",
+    "./agents/opc-volcengine-engineer.md", "./agents/opc-content-editor.md"
+  ],
+  "skills": [
+    "./skills/task-delivery", "./skills/business-management", "./skills/api-engineering", "./skills/short-drama",
+    "./skills/site-delivery", "./skills/site-audit", "./skills/site-maintenance", "./skills/site-incident",
+    "./skills/site-launch", "./skills/site-rescue", "./skills/seo", "./skills/geo", "./skills/computer-use",
+    "./skills/site-promotion", "./skills/ops-linux", "./skills/ops-tencentcloud", "./skills/ops-btpanel",
+    "./skills/ops-deploy", "./skills/wp-dev", "./skills/site-visual-design", "./skills/wp-admin", "./skills/copywriting",
+    "./skills/douyin-script-studio", "./skills/doubao-web-video", "./skills/doubao-web-image", "./skills/video-post-production", "./skills/douyin-pip-shorts",
+    "./skills/xingqiao-media", "./skills/juhe-nexgate", "./skills/huarui-zhisuan", "./skills/huarui-video", "./skills/seedance-dev",
+    "./skills/kuaishou-script-studio", "./skills/wxchannels-script-studio", "./skills/xhs-note-studio",
+    "./skills/wechat-mp-studio", "./skills/toutiao-article-studio", "./skills/versus-script-studio",
+    "./skills/tutorial-series-plan", "./skills/svg-lecture-deck", "./skills/tutorial-video-assemble", "./skills/ai-short-drama-tutorial"
+  ],
+  "expertType": "team",
+  "agentName": "shunge",
+  "teamInfo": {
+    "leadAgent": "shunge",
+    "memberAgents": ["opc-business-manager", "opc-short-drama-director", "opc-web-developer", "opc-ops-specialist", "opc-website-optimizer", "opc-xingqiao-engineer", "opc-juhe-engineer", "opc-huarui-engineer", "opc-volcengine-engineer", "opc-content-editor"]
+  },
+  "displayName": {"en": "Shunge OPC Team", "zh": "顺哥OPC团队"},
+  "profession": {"en": "Shunge OPC Team", "zh": "顺哥OPC团队"},
+  "displayDescription": {
+    "en": "Coordinate eleven specialists for administration, websites, infrastructure, search optimization, four API channels, short drama, self-media and tutorials with evidence-based delivery.",
+    "zh": "统筹订单财务、网站开发、基础运维与搜索优化，协同四渠道工程接入和短剧、自媒体、教程制作，交付可核验。"
+  },
+  "avatar": "avatars/guangzhou-shunge.png",
+  "categoryId": "09-OperationsHR",
+  "defaultInitPrompt": {"zh": "帮我看看这个需求能不能做。", "en": "Take a look at this request and tell me whether we can do it."},
+  "plugin": "guangzhou-shunge",
+  "tags": [
+    {"en": "Delivery coordination", "zh": "交付统筹"},
+    {"en": "Engineering integration", "zh": "工程接入"},
+    {"en": "Content production", "zh": "内容制作"}
+  ],
+  "quickPrompts": [
+    {"en": "Take a look at this request and tell me whether we can do it.", "zh": "帮我看看这个需求能不能做。"},
+    {"en": "Integrate this API into my application and verify the result.", "zh": "把这个渠道接口接进应用并验证交付。"},
+    {"en": "Help me produce a tutorial using real operations and results.", "zh": "用真实操作和结果帮我做一集教程。"}
+  ],
+  "members": [
+    {"id":"shunge","displayName":{"en":"Shunge","zh":"顺哥"},"profession":{"en":"Principal","zh":"主理人"},"avatar":"avatars/guangzhou-shunge.png","role":"lead"},
+    {"id":"opc-business-manager","displayName":{"en":"Liu Ming","zh":"留名"},"profession":{"en":"Business Administration Lead","zh":"综合管理"},"avatar":"avatars/opc-order-manager.png","role":"member"},
+    {"id":"opc-short-drama-director","displayName":{"en":"Wang Zong","zh":"汪总"},"profession":{"en":"Short Drama Lead","zh":"短剧负责人"},"avatar":"avatars/opc-finance-controller.png","role":"member"},
+    {"id":"opc-web-developer","displayName":{"en":"Fang Xu","zh":"方旭"},"profession":{"en":"Website Development and Filing Lead","zh":"网站开发与备案"},"avatar":"avatars/opc-filing-specialist.png","role":"member"},
+    {"id":"opc-ops-specialist","displayName":{"en":"Hua Zi","zh":"华子"},"profession":{"en":"Infrastructure and Operations Lead","zh":"基础设施与运维"},"avatar":"avatars/opc-ops-specialist.png","role":"member"},
+    {"id":"opc-website-optimizer","displayName":{"en":"Luo Ban","zh":"罗班"},"profession":{"en":"Website QA and Search Optimization Lead","zh":"网站检测与搜索优化"},"avatar":"avatars/opc-website-optimizer.png","role":"member"},
+    {"id":"opc-xingqiao-engineer","displayName":{"en":"Wu Yan","zh":"吴燕"},"profession":{"en":"Xingqiao Channel Lead","zh":"星桥业务负责人"},"avatar":"avatars/opc-s1-business-operator.png","role":"member"},
+    {"id":"opc-juhe-engineer","displayName":{"en":"Li He","zh":"李贺"},"profession":{"en":"Juhe Channel Lead","zh":"聚合业务负责人"},"avatar":"avatars/opc-s2-business-operator.png","role":"member"},
+    {"id":"opc-huarui-engineer","displayName":{"en":"Gou Zong","zh":"狗总"},"profession":{"en":"Huarui Channel Lead","zh":"华锐业务负责人"},"avatar":"avatars/opc-s3-launch-operator.png","role":"member"},
+    {"id":"opc-volcengine-engineer","displayName":{"en":"Chi Kong","zh":"迟空"},"profession":{"en":"Volcengine Channel Lead","zh":"火山业务负责人"},"avatar":"avatars/opc-s4-rescue-operator.png","role":"member"},
+    {"id":"opc-content-editor","displayName":{"en":"Wen Bo","zh":"文波"},"profession":{"en":"Self Media Lead","zh":"自媒体负责人"},"avatar":"avatars/opc-content-editor.png","role":"member"}
+  ]
+}
