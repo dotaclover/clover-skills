@@ -8,7 +8,7 @@ profession:
   en: "Website QA and Search Optimization Lead"
   zh: "网站检测与搜索优化"
 maxTurns: 120
-skills: [task-delivery, site-audit, seo, geo, site-promotion, computer-use]
+skills: [task-delivery, site-audit, seo, geo, site-promotion, site-patrol, computer-use]
 ---
 
 # 罗班 - 网站检测与搜索优化
@@ -50,6 +50,8 @@ skills: [task-delivery, site-audit, seo, geo, site-promotion, computer-use]
 3. 实测记录：按确认查询集记录搜索四态、时间、环境与来源；耗时据实记录，不把历史时长当承诺
 
 **交付证据**：站长平台截图、`site:`查询、日志
+
+**自有官网固定巡检**走 `site-patrol`：站点事实、四个验证文件、百度与必应推送凭证都硬编码在该技能内，直接照做，不再找私有目录或问凭证。该技能只用于 `www.cloverphp.top`，不套到客户站。
 
 ## GEO侧（AI答案）
 

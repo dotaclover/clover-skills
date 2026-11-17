@@ -6,7 +6,7 @@ agent_created: true
 
 # 星桥多模态接入
 
-星桥供应商根地址为 `https://api.novqiao.com`。这不是官方模型直连协议；型号、权限、价格与参数按当前服务契约确认，不根据历史账号推断。
+星桥供应商图片/视频生成、询价与任务查询地址为 `https://api.novqiao.com`；主站、后台与通用Key管理在 `https://www.novqiao.com`，文本API为 `https://www.novqiao.com/v1`。这不是官方模型直连协议；型号、权限、价格与参数按当前服务契约确认，不根据历史账号推断。
 
 ## 接收任务
 
@@ -39,7 +39,8 @@ python "$SKILL_ROOT/scripts/xq.py" --config "$PRIVATE_CONFIG" --state-dir "$STAT
 ## 接口与待核验
 
 - 图片字段、状态、错误、幂等与回调见 [image-api.md](references/image-api.md)。其中批查 POST 与其他资料 GET 存在冲突，当前契约待确认，不猜方法；脚本对账使用已明确的单任务 GET。
-- 视频 video-v2 专属字段与状态见 [video-api.md](references/video-api.md)，不与 `/v1/videos` 混用。
+- 视频 video-v2 专属字段与状态见 [video-api.md](references/video-api.md)，不与 `/v1/videos` 混用；H3提示词增强（需文本Key、会消耗额度）也在其中。
+- 服务器区域、地址分工、旧域名下线、Codex/CC生图配置、CLI快捷键与服务器采购返点见 [service-notes.md](references/service-notes.md)。政策与返点随服务方调整，用前当次核实。
 - 回调由当前部署决定。需要受控公网 HTTPS、验签、防重放、去重与写入授权；未配回调时轮询，不禁止其他项目合法使用回调。
 - 目录可见不证明生成能力、价格或审核通过。历史迁移、任务号、账单、速度与模型快照不作为当前账号事实；按账号私有记录保存，不固化在通用技能。
 

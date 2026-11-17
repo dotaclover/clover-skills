@@ -6,7 +6,7 @@ agent_created: true
 
 # 建站视觉流水线（出图 → 原型 → 落地）
 
-> 从当前技能实际安装目录定位脚本；下文命令在该目录执行，项目输入/输出使用绝对路径。
+> 下文命令在仓库根目录执行（脚本路径相对仓库根），项目输入/输出使用绝对路径。
 > 本技能负责站点视觉；报价、页数与交付边界由当前项目确认，不沿用示例套餐。
 > WordPress 开发可参考 `wp-dev`，浏览器验收使用当前可用工具。
 
@@ -42,25 +42,25 @@ agent_created: true
 
 ```bash
 # 自检（离线，不需要 Key）
-python scripts/image_api.py self-test
+python expert/skills/site-visual-design/scripts/image_api.py self-test
 
 # 看两家配置状态
-python scripts/image_api.py providers
+python expert/skills/site-visual-design/scripts/image_api.py providers
 
 # 出图计划：把「站点配图」拆成一组任务，提示词骨架已经写好
-python scripts/image_api.py plan --scene 门店
+python expert/skills/site-visual-design/scripts/image_api.py plan --scene 门店
 
 # 单张出图（默认供应商 sub）
-python scripts/image_api.py send --provider sub \
+python expert/skills/site-visual-design/scripts/image_api.py send --provider sub \
   --model gpt-image-2 --size 1024x1024 --n 1 \
   --prompt "..." --out resp.json
 
 # 落盘并核对真实尺寸
-python scripts/image_api.py save \
+python expert/skills/site-visual-design/scripts/image_api.py save \
   --response resp.json --out-dir out --expect-size 1024x1024
 
 # 叠中文（模型写的中文一律糊，叠字才靠谱）
-python scripts/image_api.py overlay \
+python expert/skills/site-visual-design/scripts/image_api.py overlay \
   --image out/image-01.png --text "今日手冲" --out out/hero.png
 ```
 
@@ -101,15 +101,15 @@ python scripts/image_api.py overlay \
 
 ```bash
 # 从规格生成多页可交互原型（HTML+CSS+JS，无构建无依赖）
-python scripts/mockup.py scaffold \
+python expert/skills/site-visual-design/scripts/mockup.py scaffold \
   --spec spec.json --out proto/ --img-dir 出图目录/
 
 # 从设计图采样主色，算 WCAG 对比度
-python scripts/mockup.py palette \
+python expert/skills/site-visual-design/scripts/mockup.py palette \
   --image 设计稿.png --paper "#fbf7f1"
 
 # 体检：资源缺失、占位符残留、对比度不达标、每页 H1 数量
-python scripts/mockup.py check --dir proto/
+python expert/skills/site-visual-design/scripts/mockup.py check --dir proto/
 ```
 
 **规格 JSON 的字段与区块类型见 `references/mockup-spec.md`**，
@@ -147,12 +147,12 @@ python scripts/mockup.py check --dir proto/
 | 原型形态 | 落到哪 | 怎么改 |
 | --- | --- | --- |
 | 单页名片/服务/门店 | `sku/S1-personal-site/engine/presets/<card\|service\|shop>/site/` | 复制整个 `site/` 目录 → 改 `site.js` 与 `images/` 同名替换 |
-| 多页/相册 | `sku/S1-personal-site/engine/` + `profiles/<名>.json` | 改 profile 的 `theme`（primary/accent）与文案；相册走 `album/` 生成器 |
+| 多页 | `sku/S1-personal-site/engine/` + `profiles/<名>.json` | 改 profile 的 `theme`（primary/accent）与文案。相册版式已停售，不再有相册路线 |
 
 改完的验收：
 
 ```bash
-python sku/S1-personal-site/album/scripts/serve.py <客户目录>/site 4300
+python sku/S1-personal-site/scripts/serve.py <客户目录>/site 4300
 cd sku/S1-personal-site/engine && node check.mjs --url http://127.0.0.1:4300/
 ```
 
@@ -166,9 +166,9 @@ S2 是带后台的真站，**版式与站型正交**：站型（`--type`）决�
 
 | 要改什么 | 改哪 | 注意 |
 | --- | --- | --- |
-| 配色 | `engine/themes/<主题>/themes.json`（由 `scripts/store_themes.py` 生成），版式 CSS 在 `assets/styles/<版式>.css` | 别手调色值，改完跑 `test_store_themes.php`；插件里用 `var(--opc-*)` 带兜底 |
-| 页面骨架 | `scripts/wp_products.py` 的 `styled_home()` / 各站型分支 | 改完跑 `python sku/S2-business-site/scripts/test_site_types.py` |
-| 砖块图文 | `wp_products.py` 的 `service_tiles()` | 每块砖必须有图、有链接、有 alt |
+| 配色 | `engine/themes/<主题>/themes.json`（由 `sku/S2-business-site/scripts/store_themes.py` 生成），版式 CSS 在 `assets/styles/<版式>.css` | 别手调色值，改完跑 `test_store_themes.php`；插件里用 `var(--opc-*)` 带兜底 |
+| 页面骨架 | `sku/S2-business-site/scripts/wp_products.py` 的 `styled_home()` / 各站型分支 | 改完跑 `python sku/S2-business-site/scripts/test_site_types.py` |
+| 砖块图文 | `sku/S2-business-site/scripts/wp_products.py` 的 `service_tiles()` | 每块砖必须有图、有链接、有 alt |
 | 菜单筛选 | `engine/plugins/opc-site-kit/includes/catalog.php` | `[opc_products]` 的 `filter` 属性 |
 | 按钮文案 | `order.json` 的 `catalog_cta` | 门店站写「看看详情」，工厂站写「获取报价」 |
 
@@ -180,8 +180,8 @@ php sku/S2-business-site/scripts/test_opc_harden.php      # 动了加固就跑
 node sku/S2-business-site/scripts/check.mjs --url <网址> --kind wp --booking
 ```
 
-**加插件必须同步两处硬编码**：`scripts/wp_local.py` 的 `PLUGINS` 与
-`scripts/server_deploy_wp.sh` 的 `plugin activate`，不同步就建站不装、上线不启用。
+**加插件必须同步两处硬编码**：`sku/S2-business-site/scripts/wp_local.py` 的 `PLUGINS` 与
+`sku/S2-business-site/scripts/server_deploy_wp.sh` 的 `plugin activate`，不同步就建站不装、上线不启用。
 
 ### 落地后必查
 

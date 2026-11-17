@@ -22,13 +22,14 @@
 
 按这条规则，2026-11-13 把 21 个带团队前缀的网站与运维技能改回功能名（`opc-*` → `seo`/`geo`/`site-*`/`ops-*`/`wp-*` 等），逻辑一字未改。
 
-## 团队技能镜像（41 项）
+## 团队技能镜像（43 项）
 
-下面这批技能以 `C:\code\cloverhub\clover-opc\expert/skills` 为**唯一维护源**，单向同步到本仓库：
+下面这批技能以 `C:\code\cloverhub\clover-opc\expert/skills` 为**唯一维护源**，单向同步到本仓库。
+同步脚本在 clover-opc 仓库里，在本仓库根执行：
 
 ```bash
-python scripts/sync_skills.py            # 只看差异
-python scripts/sync_skills.py --apply    # 真正复制
+python ../clover-opc/scripts/sync_skills.py            # 只看差异
+python ../clover-opc/scripts/sync_skills.py --apply    # 真正复制
 ```
 
 同步只覆盖同名文件、不删目标独有文件、跳过 `__pycache__`。**不要在本仓库直接改这些目录**——下次同步会被源覆盖；要改就去 `expert/skills/` 改，再同步回来。
@@ -36,14 +37,14 @@ python scripts/sync_skills.py --apply    # 真正复制
 | 组 | 技能 |
 |---|---|
 | 通用任务 | `task-delivery`、`copywriting`、`business-management`、`computer-use` |
-| 网站交付与运维 | `site-delivery`、`site-visual-design`、`site-audit`、`site-launch`、`site-maintenance`、`site-promotion`、`site-rescue`、`site-incident` |
+| 网站交付与运维 | `site-delivery`、`site-visual-design`、`site-audit`、`site-launch`、`site-maintenance`、`site-promotion`、`site-rescue`、`site-incident`、`site-patrol` |
 | 搜索优化 | `seo`、`geo` |
 | WordPress | `wp-dev`、`wp-admin` |
 | 服务器 | `ops-linux`、`ops-deploy`、`ops-btpanel`、`ops-tencentcloud` |
 | 接口与渠道 | `api-engineering`、`xingqiao-media`、`juhe-nexgate`、`huarui-zhisuan`、`huarui-video`、`seedance-dev` |
 | 短剧与出片 | `short-drama`、`doubao-web-video`、`doubao-web-image`、`video-post-production`、`douyin-pip-shorts` |
 | 自媒体 | `douyin-script-studio`、`kuaishou-script-studio`、`wxchannels-script-studio`、`xhs-note-studio`、`wechat-mp-studio`、`toutiao-article-studio`、`versus-script-studio` |
-| 教程 | `tutorial-series-plan`、`svg-lecture-deck`、`tutorial-video-assemble` |
+| 教程 | `tutorial-series-plan`、`svg-lecture-deck`、`tutorial-video-assemble`、`ai-short-drama-tutorial` |
 
 
 ## 推荐的技能边界

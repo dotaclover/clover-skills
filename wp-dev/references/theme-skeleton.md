@@ -11,7 +11,7 @@ themes/opc-business/       # 产品站：四套版式
   style.css                 主题头（必需）+ 变量与基础样式
   functions.php             只放 theme_support、菜单、enqueue
   themes.php                配色读取 + 内联变量覆盖（require 同目录 themes.json）
-  themes.json               配色表：单一事实源，JSON 由 scripts/store_themes.py 生成
+  themes.json               配色表：单一事实源，JSON 由 sku/S2-business-site/scripts/store_themes.py 生成
   screenshot.png            后台主题页封面，1200×900，缺了就是灰格子
   header.php                开标签到主内容开始
   footer.php                页脚 + wp_footer
@@ -204,7 +204,7 @@ WordPress 按这个顺序找模板，找到第一个就用，后面的不再看�
 由 `themes.php` 的 `opc_theme_inline_style()` 用 `wp_add_inline_style()` 追加一条 `.opc-style-portal{…}`，优先级等于版式 CSS、加载在其后，所以只覆盖颜色不动布局。**变量声明在 body 上，不在 `:root`**——这样作用域收在页面里，不会污染后台工具栏；排查颜色时读 `getComputedStyle(document.body)`，读 `documentElement` 拿到的是基础层默认值，会误判成「没生效」。
 
 规矩：
-- 加一套配色 = 改 `themes.json`（用 `scripts/store_themes.py` 算，连同对比度一起解），不写新 CSS、不动 PHP。
+- 加一套配色 = 改 `themes.json`（用 `sku/S2-business-site/scripts/store_themes.py` 算，连同对比度一起解），不写新 CSS、不动 PHP。
 - 每套都要过 WCAG AA：正文对纸底 ≥4.5:1，按钮白字 ≥4.5:1，描边 ≥3:1。手调色值迟早翻车，跑当前项目已核实的配色对比度测试；缺少工具时逐项检查并记录结果。
 - 客户换配色走「外观 → 自定义 → 配色方案」（`opc-site-kit` 注册的色块控件）或「设置 → 站点资料 → 配色主题」，两处读写**同一个 option 键**（`opc_site_kit[theme]`），不要另存一份。
 

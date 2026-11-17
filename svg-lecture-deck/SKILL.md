@@ -6,7 +6,7 @@ agent_created: true
 
 # SVG 讲义卡与 PPT
 
-从当前技能实际安装目录定位并执行以下 `scripts/` 命令，输入输出可用绝对路径。
+以下命令在仓库根目录执行（脚本路径相对仓库根），输入输出可用绝对路径。
 默认拒绝已有 PNG/PPTX；覆盖需显式 `--overwrite`。自动渲染的 PNG 放到输出 PPTX 同级独立目录，可用 `--render-dir` 指定新目录。
 浏览器支持 `--browser` 显式路径或名称，并探测 PATH。字体需自行确认安装与字形覆盖。
 `canvas.resolve` 支持 `{"preset":"custom","width":1440,"height":1080}`；尺寸必须至少 2，奇数向下对齐偶数。
@@ -17,7 +17,7 @@ agent_created: true
 
 ## 画布不是固定的
 
-`scripts/canvas.py` 管预设和尺寸令牌：
+`expert/skills/svg-lecture-deck/scripts/canvas.py` 管预设和尺寸令牌：
 
 | preset | 尺寸 | 用在 |
 |---|---|---|
@@ -33,8 +33,8 @@ agent_created: true
 1920×1080 时 `u = 1`，和以前逐像素一致；4K 自动翻倍；竖屏 `u = 1` 但画布窄了，所以**文案要写短**（见 `references/画布与版式.md`）。
 
 ```bash
-python scripts/canvas.py              # 打印所有预设的令牌与 PPT 尺寸
-python scripts/canvas.py 1080x1920    # 看自定义画布
+python expert/skills/svg-lecture-deck/scripts/canvas.py              # 打印所有预设的令牌与 PPT 尺寸
+python expert/skills/svg-lecture-deck/scripts/canvas.py 1080x1920    # 看自定义画布
 ```
 
 PPT 尺寸按 144 px = 1 in 换算：1920×1080 → 13.33×7.5（标准 16:9 幻灯片），1080×1920 → 7.5×13.33（竖版），1440×1440 → 10×10（方版）。不用手填。
@@ -65,9 +65,9 @@ python -c "import sys; sys.path.insert(0, 'scripts'); import canvas; print(canva
 ### 3. 渲染 PNG
 
 ```bash
-python scripts/svg2png.py --svg-dir cards --preset 9:16
-python scripts/svg2png.py --file a.svg --size 1440x1080 --scale 2
-python scripts/svg2png.py --check          # 只检查浏览器
+python expert/skills/svg-lecture-deck/scripts/svg2png.py --svg-dir cards --preset 9:16
+python expert/skills/svg-lecture-deck/scripts/svg2png.py --file a.svg --size 1440x1080 --scale 2
+python expert/skills/svg-lecture-deck/scripts/svg2png.py --check          # 只检查浏览器
 ```
 
 默认输出到同级 `<目录名>_png/`。
@@ -75,8 +75,8 @@ python scripts/svg2png.py --check          # 只检查浏览器
 ### 4. 导 PPT
 
 ```bash
-python scripts/svg2pptx.py --png-dir cards_png --out out/讲义.pptx --beats beats.json
-python scripts/svg2pptx.py --svg-dir cards --preset 9:16 --out out/讲义.pptx   # 顺带渲 PNG
+python expert/skills/svg-lecture-deck/scripts/svg2pptx.py --png-dir cards_png --out out/讲义.pptx --beats beats.json
+python expert/skills/svg-lecture-deck/scripts/svg2pptx.py --svg-dir cards --preset 9:16 --out out/讲义.pptx   # 顺带渲 PNG
 ```
 
 `--beats` 会把每张卡对应的台词写进备注页，讲的时候照着念。

@@ -220,7 +220,7 @@ proto/
 ## 体检
 
 ```bash
-python scripts/mockup.py check --dir proto/
+python expert/skills/site-visual-design/scripts/mockup.py check --dir proto/
 ```
 
 查这些：

@@ -20,7 +20,7 @@
 
 ## 一、落到 S1 静态站
 
-静态站通常无后台。以下保留原工程的模板、profile 和相册三类适配示例，不规定价格。
+静态站通常无后台。以下保留成品模板与 profile 两类适配示例，不规定价格。**相册/纪念站版式已停售（2026-11-17），不再提供，也不作为路线。**
 
 ### 路线 A：成品模板（默认最快）
 
@@ -30,8 +30,7 @@
 sku/S1-personal-site/engine/presets/
 ├── card/     单页名片
 ├── service/  服务展示
-├── shop/     门店展示
-└── album/    相册
+└── shop/     门店展示
 ```
 
 做法：
@@ -44,7 +43,7 @@ cp -r sku/S1-personal-site/engine/presets/card/site delivery/S1-<客户名>/site
 #    看 engine/presets/card/README.md 确认 site.js 的字段结构
 
 # 3. 本地预览 + 验收
-python sku/S1-personal-site/album/scripts/serve.py delivery/S1-<客户名>/site 4300
+python sku/S1-personal-site/scripts/serve.py delivery/S1-<客户名>/site 4300
 cd sku/S1-personal-site/engine && node check.mjs --url http://127.0.0.1:4300/
 ```
 
@@ -73,17 +72,10 @@ python sku/S1-personal-site/scripts/deliver_static.py --profile <名> --out deli
 
 `deliver_static.py` 内部会调 `check.mjs`，**失败退出 1 且不出包**。
 
-### 路线 C：相册
+### 路线 C：已取消
 
-```bash
-python sku/S1-personal-site/album/scripts/photos.py --src <原图目录> --out <工作>/_album
-python sku/S1-personal-site/album/scripts/build.py --config album.json --work <工作>/_album --out <工作>/dist
-```
-
-**构建读 `--work` 不是 `--photos`**（这是老坑）。`album/presets/` 有六套填好结构的
-场景骨架（旅行/纪念/毕业/婚礼/宝宝/宠物），问清场景就 `cp` 一份填空。
-
-三套相册主题：travel / film / grid。
+相册/纪念站版式 2026-11-17 停售，生成器、六套骨架与灯箱验收脚本全部移除。
+客户提相册直接说明不做，不报价、不转其他 SKU。线上那个相册示例站只是历史样板。
 
 ### S1 改完必查
 
@@ -120,10 +112,10 @@ S2 是**带后台的真站**，「客户以后自己能改」是卖点。
 | 原型里有什么 | 改哪 | 说明 |
 | --- | --- | --- |
 | 配色、圆角、间距、版式感 | `engine/themes/opc-business/assets/styles/<版式>.css`；门店不是版式，改 `themes/opc-store/assets/styles/store.css` | 一套版式一个文件 |
-| 换配色（不改结构） | `themes/<主题>/themes.json`，由 `scripts/store_themes.py` 生成 | 别手调色值，跑 `test_store_themes.php` 复核对比度 |
-| 首屏、砖块、FAQ、CTA 的结构 | `scripts/wp_products.py` 的 `styled_home()` | 各站型分支在同文件 |
-| 门店站六页骨架 | `scripts/wp_products.py` 的 `store_pages()` | |
-| 图文砖 | `scripts/wp_products.py` 的 `service_tiles()` | 每块要有图、链接、alt |
+| 换配色（不改结构） | `themes/<主题>/themes.json`，由 `sku/S2-business-site/scripts/store_themes.py` 生成 | 别手调色值，跑 `test_store_themes.php` 复核对比度 |
+| 首屏、砖块、FAQ、CTA 的结构 | `sku/S2-business-site/scripts/wp_products.py` 的 `styled_home()` | 各站型分支在同文件 |
+| 门店站六页骨架 | `sku/S2-business-site/scripts/wp_products.py` 的 `store_pages()` | |
+| 图文砖 | `sku/S2-business-site/scripts/wp_products.py` 的 `service_tiles()` | 每块要有图、链接、alt |
 | 菜单分类筛选 | `engine/plugins/opc-site-kit/includes/catalog.php` | `[opc_products filter="1"]` |
 | 按钮文案 | `order.json` 的 `catalog_cta` | 门店写「看看详情」，工厂写「获取报价」 |
 | 首屏实拍图 | `order.json` 的 `hero_image` | 相对 order.json 的路径 |
@@ -155,9 +147,9 @@ php sku/S2-business-site/scripts/test_opc_harden.php       # 退出码 0
 
 # 3. 生成部署清单（本机没 MySQL 时用离线版）
 python sku/S2-business-site/scripts/wp_products_offline.py \
-  --order examples/<站>/order.json --type store \
-  --products examples/<站>/products.csv --domain <域名> \
-  --img-dir examples/<站>/img --out <清单.json>
+  --order profiles/S2-<序号>-<站名>/order.json --type store \
+  --products profiles/S2-<序号>-<站名>/products.csv --domain <域名> \
+  --img-dir profiles/S2-<序号>-<站名>/img --out <清单.json>
 
 # 4. 浏览器验收
 node sku/S2-business-site/scripts/check.mjs --url <网址> --kind wp --booking

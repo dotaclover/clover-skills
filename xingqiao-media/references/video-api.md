@@ -1,6 +1,6 @@
 # 星桥 · 视频接口备忘
 
-来源：服务方《视频 API · 第三方对接文档》2026-10-26 版，只保留调用要用的部分。服务地址 `https://api.novqiao.com`。
+来源：服务方《视频 API · 第三方对接文档》2026-11-17 版，只保留调用要用的部分。服务地址 `https://api.novqiao.com`，主站与密钥管理 `https://www.novqiao.com`。地址分工、服务器区域、CLI配置与返点见 `service-notes.md`。旧域名 `api.rrwkj.cyou` 已于 2026-11-16 下线。
 
 保留供应商原始 `cost_usd` 字段与报价币种；实际结算币种和换算比例由当前账号合约及账单确认，不默认 1:1。报价不锁价。
 
@@ -18,6 +18,24 @@
 | POST | `/v1/video-v2/tasks/query` | 批量查，`{"task_ids":["vid_1"]}`，上限 100 |
 | GET | `/v1/video-v2/tasks/{task_id}/content` | 原 Key 下载，307 |
 | GET | `/v1/media/callbacks/signing-key` | 与图片共用验签密钥 |
+| POST | `/v1/video-v2/prompt-enhance` | H3提示词增强，用文本Key，不建视频任务 |
+
+## H3提示词增强（可选，需文本分组Key）
+
+把完整剧本/台词先增强成分镜，再拿增强稿去建视频任务。工作台须在「密钥设置」绑定有效的**文本分组Key**才返回可用模型，不绑定不回退视频Key；第三方也可自带文本Key。文本与视频Key可不同，权限和费用各算各的。
+
+```bash
+curl "$BASE_URL/v1/video-v2/prompt-enhance" \
+  -H "Authorization: Bearer $TEXT_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"<文本Key可用模型>","input":{"original_prompt":"完整剧本台词","duration":15,"ratio":"16:9","mode":"default","references":[]}}'
+```
+
+- 用文本Key先 `GET /v1/models` 查可用模型名再填 `model`；不传、`original_prompt`/`duration`（4–15）/`ratio` 缺失或未知字段报 400，未绑有效文本Key报 401。
+- `mode` 取 `default`／`first_last_frame`；`references` 按真实上传顺序写角色描述，最多18项、每项1024字节，如 `<Picture 1>: first frame`，不传Key、签名URL或素材字节。
+- 返回标准 Chat Completions 响应。解析 `choices[0].message.content` 为 `{"prompt":"...","error":""}`；必须同时检查 HTTP成功、`finish_reason` 非 `length`、`error` 为空、`prompt` 非空，并核对原台词与商品要求。剧本时长冲突等内容错误可能 HTTP 200 但 `content.error` 非空，只看状态码会漏。
+- 增强是**实际文本调用，会消耗额度**，超时或结果未知不自动重试付费调用。
+- 增强稿放进 `/v1/video-v2/tasks` 的 `prompt`，支持该字段的H3模型显式传 `prompt_enhance:false` 关掉上游二次改写。原 `prompt_enhance:true` 仍指上游增强，不会自动找文本Key。
 
 ## 模型目录
 

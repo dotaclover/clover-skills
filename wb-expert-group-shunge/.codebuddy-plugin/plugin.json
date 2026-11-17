@@ -1,6 +1,6 @@
 {
   "name": "guangzhou-shunge",
-  "version": "1.6.8",
+  "version": "1.7.0",
   "description": "Eleven-person OPC team coordinating business administration, website development, infrastructure, website QA and SEO/GEO, four API channels, short drama, self-media and tutorial production with verifiable delivery.",
   "homepage": {"url": "https://www.cloverphp.top", "type": "website"},
   "agents": [
@@ -12,7 +12,7 @@
   "skills": [
     "./skills/task-delivery", "./skills/business-management", "./skills/api-engineering", "./skills/short-drama",
     "./skills/site-delivery", "./skills/site-audit", "./skills/site-maintenance", "./skills/site-incident",
-    "./skills/site-launch", "./skills/site-rescue", "./skills/seo", "./skills/geo", "./skills/computer-use",
+    "./skills/site-launch", "./skills/site-rescue", "./skills/seo", "./skills/geo", "./skills/site-patrol", "./skills/computer-use",
     "./skills/site-promotion", "./skills/ops-linux", "./skills/ops-tencentcloud", "./skills/ops-btpanel",
     "./skills/ops-deploy", "./skills/wp-dev", "./skills/site-visual-design", "./skills/wp-admin", "./skills/copywriting",
     "./skills/douyin-script-studio", "./skills/doubao-web-video", "./skills/doubao-web-image", "./skills/video-post-production", "./skills/douyin-pip-shorts",

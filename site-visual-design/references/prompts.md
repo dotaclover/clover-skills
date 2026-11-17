@@ -129,7 +129,7 @@
 模型出的图没有中文，用 overlay 补。
 
 ```bash
-python scripts/image_api.py overlay \
+python expert/skills/site-visual-design/scripts/image_api.py overlay \
   --image out/image-01.png --text "今日手冲" \
   --out out/hero.png --font-size 64 --align center --y 120 \
   --bg 43 38 34
