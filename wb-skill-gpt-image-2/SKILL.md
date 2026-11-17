@@ -1,6 +1,20 @@
 ---
 name: wb-skill-gpt-image-2
-description: 用`GPT_IMG_URL`/`GPT_IMG_KEY`调用`gpt-image-2`文生图，凭据优先读电脑环境变量，缺失时向用户索要并存到`~/.workbuddy/gpt-img-auth.json`。适用于用户要用gpt-image-2出图、做海报或竖图的场景。
+display_name: GPT Image 2出图
+display_name_en: GPT Image 2 Generator
+description: 用`GPT_IMG_URL`/`GPT_IMG_KEY`调用`gpt-image-2`文生图，凭据优先读电脑环境变量，缺失时向用户索要并存到`~/.workbuddy/gpt-img-auth.json`。带参考图走`/images/edits`图生图。适用于用户要用gpt-image-2出图、做海报或竖图的场景。
+description_zh: 用环境变量里的自有接口生成gpt-image-2图片，支持文生图和参考图图生图，2K方图实测尺寸精确，产物落在调用目录。
+description_en: Generate gpt-image-2 images through your own OpenAI-compatible endpoint using GPT_IMG_URL and GPT_IMG_KEY. Supports text-to-image and reference-image editing with verified 2048x2048 output, files saved in the calling directory.
+examples_zh:
+  - '用我的接口出一张2K海报'
+  - '照这张脸生成一组头像'
+  - '把这张图改成短发二次元风'
+examples_en:
+  - 'Generate a 2K poster through my image API'
+  - 'Make a set of avatars from this face photo'
+  - 'Turn this photo into a short-hair anime avatar'
+version: 1.0.0
+author: 独立开发者
 agent_created: true
 ---
 
