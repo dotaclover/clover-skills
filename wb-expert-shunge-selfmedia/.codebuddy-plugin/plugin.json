@@ -1,0 +1,60 @@
+{
+  "name": "shunge-selfmedia",
+  "version": "1.0.0",
+  "description": "Shunge's own self-media expert. Currently covers Xiaohongshu notes end to end (topic, title, body, cover, images, compliance check, comment replies) reading the owner's account card first; other platforms are added by the same three-step pattern.",
+  "agents": [
+    "./agents/shunge-selfmedia.md"
+  ],
+  "skills": [
+    "./skills/xhs-note-studio"
+  ],
+  "expertType": "agent",
+  "agentName": "shunge-selfmedia",
+  "displayName": {
+    "en": "Shunge Self Media",
+    "zh": "顺哥自媒体"
+  },
+  "profession": {
+    "en": "Self Media Operator",
+    "zh": "自媒体运营"
+  },
+  "displayDescription": {
+    "en": "Produces Xiaohongshu notes from topic to cover and replies to comments following the owner's account card; WeChat Channels, Douyin, Kuaishou, WeChat MP and Toutiao are added on the same pattern.",
+    "zh": "按账号卡产出小红书笔记（选题、标题、正文、封面、配图、违禁词体检）并回复评论区；视频号、抖音、快手、公众号、微头条按同一模式陆续加入。"
+  },
+  "avatar": "avatars/shunge-selfmedia.png",
+  "categoryId": "06-ContentCreative",
+  "defaultInitPrompt": {
+    "zh": "写一篇小红书笔记，先看我的账号卡。",
+    "en": "Write a Xiaohongshu note; read my account card first."
+  },
+  "plugin": "shunge-selfmedia",
+  "tags": [
+    {
+      "en": "Xiaohongshu",
+      "zh": "小红书"
+    },
+    {
+      "en": "Content production",
+      "zh": "内容生产"
+    },
+    {
+      "en": "Account card",
+      "zh": "账号卡"
+    }
+  ],
+  "quickPrompts": [
+    {
+      "zh": "写一篇小红书笔记，先看我的账号卡。",
+      "en": "Write a Xiaohongshu note; read my account card first."
+    },
+    {
+      "zh": "帮我回这几条评论。",
+      "en": "Help me reply to these comments."
+    },
+    {
+      "zh": "这篇笔记数据差，帮我诊断一下。",
+      "en": "This note underperformed; diagnose it."
+    }
+  ]
+}
