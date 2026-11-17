@@ -4,3 +4,7 @@ __pycache__/
 .workbuddy
 outputs
 _local
+
+# 发布制品：只忽略仓库根目录，dist/ 下的打包产物不受影响
+/*.zip
+/*.sha256
