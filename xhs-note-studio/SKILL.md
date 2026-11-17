@@ -1,7 +1,7 @@
 ---
 name: xhs-note-studio
-display_name: 小红书笔记工坊
-display_name_en: Xiaohongshu Note Studio
+display_name: 小红书专家顺哥
+display_name_en: Xiaohongshu Expert Shunge
 description: 小红书图文笔记全流程创作助手。为任意垂类产出「预设场景卡 + 3 条标题候选（附评分）+ 正文文案 + 话题标签 + 封面方案 + 配图 0–3 张 + 违禁词体检」，并能做旧笔记诊断与评论区回复。触发词：小红书笔记、小红书标题、起标题、小红书文案、小红书封面、封面文案、种草图文、笔记生图提示词、爆款标题、小红书选题、笔记自检、笔记配图、违禁词、旧笔记诊断、回复评论、评论回复、评论区怎么回。
 description_zh: 小红书图文笔记全流程创作助手：预设场景卡、3条带评分标题、正文文案、话题标签、封面方案、配图提示词与违禁词体检，另含旧笔记诊断和评论区回复。当用户要写小红书笔记或种草文案、取标题、做封面文案、配图提示词、笔记自检、选题、诊断旧笔记、回复评论时使用。
 description_en: End-to-end Xiaohongshu (RED) note creator producing a scenario card, three scored title candidates, body copy, hashtags, a cover plan, image prompts and a banned-word check, plus diagnosis of existing notes and comment replies. Use when the user asks to write or polish a Xiaohongshu note, brainstorm titles, plan a cover, draft image prompts, self-check a note, pick topics, diagnose an underperforming note, or reply to comments.
