@@ -43,7 +43,7 @@ python ../clover-opc/scripts/sync_skills.py --apply    # 真正复制
 | 服务器 | `ops-linux`、`ops-deploy`、`ops-btpanel`、`ops-tencentcloud` |
 | 接口与渠道 | `api-engineering`、`xingqiao-media`、`juhe-nexgate`、`huarui-zhisuan`、`huarui-video`、`seedance-dev` |
 | 短剧与出片 | `short-drama`、`doubao-web-video`、`doubao-web-image`、`video-post-production`、`douyin-pip-shorts` |
-| 自媒体 | `douyin-script-studio`、`kuaishou-script-studio`、`wxchannels-script-studio`、`xhs-note-studio`、`wechat-mp-studio`、`toutiao-article-studio`、`versus-script-studio` |
+| 自媒体 | `douyin-script-studio`、`kuaishou-script-studio`、`wxchannels-script-studio`、`xhs-expert-shunge`、`wechat-mp-studio`、`toutiao-article-studio`、`versus-script-studio` |
 | 教程 | `tutorial-series-plan`、`svg-lecture-deck`、`tutorial-video-assemble`、`ai-short-drama-tutorial` |
 
 
