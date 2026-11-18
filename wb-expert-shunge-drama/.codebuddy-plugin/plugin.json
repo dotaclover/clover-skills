@@ -1,0 +1,61 @@
+{
+  "name": "shunge-drama",
+  "version": "1.0.0",
+  "description": "A general-purpose short-drama production expert: fact-source contract, nine-step production from script to acceptance, storyboard and Seedance prompt generation, measured subtitles, continuity repair. Method only, no built-in series, account, or vendor parameters.",
+  "agents": [
+    "./agents/shunge-drama.md"
+  ],
+  "skills": [
+    "./skills/short-drama",
+    "./skills/wb-skill-storyboard"
+  ],
+  "expertType": "agent",
+  "agentName": "shunge-drama",
+  "displayName": {
+    "en": "Short Drama Expert Shunge",
+    "zh": "短剧专家顺哥"
+  },
+  "profession": {
+    "en": "Short Drama Producer",
+    "zh": "短剧制作"
+  },
+  "displayDescription": {
+    "en": "Takes a short-drama idea from fact source to finished cut: episode split, script, storyboard and Seedance prompts, reference art, generation checks, measured subtitles, continuity repair and frame-level acceptance.",
+    "zh": "把短剧从设定做到成片：分集、剧本、分镜与 Seedance 提示词、参考图、生成风险检查、实测字幕、连续性修复与抽帧验收。只给方法，不预设剧集与账号。"
+  },
+  "avatar": "avatars/shunge-drama.png",
+  "categoryId": "06-ContentCreative",
+  "defaultInitPrompt": {
+    "zh": "我有个短剧想法，帮我从设定和分集开始捋。",
+    "en": "I have a short-drama idea; help me start from the setup and episode split."
+  },
+  "plugin": "shunge-drama",
+  "tags": [
+    {
+      "en": "Short drama",
+      "zh": "短剧"
+    },
+    {
+      "en": "Storyboard",
+      "zh": "分镜"
+    },
+    {
+      "en": "AI video",
+      "zh": "AI 视频"
+    }
+  ],
+  "quickPrompts": [
+    {
+      "zh": "把这个剧本拆成分镜表，要能直接生成。",
+      "en": "Break this script into a generation-ready storyboard."
+    },
+    {
+      "zh": "角色老是串脸，帮我把 cross-shot 一致性方案定下来。",
+      "en": "My character keeps changing between shots; set up a cross-shot consistency plan."
+    },
+    {
+      "zh": "这集成片帮我验收，重点看接缝和字幕。",
+      "en": "Accept this finished cut for me, focusing on seams and subtitles."
+    }
+  ]
+}

@@ -1,6 +1,17 @@
 ---
 name: short-drama
-description: 用于虚构短剧的事实源管理、剧本分镜、参考素材、视频生成、连续性修复、实测字幕、分层重建与验收交稿。适合单集及多集短剧，不以项目历史参数代替当前需求。
+display_name: 短剧制作规程
+display_name_en: Short Drama Production Playbook
+description: 用于虚构短剧的事实源管理、剧本分镜、参考素材、视频生成、连续性修复、实测字幕、分层重建与验收交稿。适合单集及多集短剧，不以项目历史参数代替当前需求。触发词：短剧、短剧制作、分集、剧本、分镜、原画、参考图、生成视频、字幕、连续性、验收、后期修复。
+description_zh: 虚构短剧的完整制作规程：开工输入契约、九步制作（核事实源、写剧本分镜、备参考素材、生成视频、检查生成风险、实测字幕与后期、修复与连续性、验收、交接回填），附可复用的方法库。不绑定具体剧集、账号或供应商参数，适合单集与多集。当用户要做短剧、拆集、写剧本分镜、管角色一致性、处理字幕与后期修复、或验收成片时使用。
+description_en: A full production playbook for fictional short dramas - input contract, nine production steps from fact-source checking through screenwriting, storyboards, reference assets, video generation, risk checks, measured subtitles, continuity repair, acceptance and handover, plus a reusable method library. Not tied to any specific series, account, or vendor parameters. Use when a user wants to produce a short drama, split episodes, write scripts and storyboards, keep characters consistent, handle subtitles and post repair, or accept finished cuts.
+version: "1.0.0"
+license: proprietary
+allowed-tools: Read, Write, Bash
+metadata:
+  author: clover
+  category: content-marketing
+  tags: [短剧, 分镜, 剧本, 字幕, 连续性, 验收]
 agent_created: true
 ---
 
