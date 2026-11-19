@@ -2,7 +2,7 @@
 name: juhe-nexgate-dev
 description: 开发与排查 Juhe/Nexgate 的 mcwlapi 网关及 mcwlcpa 账号池，覆盖国内/国际版本、渠道协议、图片视频任务、租户计费、本地验证和打包部署。适用于修改这两个项目源码或运行配置；客户调用已部署 API 使用 juhe-nexgate。
 metadata:
-  version: 1.3.0
+  version: 1.3.1
   scope: personal-development
 ---
 
@@ -11,6 +11,8 @@ metadata:
 本版覆盖异步 JSON Base64 参考图与 multipart 编辑。开发入口见 [async-images.md](references/async-images.md)：复用 edits、尺寸计费与任务记录，新增 content_type/is_edit 自动迁移；禁止新旧 worker 混跑。构建交付与生产部署分别核实。
 
 ## 工作区与责任层
+
+- 不预设任何公网域名。服务地址、`PLATFORM_HOSTS`、`TENANT_ROOT_DOMAIN` 以用户当前要求和目标部署配置为准，不从安装目录名或历史测试记录推断。不要自动写入域名绑定；商户自定义域名仅由管理员显式填写，留空不创建。示例使用环境变量或占位符，不固定到历史站点。换服务地址不自动复用凭据，先核对该地址有权接收当前 Key。
 
 - 国内版：`C:/code/mcwlapi`，分支 `dev`；国际版：`C:/code/mcwlapi_internal`，分支 `internal`；账号池：`C:/code/mcwlcpa`。用户提供其他路径时先核实。读取目标仓库 AGENTS、README 与相关实现，检查 git status、分支和已有改动。
 - 链路为 `客户端 → mcwlapi → 上游供应商或 mcwlcpa → 授权账号池`。网关负责租户、令牌、路由、额度和日志；CPA 负责授权账号及调度。不要把一层的配置或成功结果当作另一层已经可用。

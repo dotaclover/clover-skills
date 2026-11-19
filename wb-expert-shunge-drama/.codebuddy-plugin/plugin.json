@@ -1,13 +1,16 @@
 {
   "name": "shunge-drama",
-  "version": "1.0.0",
-  "description": "A general-purpose short-drama production expert: fact-source contract, nine-step production from script to acceptance, storyboard and Seedance prompt generation, measured subtitles, continuity repair. Method only, no built-in series, account, or vendor parameters.",
+  "version": "1.1.0",
+  "description": "A self-contained short-drama production expert: fact-source contract, nine-step production from script to acceptance, storyboard and Seedance prompt generation, plus three built-in generation channels (Ark/Huarui API, Doubao web video, Doubao web image), measured subtitles, continuity repair. Method only, no built-in series, account, or vendor parameters.",
   "agents": [
     "./agents/shunge-drama.md"
   ],
   "skills": [
     "./skills/short-drama",
-    "./skills/wb-skill-storyboard"
+    "./skills/wb-skill-storyboard",
+    "./skills/seedance-dev",
+    "./skills/doubao-web-video",
+    "./skills/doubao-web-image"
   ],
   "expertType": "agent",
   "agentName": "shunge-drama",
@@ -20,8 +23,8 @@
     "zh": "短剧制作"
   },
   "displayDescription": {
-    "en": "Takes a short-drama idea from fact source to finished cut: episode split, script, storyboard and Seedance prompts, reference art, generation checks, measured subtitles, continuity repair and frame-level acceptance.",
-    "zh": "把短剧从设定做到成片：分集、剧本、分镜与 Seedance 提示词、参考图、生成风险检查、实测字幕、连续性修复与抽帧验收。只给方法，不预设剧集与账号。"
+    "en": "Takes a short-drama idea from fact source to finished cut: episode split, script, storyboard and Seedance prompts, reference art, generation through built-in API or Doubao web channels, measured subtitles, continuity repair and frame-level acceptance.",
+    "zh": "把短剧从设定做到成片：分集、剧本、分镜与 Seedance 提示词、参考图，内置接口与豆包网页版两条生成链，实测字幕、连续性修复与抽帧验收。只给方法，不预设剧集与账号，不依赖外部技能。"
   },
   "avatar": "avatars/shunge-drama.png",
   "categoryId": "06-ContentCreative",
@@ -52,6 +55,10 @@
     {
       "zh": "角色老是串脸，帮我把 cross-shot 一致性方案定下来。",
       "en": "My character keeps changing between shots; set up a cross-shot consistency plan."
+    },
+    {
+      "zh": "这条走接口批量出，帮我把渠道和参数定下来。",
+      "en": "Generate this in batch through the API; pin down the channel and parameters."
     },
     {
       "zh": "这集成片帮我验收，重点看接缝和字幕。",
