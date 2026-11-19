@@ -20,32 +20,18 @@
 - 自用接口开发仍用 `-dev` 后缀与客户交付包分开（`baidu-api-dev`、`huarui-dev`、`juhe-nexgate-dev`）。
 - 目录名与 frontmatter 的 `name` 必须一致；改名必须同步更新引用它的角色、插件清单与交叉链接，不能只改目录。
 
-按这条规则，2026-11-13 把 21 个带团队前缀的网站与运维技能改回功能名（`opc-*` → `seo`/`geo`/`site-*`/`ops-*`/`wp-*` 等），逻辑一字未改。
+按这条规则，2026-11-13 曾把 21 个带团队前缀的网站与运维技能改回功能名（`opc-*` → `seo`/`geo`/`site-*`/`ops-*`/`wp-*` 等）。这批功能名技能已于 2026-11-19 归入顺哥私有包，本仓库不再保留副本。
 
-## 团队技能镜像（43 项）
+## 收录范围（2026-11-19 起）
 
-下面这批技能以 `C:\code\cloverhub\clover-opc\expert/skills` 为**唯一维护源**，单向同步到本仓库。
-同步脚本在 clover-opc 仓库里，在本仓库根执行：
+本仓库**只保留公开发布内容**，分四类：
 
-```bash
-python ../clover-opc/scripts/sync_skills.py            # 只看差异
-python ../clover-opc/scripts/sync_skills.py --apply    # 真正复制
-```
+- 单技能 `wb-skill-*`、单专家 `wb-expert-*`、专家团 `wb-expert-group-*`；
+- 自有渠道技能：`baidu-api-dev`、`huarui-*`、`juhe-nexgate*`、`seedance-dev`；
+- TRAE 技能：`trae-screen-tutorial`；
+- 专家包 `media-creator`。
 
-同步只覆盖同名文件、不删目标独有文件、跳过 `__pycache__`。**不要在本仓库直接改这些目录**——下次同步会被源覆盖；要改就去 `expert/skills/` 改，再同步回来。
-
-| 组 | 技能 |
-|---|---|
-| 通用任务 | `task-delivery`、`copywriting`、`business-management`、`computer-use` |
-| 网站交付与运维 | `site-delivery`、`site-visual-design`、`site-audit`、`site-launch`、`site-maintenance`、`site-promotion`、`site-rescue`、`site-incident`、`site-patrol` |
-| 搜索优化 | `seo`、`geo` |
-| WordPress | `wp-dev`、`wp-admin` |
-| 服务器 | `ops-linux`、`ops-deploy`、`ops-btpanel`、`ops-tencentcloud` |
-| 接口与渠道 | `api-engineering`、`xingqiao-media`、`juhe-nexgate`、`huarui-zhisuan`、`huarui-video`、`seedance-dev` |
-| 短剧与出片 | `short-drama`、`doubao-web-video`、`doubao-web-image`、`video-post-production`、`douyin-pip-shorts` |
-| 自媒体 | `douyin-script-studio`、`kuaishou-script-studio`、`wxchannels-script-studio`、`xhs-expert-shunge`、`wechat-mp-studio`、`toutiao-article-studio`、`versus-script-studio` |
-| 教程 | `tutorial-series-plan`、`svg-lecture-deck`、`tutorial-video-assemble`、`ai-short-drama-tutorial` |
-
+顺哥私有包（`clover-opc/expert/skills`）里的技能**不再单向镜像到本仓库**。此前那批无前缀技能是私有包的历史副本，已清理；`scripts/sync_skills.py` 改为白名单制，默认不发布任何技能。要公开发布某个技能，必须手工加入脚本白名单，并确认目标目录带 `wb-skill-` 前缀、不含账号私有数据。
 
 ## 推荐的技能边界
 
@@ -53,16 +39,16 @@ python ../clover-opc/scripts/sync_skills.py --apply    # 真正复制
 
 内容创作和图片视频创作已分别收敛为两个 WorkBuddy 专家包，避免同一能力同时暴露为大量独立触发入口：
 
-- `wb-expert-selfmedia`：自媒体创作专家。按抖音、快手、视频号、小红书、公众号、头条和双对象横评等平台/文体路由，内置原内容创作技能与参考资料。
+- `wb-expert-selfmedia`：自媒体创作专家（2.0.0）。只覆盖抖音、快手、小红书三个平台，只出文案，不含自动化——不登录账号、不发布删改、不抓数据、不批量互动、不调生成接口。范围外平台直接说明不覆盖。
 - `media-creator`：图片视频创作专家。按 Seedance 生成、华锐开发、视频后处理、数字人、宫格切图和零成本视频规划路由，内置对应技能与参考资料。
 
 专家包已注册到 WorkBuddy 专家目录，并同步保存在本仓库的 `wb-expert-selfmedia/` 与 `media-creator/`；仓库不再保留上述能力的独立副本。需要分享或迁移时，使用 `outputs/wb-expert-selfmedia.zip` 和 `outputs/media-creator.zip`。同步时以专家目录为源，先更新专家包，再复制到本仓库。
 
-仍保持独立的媒体能力：
+本仓库保留的独立媒体能力：
 
 - `wb-skill-image`：独立图片生成技能，按要求保留，不并入 `media-creator`。
-- `doubao-web-video`：豆包网页版视频生成，依赖浏览器自动化，不使用 API Key，按要求保留独立入口。
-- `doubao-web-image`：豆包网页版图片生成，与视频技能共用官方创作入口但分开切 tab、分开认领结果；保留官方URL与可核验的控件线索，图像模式特有参数待已登录窗口实测补齐。
+
+豆包网页版视频/图片生成已归入顺哥私有包（`clover-opc/expert/skills`），不在本公开仓库保留副本。
 
 `seedance-dev`、`baidu-api-dev`、`huarui-dev`、`huarui-zhisuan` 与 `huarui-video` 仍按开发、客户交付和内部使用边界独立维护；它们不是普通媒体技能的重复副本。客户包的 hardcode Key 与账号素材不得迁入开发入口；各通道的凭据、端点、素材归属与验收结论不可互换。
 
@@ -123,9 +109,7 @@ python ../clover-opc/scripts/sync_skills.py --apply    # 真正复制
 
 ### Windows 操作
 
-- `computer-use`：统一 Windows 电脑控制技能，覆盖桌面应用、浏览器、IDE、办公软件和 Trae/TraeWork 场景；按后端选择 UI Automation、坐标注入或 computer-use MCP。
-
-原 `windows-computer-use` 与 `trae-computer-use` 已合并到 `computer-use`，不再保留两个重复激活入口。
+统一的 Windows 电脑控制技能（`computer-use`，覆盖桌面应用、浏览器、IDE、办公软件和 Trae/TraeWork 场景）已归入顺哥私有包，不在本公开仓库保留副本。原 `windows-computer-use` 与 `trae-computer-use` 已合并其中。
 
 ### 创业与经营
 
