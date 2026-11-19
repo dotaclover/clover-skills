@@ -14,7 +14,6 @@ import tempfile
 import time
 from urllib import error, parse, request
 
-DEFAULT_BASE = "https://juhe.top"
 TTL = 900
 MATERIAL_GROUP_PATH = "/beta/aigc/generations/asset-groups"
 MATERIAL_ASSET_PATH = "/beta/aigc/generations/assets"
@@ -186,6 +185,9 @@ def status(directory=None):
 
 
 def base_url(value):
+    if not value or not value.strip():
+        raise Failure("config", "请设置 JUHE_BASE_URL 或传入 --base-url；没有默认服务域名。")
+    value = value.strip()
     parts = parse.urlsplit(value)
     if (parts.scheme != "https" or not parts.hostname or parts.username or parts.password
             or parts.query or parts.fragment or parts.path not in ("", "/")):
@@ -458,14 +460,14 @@ def main(argv=None):
     sub.add_parser("cache-clear")
     for name in ("models", "resolve"):
         cmd = sub.add_parser(name)
-        cmd.add_argument("--base-url", default=os.environ.get("JUHE_BASE_URL", DEFAULT_BASE))
+        cmd.add_argument("--base-url", default=os.environ.get("JUHE_BASE_URL", ""))
         cmd.add_argument("--cached", action="store_true", help="允许使用15分钟内同服务同凭据的缓存；默认实时")
         if name == "resolve":
             cmd.add_argument("alias")
             cmd.add_argument("--task", required=True)
 
     material = sub.add_parser("material", help="管理 Seedance 素材分组与素材")
-    material.add_argument("--base-url", default=os.environ.get("JUHE_BASE_URL", DEFAULT_BASE))
+    material.add_argument("--base-url", default=os.environ.get("JUHE_BASE_URL", ""))
     resources = material.add_subparsers(dest="resource", required=True)
     groups = resources.add_parser("groups")
     group_actions = groups.add_subparsers(dest="action", required=True)
@@ -518,7 +520,7 @@ def main(argv=None):
     liveness_get.add_argument("--model")
 
     images = sub.add_parser("images", help="异步图片任务；需服务端启用，不自动重试")
-    images.add_argument("--base-url", default=os.environ.get("JUHE_BASE_URL", DEFAULT_BASE))
+    images.add_argument("--base-url", default=os.environ.get("JUHE_BASE_URL", ""))
     image_actions = images.add_subparsers(dest="action", required=True)
     image_submit = image_actions.add_parser("submit", help="从原始 JSON 文件提交，返回任务 ID")
     image_submit.add_argument("--request-file", required=True)

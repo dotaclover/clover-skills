@@ -20,11 +20,26 @@ spec.loader.exec_module(juhe)
 
 
 class Tests(unittest.TestCase):
+    def test_missing_service_address_never_sends_request(self):
+        with patch.dict(os.environ, {"JUHE_BASE_URL": "", "JUHE_API_KEY": "mock-only"}), \
+                patch.object(juhe, "get_models") as models, \
+                contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(juhe.main(["models"]), 2)
+            models.assert_not_called()
+
+    def test_explicit_service_address_overrides_environment(self):
+        with patch.dict(os.environ, {"JUHE_BASE_URL": "https://environment.invalid", "JUHE_API_KEY": "mock-only"}), \
+                patch.object(juhe, "get_models", return_value=(["example-model"], "live")) as models, \
+                contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(juhe.main(["models", "--base-url", "https://selected.invalid"]), 0)
+            self.assertEqual(models.call_args.args[0], "https://selected.invalid")
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.directory = Path(self.temp.name)
         self.env = patch.dict(os.environ, {}, clear=True)
         self.env.start()
+        os.environ["JUHE_BASE_URL"] = "https://mock.invalid"
         self.config = patch.object(juhe, "config_dir", return_value=self.directory)
         self.config.start()
 
@@ -66,34 +81,34 @@ class Tests(unittest.TestCase):
 
     def test_models_live_default_and_cached(self):
         with patch.object(juhe, "fetch_models", return_value=["qwen-image-3.0"]) as fetch:
-            self.assertEqual(juhe.get_models(juhe.DEFAULT_BASE, "mock")[1], "live")
-            self.assertEqual(juhe.get_models(juhe.DEFAULT_BASE, "mock", True)[1], "cache")
-            juhe.get_models(juhe.DEFAULT_BASE, "mock")
+            self.assertEqual(juhe.get_models("https://mock.invalid", "mock")[1], "live")
+            self.assertEqual(juhe.get_models("https://mock.invalid", "mock", True)[1], "cache")
+            juhe.get_models("https://mock.invalid", "mock")
             self.assertEqual(fetch.call_count, 2)
         self.assertNotIn('"mock"', (self.directory / "models-cache.json").read_text())
 
     def test_cache_scope_expiry_corruption(self):
         with patch.object(juhe, "fetch_models", return_value=[]) as fetch:
-            juhe.get_models(juhe.DEFAULT_BASE, "a")
-            juhe.get_models(juhe.DEFAULT_BASE, "b", True)
+            juhe.get_models("https://mock.invalid", "a")
             juhe.get_models("https://mock.invalid", "b", True)
+            juhe.get_models("https://other.invalid", "b", True)
             with patch.object(juhe.time, "time", return_value=time.time() + juhe.TTL + 1):
-                juhe.get_models("https://mock.invalid", "b", True)
+                juhe.get_models("https://other.invalid", "b", True)
             (self.directory / "models-cache.json").write_text("bad")
-            juhe.get_models("https://mock.invalid", "b", True)
+            juhe.get_models("https://other.invalid", "b", True)
             self.assertEqual(fetch.call_count, 5)
 
     def test_401_invalidates_but_network_does_not(self):
         with patch.object(juhe, "fetch_models", return_value=[]):
-            juhe.get_models(juhe.DEFAULT_BASE, "mock")
+            juhe.get_models("https://mock.invalid", "mock")
         path = self.directory / "models-cache.json"
         with patch.object(juhe, "fetch_models", side_effect=juhe.Failure("network", "网络失败")):
             with self.assertRaises(juhe.Failure):
-                juhe.get_models(juhe.DEFAULT_BASE, "mock")
+                juhe.get_models("https://mock.invalid", "mock")
         self.assertTrue(path.exists())
         with patch.object(juhe, "fetch_models", side_effect=juhe.Failure("unauthorized", "401")):
             with self.assertRaises(juhe.Failure):
-                juhe.get_models(juhe.DEFAULT_BASE, "mock")
+                juhe.get_models("https://mock.invalid", "mock")
         self.assertFalse(path.exists())
 
     def test_save_invalidates_cache(self):
@@ -110,7 +125,7 @@ class Tests(unittest.TestCase):
             with self.subTest(kind=kind), patch.object(juhe.request, "build_opener") as opener:
                 opener.return_value.open.side_effect = exc
                 with self.assertRaises(juhe.Failure) as result:
-                    juhe.fetch_models(juhe.DEFAULT_BASE, "mock-secret")
+                    juhe.fetch_models("https://mock.invalid", "mock-secret")
                 self.assertEqual(result.exception.kind, kind)
                 self.assertNotIn("mock-secret", str(result.exception))
 
@@ -118,9 +133,9 @@ class Tests(unittest.TestCase):
         response = io.StringIO('{"data":[{"id":"new-unknown"}]}')
         with patch.object(juhe.request, "build_opener") as opener:
             opener.return_value.open.return_value = response
-            ids = juhe.fetch_models(juhe.DEFAULT_BASE, "mock-only")
+            ids = juhe.fetch_models("https://mock.invalid", "mock-only")
             req = opener.return_value.open.call_args.args[0]
-            self.assertEqual(req.full_url, juhe.DEFAULT_BASE + "/v1/models")
+            self.assertEqual(req.full_url, "https://mock.invalid" + "/v1/models")
             self.assertEqual(req.get_method(), "GET")
             self.assertEqual(req.get_header("Authorization"), "Bearer mock-only")
             self.assertEqual(opener.return_value.open.call_args.kwargs["timeout"], 30)
@@ -131,7 +146,7 @@ class Tests(unittest.TestCase):
             with patch.object(juhe.request, "build_opener") as opener:
                 opener.return_value.open.return_value = io.StringIO(payload)
                 with self.assertRaises(juhe.Failure) as result:
-                    juhe.fetch_models(juhe.DEFAULT_BASE, "mock-only")
+                    juhe.fetch_models("https://mock.invalid", "mock-only")
                 self.assertEqual(result.exception.kind, "response")
 
     def test_qwen_aliases_task_intersection(self):
@@ -301,7 +316,7 @@ class Tests(unittest.TestCase):
         with patch.object(juhe.request, "build_opener") as opener:
             opener.return_value.open.return_value = response
             result = juhe.request_json(
-                juhe.DEFAULT_BASE, "mock-key", "POST", juhe.MATERIAL_GROUP_PATH,
+                "https://mock.invalid", "mock-key", "POST", juhe.MATERIAL_GROUP_PATH,
                 payload={"Name": "角色素材"}, query={"model": "doubao-seedance-2-0"},
             )
             req = opener.return_value.open.call_args.args[0]
@@ -346,7 +361,7 @@ class Tests(unittest.TestCase):
             self.assertEqual(code, 0)
             opener.return_value.open.assert_called_once()
             req = opener.return_value.open.call_args.args[0]
-            self.assertEqual(req.full_url, juhe.DEFAULT_BASE + "/v1/images/tasks")
+            self.assertEqual(req.full_url, "https://mock.invalid" + "/v1/images/tasks")
             self.assertEqual(req.data, raw)
             self.assertEqual(req.get_header("Idempotency-key"), "order-1")
         self.assertEqual(json.loads(output.read_text(encoding="utf-8"))["task_id"], "img_fixture")

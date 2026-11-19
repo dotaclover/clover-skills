@@ -2,13 +2,13 @@
 name: juhe-nexgate
 agent_created: true
 metadata:
-  version: 1.3.0
+  version: 1.3.1
 description: 接入已部署的 Juhe Nexgate 聚合 API，管理客户端凭据、查询和选择模型，调用文本、同步/异步图片、视频及 Seedance 素材接口。用于用户应用集成、生成和任务查询；修改网关/账号池源码或部署使用 juhe-nexgate-dev。
 ---
 
 # Juhe Nexgate API 接入
 
-默认服务根地址 `https://juhe.top`，鉴权 `Authorization: Bearer <API Key>`，JSON 请求带 `Content-Type: application/json`。Base URL 不带 /v1；OpenAI SDK 的 base_url 通常要追加 /v1，避免遗漏或重复。用户提供其他可信服务时按其地址使用，确认该地址有权接收当前 Key。
+不指定或假定服务域名。使用用户提供或当前项目明确配置的服务根地址，CLI 通过 `JUHE_BASE_URL` 或 `--base-url` 配置；两者都未提供时提示配置，不回退到历史站点，也不从目录名推断域名。确认该地址有权接收当前 Key。鉴权 `Authorization: Bearer <API Key>`，JSON 请求带 `Content-Type: application/json`。Base URL 不带 /v1；OpenAI SDK 的 base_url 通常要追加 /v1，避免遗漏或重复。
 
 ## 先区分任务
 
@@ -20,6 +20,8 @@ description: 接入已部署的 Juhe Nexgate 聚合 API，管理客户端凭据�
 模型列表只证明当前 Token 可见，不证明上游健康、全部参数兼容或异步接口已部署。尤其图片异步是网关扩展，需要服务方部署并启用；本技能更新不代表默认公网已上线。
 
 ## 凭据与 CLI
+
+调用前设置 `JUHE_BASE_URL` 为实际服务根地址；或使用 `python "$SKILL_ROOT/scripts/juhe.py" models --base-url "$SERVICE_ROOT"`。`material`、`images` 的 `--base-url` 放在其子命令前。凭据管理命令不要求服务地址。
 
 使用 Python 3.9+ 标准库工具 `scripts/juhe.py`。先将 `SKILL_ROOT` 设置为本技能实际安装目录，使用绝对脚本路径；不假定项目具有 expert/skills 布局。以下 Bash 命令可从当前任务工作目录执行：
 
