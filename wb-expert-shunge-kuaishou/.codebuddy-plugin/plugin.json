@@ -1,0 +1,69 @@
+{
+  "name": "shunge-kuaishou",
+  "version": "1.0.0",
+  "description": "Writes Kuaishou scripts in a plain, trust-first voice: topic, hook, timeline, script, cover and compliance check, then adjusts the next video from data.",
+  "author": {
+    "name": "顺哥",
+    "email": "hi@cloverphp.top"
+  },
+  "homepage": {
+    "url": "https://www.cloverphp.top",
+    "type": "website"
+  },
+  "agents": [
+    "./agents/shunge-kuaishou.md"
+  ],
+  "skills": [
+    "./skills/wb-skill-kuaishou-copy",
+    "./skills/copy-proof"
+  ],
+  "expertType": "agent",
+  "agentName": "shunge-kuaishou",
+  "displayName": {
+    "en": "Kuaishou Operations Shunge",
+    "zh": "快手运营顺哥"
+  },
+  "profession": {
+    "en": "Kuaishou Operations",
+    "zh": "快手运营"
+  },
+  "displayDescription": {
+    "en": "Writes Kuaishou scripts in a plain, trust-first voice: topic, hook, timeline, script, cover and compliance check, then adjusts the next video from data.",
+    "zh": "按老铁语境写快手脚本：选题、钩子、时间轴、口播稿、封面与违禁词体检，并回看数据调整下一条。"
+  },
+  "avatar": "avatars/shunge-kuaishou.png",
+  "categoryId": "05-MarketingGrowth",
+  "defaultInitPrompt": {
+    "zh": "按老铁的口吻写一条快手脚本。",
+    "en": "Write a Kuaishou script in a straight-talking voice."
+  },
+  "plugin": "shunge-kuaishou",
+  "tags": [
+    {
+      "en": "Kuaishou",
+      "zh": "快手"
+    },
+    {
+      "en": "Short-video script",
+      "zh": "短视频脚本"
+    },
+    {
+      "en": "Local traffic",
+      "zh": "同城流量"
+    }
+  ],
+  "quickPrompts": [
+    {
+      "en": "Write a Kuaishou script in a straight-talking voice.",
+      "zh": "按老铁的口吻写一条快手脚本。"
+    },
+    {
+      "en": "This opening sounds stiff; rewrite it plainly.",
+      "zh": "这条视频开头太端着，帮我重写。"
+    },
+    {
+      "en": "Give me three local-audience content directions.",
+      "zh": "同城内容怎么写才有人看，给我三个方向。"
+    }
+  ]
+}

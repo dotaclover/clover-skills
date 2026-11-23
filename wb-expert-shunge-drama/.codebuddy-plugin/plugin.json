@@ -1,6 +1,6 @@
 {
   "name": "shunge-drama",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A self-contained short-drama production expert: fact-source contract, nine-step production from script to acceptance, storyboard and Seedance prompt generation, plus three built-in generation channels (Ark/Huarui API, Doubao web video, Doubao web image), measured subtitles, continuity repair. Method only, no built-in series, account, or vendor parameters.",
   "agents": [
     "./agents/shunge-drama.md"
@@ -23,8 +23,8 @@
     "zh": "短剧制作"
   },
   "displayDescription": {
-    "en": "Takes a short-drama idea from fact source to finished cut: episode split, script, storyboard and Seedance prompts, reference art, generation through built-in API or Doubao web channels, measured subtitles, continuity repair and frame-level acceptance.",
-    "zh": "把短剧从设定做到成片：分集、剧本、分镜与 Seedance 提示词、参考图，内置接口与豆包网页版两条生成链，实测字幕、连续性修复与抽帧验收。只给方法，不预设剧集与账号，不依赖外部技能。"
+    "en": "Takes a short-drama idea to a finished cut: setup, episodes, storyboard, reference art, generation, subtitles and acceptance, with method only and no preset series.",
+    "zh": "把短剧想法做成成片：设定、分集、分镜、参考图、生成、字幕与验收，只给方法不预设剧集。"
   },
   "avatar": "avatars/shunge-drama.png",
   "categoryId": "06-ContentCreative",
@@ -49,20 +49,16 @@
   ],
   "quickPrompts": [
     {
+      "zh": "我有个短剧想法，帮我从设定和分集开始捋。",
+      "en": "I have a short-drama idea; help me start from the setup and episode split."
+    },
+    {
       "zh": "把这个剧本拆成分镜表，要能直接生成。",
       "en": "Break this script into a generation-ready storyboard."
     },
     {
-      "zh": "角色老是串脸，帮我把 cross-shot 一致性方案定下来。",
-      "en": "My character keeps changing between shots; set up a cross-shot consistency plan."
-    },
-    {
-      "zh": "这条走接口批量出，帮我把渠道和参数定下来。",
-      "en": "Generate this in batch through the API; pin down the channel and parameters."
-    },
-    {
       "zh": "这集成片帮我验收，重点看接缝和字幕。",
-      "en": "Accept this finished cut for me, focusing on seams and subtitles."
+      "en": "Accept this finished cut, focusing on seams and subtitles."
     }
   ]
 }

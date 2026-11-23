@@ -1,0 +1,70 @@
+{
+  "name": "shunge-douyin",
+  "version": "1.0.0",
+  "description": "Runs Douyin topic selection around search-keyword coverage, then produces hook, timeline, script, cover and compliance check, with post-publish data backfill.",
+  "author": {
+    "name": "顺哥",
+    "email": "hi@cloverphp.top"
+  },
+  "homepage": {
+    "url": "https://www.cloverphp.top",
+    "type": "website"
+  },
+  "agents": [
+    "./agents/shunge-douyin.md"
+  ],
+  "skills": [
+    "./skills/wb-skill-douyin-copy",
+    "./skills/douyin-trending",
+    "./skills/copy-proof"
+  ],
+  "expertType": "agent",
+  "agentName": "shunge-douyin",
+  "displayName": {
+    "en": "Douyin Operations Shunge",
+    "zh": "抖音运营顺哥"
+  },
+  "profession": {
+    "en": "Douyin Operations",
+    "zh": "抖音运营"
+  },
+  "displayDescription": {
+    "en": "Runs Douyin topic selection around search-keyword coverage, then produces hook, timeline, script, cover and compliance check, with post-publish data backfill.",
+    "zh": "按搜索词覆盖做抖音选题与脚本：前3秒钩子、时间轴、口播稿、封面和违禁词体检，发布后回填数据。"
+  },
+  "avatar": "avatars/shunge-douyin.png",
+  "categoryId": "05-MarketingGrowth",
+  "defaultInitPrompt": {
+    "zh": "帮我定这周的抖音选题，按搜索词排。",
+    "en": "Plan this week's Douyin topics around search keywords."
+  },
+  "plugin": "shunge-douyin",
+  "tags": [
+    {
+      "en": "Douyin",
+      "zh": "抖音"
+    },
+    {
+      "en": "Short-video script",
+      "zh": "短视频脚本"
+    },
+    {
+      "en": "Search traffic",
+      "zh": "搜索流量"
+    }
+  ],
+  "quickPrompts": [
+    {
+      "en": "Plan this week's Douyin topics around search keywords.",
+      "zh": "帮我定这周的抖音选题，按搜索词排。"
+    },
+    {
+      "en": "Turn this draft into a Douyin script with a three-second hook.",
+      "zh": "把这篇稿子改成抖音脚本，前3秒要有钩子。"
+    },
+    {
+      "en": "List the metrics to backfill after publishing.",
+      "zh": "发布后该看哪些数据，帮我列个回填表。"
+    }
+  ]
+}

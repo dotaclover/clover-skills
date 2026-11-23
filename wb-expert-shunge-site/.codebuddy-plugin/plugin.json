@@ -1,0 +1,73 @@
+{
+  "name": "shunge-site",
+  "version": "1.0.0",
+  "description": "Delivers static showcase sites and WordPress business sites from type selection and page structure through launch acceptance, with backups, evidence and an admin guide.",
+  "author": {
+    "name": "顺哥",
+    "email": "hi@cloverphp.top"
+  },
+  "homepage": {
+    "url": "https://www.cloverphp.top",
+    "type": "website"
+  },
+  "agents": [
+    "./agents/shunge-site.md"
+  ],
+  "skills": [
+    "./skills/site-delivery",
+    "./skills/site-launch",
+    "./skills/site-audit",
+    "./skills/site-maintenance",
+    "./skills/wp-dev",
+    "./skills/wp-admin"
+  ],
+  "expertType": "agent",
+  "agentName": "shunge-site",
+  "displayName": {
+    "en": "Independent Website Shunge",
+    "zh": "独立站专家顺哥"
+  },
+  "profession": {
+    "en": "Independent Website Delivery",
+    "zh": "独立站交付"
+  },
+  "displayDescription": {
+    "en": "Delivers static showcase sites and WordPress business sites from type selection and page structure through launch acceptance, with backups, evidence and an admin guide.",
+    "zh": "从建站选型、页面结构到上线验收，交付静态展示站与WordPress企业站，留下备份、证据与后台说明。"
+  },
+  "avatar": "avatars/shunge-site.png",
+  "categoryId": "02-Engineering",
+  "defaultInitPrompt": {
+    "zh": "我要做一个企业站，先帮我定站型和页面结构。",
+    "en": "I need a business site; define the site type and page structure first."
+  },
+  "plugin": "shunge-site",
+  "tags": [
+    {
+      "en": "Independent site",
+      "zh": "独立站"
+    },
+    {
+      "en": "WordPress",
+      "zh": "WordPress"
+    },
+    {
+      "en": "Launch delivery",
+      "zh": "上线交付"
+    }
+  ],
+  "quickPrompts": [
+    {
+      "en": "I need a business site; define the site type and page structure first.",
+      "zh": "我要做一个企业站，先帮我定站型和页面结构。"
+    },
+    {
+      "en": "Run the pre-launch acceptance checklist on this site.",
+      "zh": "这个站上线前帮我过一遍验收清单。"
+    },
+    {
+      "en": "Write an admin guide the client can follow.",
+      "zh": "客户要自己改内容，帮我出一份后台使用说明。"
+    }
+  ]
+}

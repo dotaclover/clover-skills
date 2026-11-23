@@ -1,0 +1,69 @@
+{
+  "name": "shunge-geo",
+  "version": "1.0.0",
+  "description": "Works on AI-search visibility: crawler reachability, extractable content, factual consistency, fixed-question sampling and citation attribution, without promising mentions.",
+  "author": {
+    "name": "顺哥",
+    "email": "hi@cloverphp.top"
+  },
+  "homepage": {
+    "url": "https://www.cloverphp.top",
+    "type": "website"
+  },
+  "agents": [
+    "./agents/shunge-geo.md"
+  ],
+  "skills": [
+    "./skills/wb-skill-geo",
+    "./skills/wb-skill-seo"
+  ],
+  "expertType": "agent",
+  "agentName": "shunge-geo",
+  "displayName": {
+    "en": "Website GEO Shunge",
+    "zh": "网站GEO专家顺哥"
+  },
+  "profession": {
+    "en": "Website GEO",
+    "zh": "网站GEO"
+  },
+  "displayDescription": {
+    "en": "Works on AI-search visibility: crawler reachability, extractable content, factual consistency, fixed-question sampling and citation attribution, without promising mentions.",
+    "zh": "做AI搜索可见性：爬虫可达、内容可抽取、事实一致、问题集实测与引用归因，不承诺被提及或被推荐。"
+  },
+  "avatar": "avatars/shunge-geo.png",
+  "categoryId": "05-MarketingGrowth",
+  "defaultInitPrompt": {
+    "zh": "客户问AI能不能搜到他，帮我设计实测方案。",
+    "en": "The client asks whether AI can find them; design a measurement plan."
+  },
+  "plugin": "shunge-geo",
+  "tags": [
+    {
+      "en": "GEO",
+      "zh": "GEO"
+    },
+    {
+      "en": "AI search",
+      "zh": "AI搜索"
+    },
+    {
+      "en": "Citation measurement",
+      "zh": "引用测量"
+    }
+  ],
+  "quickPrompts": [
+    {
+      "en": "The client asks whether AI can find them; design a measurement plan.",
+      "zh": "客户问AI能不能搜到他，帮我设计实测方案。"
+    },
+    {
+      "en": "Assess whether this site can be crawled and understood by AI.",
+      "zh": "帮我判断这个站现在能不能被AI抓到和读懂。"
+    },
+    {
+      "en": "Write the sampling report without overstating results.",
+      "zh": "这次GEO采样怎么写报告，才不算夸大。"
+    }
+  ]
+}

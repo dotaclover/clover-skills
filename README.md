@@ -155,3 +155,23 @@
 - 自用开发与公开通用 Skill 不写入真实 API Key、Cookie 或未经确认的生产地址；客户专用交付包可按明确交付约定内置指定 Key，但不得跨客户/开发包复用、在报告中回显或未经授权扩大分发。
 - 真实请求、费用和外部写操作必须保留用户授权边界；测试脚本只输出脱敏结果。
 
+## 顺哥专家团上架阵容（2026-11-23）
+
+9 个单专家 + 9 个独立技能，统一用顺哥本人头像。每包的来源、脱敏改动与遗留缺口见 `LISTING-PLAN.md`，上架前先读那一份。
+
+| 展示名 | 目录 | 内置技能 |
+|---|---|---|
+| 小红书运营顺哥 | `wb-expert-shunge-xhs` | wb-skill-xhs-copy、copy-proof |
+| 视频号运营顺哥 | `wb-expert-shunge-channels` | wb-skill-channels-copy、copy-proof |
+| 抖音运营顺哥 | `wb-expert-shunge-douyin` | wb-skill-douyin-copy、douyin-trending、copy-proof |
+| 快手运营顺哥 | `wb-expert-shunge-kuaishou` | wb-skill-kuaishou-copy、copy-proof |
+| 短剧专家顺哥 | `wb-expert-shunge-drama` | short-drama、wb-skill-storyboard、seedance-dev、doubao-web-video、doubao-web-image |
+| 独立站专家顺哥 | `wb-expert-shunge-site` | site-delivery、site-launch、site-audit、site-maintenance、wp-dev、wp-admin |
+| 网页RPA专家顺哥 | `wb-expert-shunge-rpa` | wb-skill-web-rpa、computer-use |
+| 网站SEO专家顺哥 | `wb-expert-shunge-seo` | wb-skill-seo |
+| 网站GEO专家顺哥 | `wb-expert-shunge-geo` | wb-skill-geo、wb-skill-seo |
+
+独立技能：`wb-skill-xhs-copy`、`wb-skill-channels-copy`、`wb-skill-douyin-copy`、`wb-skill-kuaishou-copy`、`wb-skill-seo`、`wb-skill-geo`、`wb-skill-web-rpa`、`wb-skill-doubao-image`、`wb-skill-doubao-video`。
+
+**命名口径**：短剧复用已注册的 `shunge-drama`（1.2.0），不新开同名包；其余八个专家标识为 `shunge-<平台/能力>`。**旧包处理**：`wb-expert-shunge-selfmedia`、`wb-expert-selfmedia`、`media-creator` 与 `wb-expert-drama`（`shunge-ai-short-drama`）与新阵容能力重叠，新包上架后应下架，避免市场里出现多个同名"自媒体/短剧"专家。
+

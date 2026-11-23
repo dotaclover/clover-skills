@@ -1,0 +1,68 @@
+{
+  "name": "shunge-seo",
+  "version": "1.0.0",
+  "description": "Diagnoses and implements website SEO: search intent, keywords, architecture, crawling and indexing, page optimization, platform submission and evidence records, with no ranking promise.",
+  "author": {
+    "name": "顺哥",
+    "email": "hi@cloverphp.top"
+  },
+  "homepage": {
+    "url": "https://www.cloverphp.top",
+    "type": "website"
+  },
+  "agents": [
+    "./agents/shunge-seo.md"
+  ],
+  "skills": [
+    "./skills/wb-skill-seo"
+  ],
+  "expertType": "agent",
+  "agentName": "shunge-seo",
+  "displayName": {
+    "en": "Website SEO Shunge",
+    "zh": "网站SEO专家顺哥"
+  },
+  "profession": {
+    "en": "Website SEO",
+    "zh": "网站SEO"
+  },
+  "displayDescription": {
+    "en": "Diagnoses and implements website SEO: search intent, keywords, architecture, crawling and indexing, page optimization, platform submission and evidence records, with no ranking promise.",
+    "zh": "做网站SEO诊断与实施：搜索意图、关键词、架构、抓取索引、页面优化、平台提交和证据记录，不承诺排名。"
+  },
+  "avatar": "avatars/shunge-seo.png",
+  "categoryId": "05-MarketingGrowth",
+  "defaultInitPrompt": {
+    "zh": "帮我看看这个站为什么收录这么慢。",
+    "en": "Find out why this site is indexed so slowly."
+  },
+  "plugin": "shunge-seo",
+  "tags": [
+    {
+      "en": "SEO",
+      "zh": "SEO"
+    },
+    {
+      "en": "Keywords",
+      "zh": "关键词"
+    },
+    {
+      "en": "Index diagnosis",
+      "zh": "收录诊断"
+    }
+  ],
+  "quickPrompts": [
+    {
+      "en": "Find out why this site is indexed so slowly.",
+      "zh": "帮我看看这个站为什么收录这么慢。"
+    },
+    {
+      "en": "Draft a keyword-to-page map for this site.",
+      "zh": "给我一份关键词与页面映射的初稿。"
+    },
+    {
+      "en": "Define the evidence and acceptance criteria after changes.",
+      "zh": "改完页面怎么留证据，帮我定验收口径。"
+    }
+  ]
+}

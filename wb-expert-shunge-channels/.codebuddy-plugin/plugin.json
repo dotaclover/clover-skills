@@ -1,0 +1,69 @@
+{
+  "name": "shunge-channels",
+  "version": "1.0.0",
+  "description": "Writes WeChat Channels talking-head scripts for a social-graph audience: topic, first-three-second hook, timeline, cover and pre-publish check, plus diagnosis of old videos.",
+  "author": {
+    "name": "顺哥",
+    "email": "hi@cloverphp.top"
+  },
+  "homepage": {
+    "url": "https://www.cloverphp.top",
+    "type": "website"
+  },
+  "agents": [
+    "./agents/shunge-channels.md"
+  ],
+  "skills": [
+    "./skills/wb-skill-channels-copy",
+    "./skills/copy-proof"
+  ],
+  "expertType": "agent",
+  "agentName": "shunge-channels",
+  "displayName": {
+    "en": "WeChat Channels Operations Shunge",
+    "zh": "视频号运营顺哥"
+  },
+  "profession": {
+    "en": "WeChat Channels Operations",
+    "zh": "视频号运营"
+  },
+  "displayDescription": {
+    "en": "Writes WeChat Channels talking-head scripts for a social-graph audience: topic, first-three-second hook, timeline, cover and pre-publish check, plus diagnosis of old videos.",
+    "zh": "按熟人社交语境写视频号口播稿：选题、前3秒钩子、时间轴、封面与发布前体检，并能诊断旧片、给出改法。"
+  },
+  "avatar": "avatars/shunge-channels.png",
+  "categoryId": "05-MarketingGrowth",
+  "defaultInitPrompt": {
+    "zh": "把这段内容改成视频号口播稿。",
+    "en": "Turn this material into a WeChat Channels talking-head script."
+  },
+  "plugin": "shunge-channels",
+  "tags": [
+    {
+      "en": "WeChat Channels",
+      "zh": "视频号"
+    },
+    {
+      "en": "Talking-head script",
+      "zh": "口播脚本"
+    },
+    {
+      "en": "Content operations",
+      "zh": "内容运营"
+    }
+  ],
+  "quickPrompts": [
+    {
+      "en": "Turn this material into a WeChat Channels talking-head script.",
+      "zh": "把这段内容改成视频号口播稿。"
+    },
+    {
+      "en": "Viewers drop in the first three seconds; rewrite the opening.",
+      "zh": "前3秒留不住人，帮我重写开头。"
+    },
+    {
+      "en": "This old video got no traction; find the problem.",
+      "zh": "这条旧片没量，帮我看看问题。"
+    }
+  ]
+}

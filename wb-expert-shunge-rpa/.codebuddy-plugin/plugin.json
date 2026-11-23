@@ -1,0 +1,69 @@
+{
+  "name": "shunge-rpa",
+  "version": "1.0.0",
+  "description": "Turns repetitive web work into reusable flows: batch form filling, list extraction, back-office operations and download reconciliation, with reviewable evidence at every step.",
+  "author": {
+    "name": "顺哥",
+    "email": "hi@cloverphp.top"
+  },
+  "homepage": {
+    "url": "https://www.cloverphp.top",
+    "type": "website"
+  },
+  "agents": [
+    "./agents/shunge-rpa.md"
+  ],
+  "skills": [
+    "./skills/wb-skill-web-rpa",
+    "./skills/computer-use"
+  ],
+  "expertType": "agent",
+  "agentName": "shunge-rpa",
+  "displayName": {
+    "en": "Web RPA Shunge",
+    "zh": "网页RPA专家顺哥"
+  },
+  "profession": {
+    "en": "Web RPA Automation",
+    "zh": "网页RPA自动化"
+  },
+  "displayDescription": {
+    "en": "Turns repetitive web work into reusable flows: batch form filling, list extraction, back-office operations and download reconciliation, with reviewable evidence at every step.",
+    "zh": "把重复网页操作做成可复用流程：批量填表、列表采集、后台操作与下载核对，每一步都留可复核的证据。"
+  },
+  "avatar": "avatars/shunge-rpa.png",
+  "categoryId": "02-Engineering",
+  "defaultInitPrompt": {
+    "zh": "每周要重复填同一张表，帮我做成自动化流程。",
+    "en": "I refill the same form every week; turn it into an automated flow."
+  },
+  "plugin": "shunge-rpa",
+  "tags": [
+    {
+      "en": "Web automation",
+      "zh": "网页自动化"
+    },
+    {
+      "en": "Data extraction",
+      "zh": "数据采集"
+    },
+    {
+      "en": "Batch operations",
+      "zh": "批量操作"
+    }
+  ],
+  "quickPrompts": [
+    {
+      "en": "I refill the same form every week; turn it into an automated flow.",
+      "zh": "每周要重复填同一张表，帮我做成自动化流程。"
+    },
+    {
+      "en": "Plan batch extraction from these pages; do not act yet.",
+      "zh": "帮我从这几个页面批量取数，先给方案别动手。"
+    },
+    {
+      "en": "List the acceptance checks for this automation.",
+      "zh": "这个自动化跑完怎么验，帮我列验收点。"
+    }
+  ]
+}

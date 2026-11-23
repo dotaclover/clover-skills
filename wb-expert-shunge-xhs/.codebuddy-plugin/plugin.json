@@ -1,0 +1,69 @@
+{
+  "name": "shunge-xhs",
+  "version": "1.0.0",
+  "description": "Turns a topic into a publish-ready Xiaohongshu note: titles, body copy, cover plan, image prompts and a pre-publish check, with diagnosis of old notes and comment replies.",
+  "author": {
+    "name": "顺哥",
+    "email": "hi@cloverphp.top"
+  },
+  "homepage": {
+    "url": "https://www.cloverphp.top",
+    "type": "website"
+  },
+  "agents": [
+    "./agents/shunge-xhs.md"
+  ],
+  "skills": [
+    "./skills/wb-skill-xhs-copy",
+    "./skills/copy-proof"
+  ],
+  "expertType": "agent",
+  "agentName": "shunge-xhs",
+  "displayName": {
+    "en": "Xiaohongshu Operations Shunge",
+    "zh": "小红书运营顺哥"
+  },
+  "profession": {
+    "en": "Xiaohongshu Operations",
+    "zh": "小红书运营"
+  },
+  "displayDescription": {
+    "en": "Turns a topic into a publish-ready Xiaohongshu note: titles, body copy, cover plan, image prompts and a pre-publish check, with diagnosis of old notes and comment replies.",
+    "zh": "从小红书选题、标题、正文、封面到发布前体检，按账号卡产出可直接发布的图文笔记，诊断旧笔记、回复评论。"
+  },
+  "avatar": "avatars/shunge-xhs.png",
+  "categoryId": "05-MarketingGrowth",
+  "defaultInitPrompt": {
+    "zh": "写一篇小红书笔记，先看我的账号卡。",
+    "en": "Write a Xiaohongshu note; read my account card first."
+  },
+  "plugin": "shunge-xhs",
+  "tags": [
+    {
+      "en": "Xiaohongshu",
+      "zh": "小红书"
+    },
+    {
+      "en": "Graphic notes",
+      "zh": "图文笔记"
+    },
+    {
+      "en": "Account operations",
+      "zh": "账号运营"
+    }
+  ],
+  "quickPrompts": [
+    {
+      "en": "Write a Xiaohongshu note; read my account card first.",
+      "zh": "写一篇小红书笔记，先看我的账号卡。"
+    },
+    {
+      "en": "This note underperformed; diagnose where it went wrong.",
+      "zh": "这篇笔记数据差，帮我诊断问题出在哪。"
+    },
+    {
+      "en": "Reply to these comments without sounding like a call centre.",
+      "zh": "帮我回这几条评论，别太像客服。"
+    }
+  ]
+}
