@@ -290,7 +290,7 @@ def scene(b, idx, total, tag):
         f_ep = ImageFont.truetype(F_BOLD, 28)
         ew = d.textbbox((0, 0), ep_label, font=f_ep)[2]
         pad = 26
-        rx0, rx1 = EP_X - ew - pad, EP_X
+        rx0, rx1 = EP_X - ew - pad * 2, EP_X
         d.rounded_rectangle([rx0, TITLE_CY - 24, rx1, TITLE_CY + 24], radius=24, fill=C_ACCENT)
         d.text((rx1 - pad, TITLE_CY), ep_label, font=f_ep, fill=(255, 255, 255), anchor="rm")
 
